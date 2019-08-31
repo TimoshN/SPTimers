@@ -328,7 +328,7 @@ do
 		[90355] = GroupedSpellString(80353), -- "Hero:group",
 		[111859] = GroupedSpellString(108501), -- "Warlock:Grom:group"
 		[113858] = GroupedSpellString(77801), -- "Warlock:Soul:group",
-		[1122] = GroupedSpellString(1122,18540), --"Warlock:Guardian:group",
+		[1122] = GroupedSpellString(1122,111685), --"Warlock:Guardian:group",
 		[122355] = GroupedSpellString(122355), --"Warlock:Demo:MC:group",
 		[5782] = GroupedSpellString(5782), --"Warlock:Fear:group",
 		[27243] = GroupedSpellString(27243), --"Warlock:SoC:group",

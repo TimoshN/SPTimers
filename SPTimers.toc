@@ -1,6 +1,6 @@
-﻿## Interface: 80100
+﻿## Interface: 80200
 ## Title: SPTimers
-## Version: 3.13.2
+## Version: 3.14.1
 ## VersionType: main
 ## X-Version-Status: release
 ## Author: Alea

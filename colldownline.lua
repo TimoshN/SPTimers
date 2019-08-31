@@ -1,195 +1,58 @@
-﻿local addon, C = ...
-local options
-local smed = C.LSM
+﻿local addon, ns = ...
+local db
+local backdrop, icon_backdrop = { }
 local L = AleaUI_GUI.GetLocale("SPTimers")
 
-local IsSpellKnown = IsSpellKnown
-local _G = _G
-local tonumber = tonumber
-local wipe = table.wipe
-local MAX_TALENT_TIERS = MAX_TALENT_TIERS
-local NUM_TALENT_COLUMNS = NUM_TALENT_COLUMNS
-local GetTalentInfo = GetTalentInfo
-local ceil = ceil
-local tostring = tostring
-local GetItemInfo = GetItemInfo
-local CreateFrame = CreateFrame
-local gmatch = gmatch
-local UnitHasVehicleUI = UnitHasVehicleUI
-local UnitClass = UnitClass
-local IsLoggedIn = IsLoggedIn
-local GetSpellLink = GetSpellLink
-local MouseIsOver = MouseIsOver
-local abs = abs
-local unpack = unpack
-local GetSpellTabInfo = GetSpellTabInfo
-local GetFlyoutInfo = GetFlyoutInfo
-local GetFlyoutSlotInfo = GetFlyoutSlotInfo
-local format = format
-local GetInventoryItemLink = GetInventoryItemLink
-local GetContainerItemLink = GetContainerItemLink
-local GetPetActionCooldown = GetPetActionCooldown
-local GetPetActionInfo = GetPetActionInfo
-local GetActionInfo = GetActionInfo
-local GetActionTexture = GetActionTexture
-local GetSpellCharges = GetSpellCharges
-local GetRuneCooldown = GetRuneCooldown
-local floor = floor
-local time = time
-local gsub = gsub
-local tinsert = table.insert
-local tsort = table.sort
-local tremove = table.remove
-local match = string.match
+local section, iconsize = 0, 0
+local smed = ns.LSM
+local sR = {}
+
+local spellToItems = { gear={}, bags={} }
+local lastItemUsed = {}
+
+local function IsItemSpellCooldown(spellID)
+
+    if ( spellToItems.gear[spellID] ) then
+        return spellToItems.gear[spellID]
+    end 
+
+    if ( spellToItems.bags[spellID] ) then
+        return spellToItems.bags[spellID]
+    end 
+
+    return false
+end
+
+local function SetLastItemUsed(spellID)
+    lastItemUsed[spellID] = IsItemSpellCooldown(spellID)
+end
 
 -- debug print ------------------
 local old_print = print
 local print = function(...)
-	if true then return end
+	if false then return end
 	
 	old_print("SPTimers-CooldownLine, ", ...)
 end
 
-local parent = C.Parent
+local parent = ns.Parent
 local mainframe = CreateFrame("Frame", "SPTimersCooldownLine", parent)
-mainframe:SetScript("OnEvent", function(self, event, ...)
-	self[event](self, ...)
-end)
 mainframe.OldAlpha = mainframe.SetAlpha
-
-local InCombatRes = {
-	[20484] = true, -- druid br
-	[61999] = true, -- dk br
-	[20707] = true, -- warlock
-	
-	[95750] = true,  -- warlock br
-	[126393] = true, -- hunter
-}
-
-
-local disable_spells = {
-	[73899] = true,
-	[86346] = true,
-	[108501] = true,
-}
-
-local GetSpellBaseCooldown = GetSpellBaseCooldown
-local mycooldowns = {
-	[527] = 8*6000,
-	[88423] = 8*6000,
-	[4987] = 8*6000,
-	[77130] = 8*6000,
-	[115450] = 8*6000,
-	[73685] = 15*6000,
-	[18562] = 30*6000,
-	[8092] = 8*6000,
-	[32379] = 9*6000,
-}
-local talentcooldowns = {	
-	[61295] = { 6*6000, 157812, 5*6000 },
-}
-
-local cooldowns_placeholder = {
-	[114049] = ( GetSpellInfo(114049) ), 
-	[86346] = ( GetSpellInfo(86346) ),
-}
-
-local minimumCooldown = {
-	[8092] = 0.75,
-	[205448] = 0.75,
-}
-
-local function MyGetSpellBaseCooldown(spellID)
-	
-	local basecd = GetSpellBaseCooldown(spellID)
-	
-	if basecd and basecd == 0 then
-		if mycooldowns[spellID] then 
-			return mycooldowns[spellID]
-		elseif talentcooldowns[spellID] then
-			return ( IsSpellKnown(talentcooldowns[spellID][2]) and talentcooldowns[spellID][3] or talentcooldowns[spellID][1])
-		end		
-	end
-
-	return basecd
-end
-
-local ccDuration = 0
-local ccEndTimeTime = 0
-local capGCD = nil
-local capGCDTimeOut = -1
-
-
-local function GetRuneIgnore(startTime, duration)
-	for i=1, 6 do
-		local start, runeDuration, runeReady = GetRuneCooldown(i);
-		if not runeReady then
-			if start then			
-				if abs(duration - runeDuration) < 0.001 then
-					return true
-				end
-			end
-		end
-	end
-	
-	return false
-end
-
-local function GetMinimumCooldownDuration(spellID, duration, startTime)
-	
-	if ccEndTimeTime < GetTime() then
-		ccDuration = 0
-	end
-	
-	if C.IsGCDCooldown(startTime, duration) then
-		return false
-	end
-	
-	if C.myCLASS == 'DEATHKNIGHT' then
-		if GetRuneIgnore(startTime, duration) then
-			return false
-		end
-	end
-	
-	return ( duration > 1.5 or minimumCooldown[spellID]) and ( abs(duration - ccDuration) > 0.001 )-- C.SecondsRoundAllDuration(duration, 2) ~= ccDuration
-end
-
-local gcdDisHook = CreateFrame('Frame')
-gcdDisHook:RegisterUnitEvent('UNIT_SPELLCAST_START', 'player', '')
---gcdDisHook:RegisterUnitEvent('UNIT_SPELLCAST_SEND', 'player')
-gcdDisHook:SetScript('OnEvent', function(self, event, unit, spell, rank, line, spellID)
-	if spellID == 13262 then
-		capGCD = true
-		capGCDTimeOut = GetTime()+1.6
-	else
-		capGCD = false
-	end
-end)
-
-local ccDisHook = CreateFrame('Frame')
-ccDisHook:RegisterEvent("LOSS_OF_CONTROL_ADDED")
-ccDisHook:RegisterEvent("LOSS_OF_CONTROL_UPDATE")
-ccDisHook:SetScript('OnEvent', function(self, event, index)
-
-	if event == "LOSS_OF_CONTROL_ADDED" then
-		
-		local locType, spellID2, text, iconTexture, startTime, timeRemaining, duration2, lockoutSchool, priority, displayType = C_LossOfControl.GetEventInfo(index);
-		
-		if locType == "SCHOOL_INTERRUPT" then
-			ccDuration = duration2 or 0
-		--	ccDuration = C.SecondsRoundAllDuration(ccDuration, 2)
-			ccEndTimeTime = startTime+duration2
-		end
-	else
-		if ccEndTimeTime < GetTime() then
-			ccDuration = 0
-		end
-	end
-end)
-
-
-local stackspellpattern = " №%d"
 mainframe:SetClampedToScreen(true)
+
+
+local eventFrame = CreateFrame('Frame')
+--[==[
+eventFrame:RegisterEvent('PET_BAR_UPDATE_COOLDOWN')
+eventFrame:RegisterEvent('SPELL_UPDATE_COOLDOWN')
+eventFrame:RegisterEvent('SPELLS_CHANGED')
+eventFrame:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED')
+eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
+eventFrame:RegisterEvent('RUNE_POWER_UPDATE')
+eventFrame:RegisterEvent('BAG_UPDATE_COOLDOWN')
+eventFrame:RegisterUnitEvent('UNIT_SPELLCAST_SUCCEEDED', 'player', '')
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player", '')
+]==]
 
 local splashbigmover = CreateFrame("Frame", "SPTimersCooldownLineSplashBigMover", parent)
 splashbigmover:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground",})
@@ -202,28 +65,6 @@ splashbigmover.text:SetJustifyH("CENTER")
 splashbigmover.text:SetText(L["Big Cooldown Splash Unlocked"])
 splashbigmover:SetClampedToScreen(true)
 
-local pairs, ipairs = pairs, ipairs
-local tinsert, tremove = tinsert, tremove
-local GetTime = GetTime
-local random = math.random
-local strmatch = strmatch
-local UnitExists, HasPetUI = UnitExists, HasPetUI
-local GetSpellInfo = GetSpellInfo
-
-local db
-local backdrop, icon_backdrop = { }
-
-
-local section, iconsize = 0, 0
-local BOOKTYPE_SPELL, BOOKTYPE_PET = BOOKTYPE_SPELL, BOOKTYPE_PET
-
-local BookType = {
-	[BOOKTYPE_SPELL] = "PLAYER_CD",
-	[BOOKTYPE_PET]	 = "PET_CD"
-}
-
-local flyOutCooldown = {}
-local flyOutCooldownList = {}
 
 local bigsplashparent, DoBigSplash
 do
@@ -272,7 +113,7 @@ do
 	bigsplashparent:SetPoint("CENTER", splashbigmover, "CENTER")
 	bigsplashparent:SetScript("OnUpdate", OnSplashUpdate)
 
-	function DoBigSplash(frame, name)	
+	function DoBigSplash(frame)	
 		local skip = false
 		
 		for i=1, #bigsplashparent.splashes do
@@ -283,11 +124,9 @@ do
 			end
 		end
 	
-		if not skip and not frame.splashing and name and db.slash_show then
-			if C:DoBigSplashCooldown(name) then return end
+        if not skip and not frame.splashing and db.slash_show then
+			if ns:DoBigSplashCooldown( frame.parent.rawID) then return end
 
-			print('Do Splash', name)
-			
 			if not frame.throttle or ( frame.throttle < GetTime() ) then
 				
 				local f = frame.parent
@@ -372,7 +211,7 @@ do
 			end
 		end
 		
-		if not skip and not frame.splashing and db.slash_show_small and frame.parent.name then
+		if not skip and not frame.splashing and db.slash_show_small then
 			if not frame.throttle or ( frame.throttle < GetTime() ) then
 				
 				local f = frame.parent
@@ -390,102 +229,7 @@ do
 	end
 end
 
-local spells = { [BOOKTYPE_SPELL] = { }, [BOOKTYPE_PET] = { }, }
-local sR = {}
-
-local frames, cooldowns, specialspells, placeholder = { }, { }, { }, { }
-
-----------------------------------
--- Mage
---placeholder[125430] = 112948
-
--- Warlock 
---placeholder[175707] = 30283
-
-----------------------------------
---[==[
-do
-	local GetActiveSpecGroup = GetActiveSpecGroup	
-	local talentID, talentName
-	
-	local talents = {}
-	local patternString = SPELL_RECAST_TIME_CHARGES_SEC
-	local patternString1 = gsub(patternString, "%%.3g","(.+)")
-	
-	local hidegametooltip = CreateFrame("Frame")
-	hidegametooltip:Hide()
-	local gametooltip = CreateFrame("GameTooltip", "SPTimers_CooldownLina_GameToolTip", nil, "GameTooltipTemplate");
-	gametooltip:SetOwner( hidegametooltip,"ANCHOR_NONE");
-	
-	local function ChechForFalseSpells(realname, realspellID, values)
-		for spellid, name in pairs(values) do			
-			if name == realname and spellid ~= realspellID then
-				values[spellid] = nil
-				break
-			end
-		end
-		
-		values[realspellID] = realname
-	end
-	
-	local function FindCDFromTooltip(spellID)
-		local cd = 0		
-		gametooltip:SetHyperlink("spell:"..spellID)				
-
-		for i=1, gametooltip:NumLines() do		
-			local line = _G[gametooltip:GetName().."TextRight"..i]:GetText()			
-			if line then
-				local cd1 = match(line, patternString1)				
-				if tonumber(cd1) then 
-					cd = tonumber(cd1)
-					break
-				end			
-			end
-		end		
-		return cd
-	end
-	
-	local function UpdateTalentsSpells(values)
-	
-		wipe(talents)
-
-		for tier=1, MAX_TALENT_TIERS do
-			talents[tier] = talents[tier] or false
-			
-			for column=1, NUM_TALENT_COLUMNS do
-				local talentID, name, iconTexture, selected, available = GetTalentInfo(tier, column, GetActiveSpecGroup());
-	
-				if selected then
-					gametooltip:SetTalent(talentID)
-				
-					local name, _, spellID = gametooltip:GetSpell()
-					
-					 talents[tier] = spellID or false
-				end
-			end
-		end
-		for i,spellID in pairs(talents) do
-			if spellID then
-				local name = GetSpellInfo(spellID)
-				local cd = MyGetSpellBaseCooldown(spellID)		
-
-				if cd and cd > 0 then
-					ChechForFalseSpells(name, spellID, values)
-				else				
-					cd = FindCDFromTooltip(spellID)				
-					if cd and cd > 0 then					
-						ChechForFalseSpells(name, spellID, values)
-					end
-				end
-			end
-		end
-	end
-	
-	C.CacheTaletsIDs = UpdateTalentsSpells
-end
-]==]
-
-local SetValue, UpdateSettings, createfs, RuneCheck
+local SetValue, UpdateSettings
 
 local function SetValueH(this, v, just)
 	this:SetPoint(just or "CENTER", mainframe, "LEFT", v, 0)
@@ -503,9 +247,9 @@ end
 local ticks, ticks_f = {}, {}
 
 local function AddTick(num, text, offset, just)
-	local fs = ticks_f[num] or mainframe:CreateFontString(nil, "OUTLINE", 4)
+	local fs = ticks_f[num] or mainframe:CreateFontString(nil, "ARTWORK", 1)
 	fs:SetFont(smed:Fetch("font", db.font), db.fontsize, db.fontflags)
-	fs:SetTextColor(db.fontcolor.r, db.fontcolor.g, db.fontcolor.b, 1)
+	fs:SetTextColor(db.fontcolor.r, db.fontcolor.g, db.fontcolor.b, 0.5)
 	fs:SetShadowColor(db.fontshadowcolor.r, db.fontshadowcolor.g, db.fontshadowcolor.b, db.fontshadowcolor.a)
 	fs:SetShadowOffset(db.fontshadowoffset[1],db.fontshadowoffset[2])
 	
@@ -573,42 +317,21 @@ local function SetupTicks()
 	end
 end
 
-local cachedNameToTableKey = {}
-
-function C:GetCooldownBlockName(name)
-	return cachedNameToTableKey[name]
-end
-
-local function BuildCooldownBlockList()
-	for k,v in pairs(db.blockList) do		
-		if v.itemid then
-			local name = GetItemInfo(v.itemid)		
-			if name then
-				cachedNameToTableKey[name] = k
-			end
-		elseif v.spellid then
-			local name = GetSpellInfo(v.spellid)	
-			if name then
-				cachedNameToTableKey[name] = k
-			end
-		end
-	end
-end
-
-function C:BuildCooldownBlockList()
-	C_Timer.After(1, BuildCooldownBlockList)
-	C_Timer.After(1.5, BuildCooldownBlockList)
-end
-
-
 local function FakeSetAlpha(self)
 	self:OldAlpha(0)
 end
 
 function UpdateSettings()
+ 
 	if db.enabled then
 		mainframe:Show()
-		
+        eventFrame:Show()	
+        
+        
+        eventFrame:RegisterEvent('BAG_UPDATE_DELAYED')
+        eventFrame:RegisterEvent('PLAYER_EQUIPMENT_CHANGED')
+
+
 		if db.vertical then	
 			mainframe:SetWidth(db.h or 18)
 			mainframe:SetHeight(db.w or 130)		
@@ -624,10 +347,11 @@ function UpdateSettings()
 		end
 		
 		mainframe:SetAlpha(db.inactivealpha)
-		
+        
+        mainframe:ClearAllPoints()
 		mainframe:SetPoint("CENTER", parent, "CENTER", db.x or 0, db.y or -240)
 		
-		C.AddMoverButtons(mainframe, nil, "line", nil, true)
+		ns.AddMoverButtons(mainframe, nil, "line", nil, true)
 				
 		mainframe.bg = mainframe.bg or mainframe:CreateTexture(nil, "ARTWORK")
 		mainframe.bg:SetTexture(smed:Fetch("statusbar", db.statusbar))
@@ -658,14 +382,13 @@ function UpdateSettings()
 			edgeSize = db.icon_bordersize,
 		}
 		
-		
 		splashbigmover:SetSize(db.slash_size, db.slash_size)		
 		bigsplashparent:SetSize(db.slash_size, db.slash_size)
 		bigsplashparent:SetAlpha(db.slash_alpha)
 		
 		
 		if db.slash_show then
-			if not C.db.profile.locked then
+			if not ns.db.profile.locked then
 				splashbigmover:EnableMouse(true)
 				splashbigmover:Show()
 			end
@@ -675,16 +398,18 @@ function UpdateSettings()
 			splashbigmover:Hide()
 		end
 		
+		splashbigmover:ClearAllPoints()
 		splashbigmover:SetPoint("CENTER", parent, "CENTER", db.slash_x, db.slash_y)
-		
-		C.AddMoverButtons(splashbigmover, nil, "splash", true)
-		
+        
+		ns.AddMoverButtons(splashbigmover, nil, "splash", true)
+      
 		mainframe.overlay = mainframe.overlay or CreateFrame("Frame", nil, mainframe.border)
 		mainframe.overlay:SetFrameLevel(24)
 
 		iconsize = (db.h) + (db.iconplus or 4)
 		SetValue = (db.vertical and (db.reverse and SetValueVR or SetValueV)) or (db.reverse and SetValueHR or SetValueH)
 
+       
 		smallsplash:ClearAllPoints()
 		smallsplash:SetSize(iconsize, iconsize)
 		smallsplash:SetAlpha(db.slash_small_alpha)
@@ -702,7 +427,7 @@ function UpdateSettings()
 				smallsplash:SetPoint("CENTER", mainframe, "LEFT", 0, 0);
 			end
 		end
-		
+     
 		for k,v in pairs(ticks_f) do
 			v:Hide()
 		end
@@ -727,63 +452,59 @@ function UpdateSettings()
 				v:Show()
 			end
 		end
-		
+        
 		if db.hidepet then
-			mainframe:UnregisterEvent("UNIT_PET")
-			mainframe:UnregisterEvent("PET_BAR_UPDATE_COOLDOWN")
+			eventFrame:UnregisterEvent("PET_BAR_UPDATE_COOLDOWN")
 		else
-			mainframe:RegisterUnitEvent("UNIT_PET", "player", '')
-			mainframe:UNIT_PET()
+			eventFrame:RegisterUnitEvent("PET_BAR_UPDATE_COOLDOWN")
+			ns:PET_BAR_UPDATE_COOLDOWN()
 		end
-		--[[
-		if db.hidebag and db.hideinv then
-			mainframe:UnregisterEvent("BAG_UPDATE_COOLDOWN")
-		else]]
-			mainframe:RegisterEvent("BAG_UPDATE_COOLDOWN")
-			mainframe:BAG_UPDATE_COOLDOWN()
-		--end
-		
+	
+        eventFrame:RegisterEvent("BAG_UPDATE_COOLDOWN")
+        ns:BAG_UPDATE_COOLDOWN()
+
 		if db.hidefail then
-			mainframe:UnregisterEvent("UNIT_SPELLCAST_FAILED")
+			eventFrame:UnregisterEvent("UNIT_SPELLCAST_FAILED")
 		else
-			mainframe:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player", '')
+			eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player", '')
 		end
 		
-		mainframe:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player",'')
+		eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player",'')
 		
 		if db.hideplay then
-			mainframe:UnregisterEvent("SPELL_UPDATE_COOLDOWN")
-			mainframe:UnregisterEvent("SPELLS_CHANGED")
-			mainframe:UnregisterEvent("ENCOUNTER_END")
+            eventFrame:UnregisterEvent("SPELL_UPDATE_COOLDOWN")
+            eventFrame:UnregisterEvent("SPELL_UPDATE_CHARGES")
+			eventFrame:UnregisterEvent("SPELLS_CHANGED")
+			eventFrame:UnregisterEvent("ENCOUNTER_END")
 		else
-			mainframe:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-			mainframe:RegisterEvent("SPELLS_CHANGED")
-			mainframe:RegisterEvent("ENCOUNTER_END")
-			mainframe:SPELL_UPDATE_COOLDOWN()
+            eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+            eventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
+			eventFrame:RegisterEvent("SPELLS_CHANGED")
+			eventFrame:RegisterEvent("ENCOUNTER_END")
+			ns.RunCooldownCheck('START_UP')
 		end
 		
-		if ( db.blood_runes and db.frost_runes and db.unholy_runes ) or C.myCLASS ~= "DEATHKNIGHT" then
-			mainframe:UnregisterEvent("RUNE_POWER_UPDATE")
-			--mainframe:UnregisterEvent("RUNE_TYPE_UPDATE")
-			
-		elseif C.myCLASS == "DEATHKNIGHT" then
-			
-			mainframe:RegisterEvent("RUNE_POWER_UPDATE")
-			--mainframe:RegisterEvent("RUNE_TYPE_UPDATE")
+		if ( db.blood_runes and db.frost_runes and db.unholy_runes ) or ns.myCLASS ~= "DEATHKNIGHT" then
+			eventFrame:UnregisterEvent("RUNE_POWER_UPDATE")
+		elseif ns.myCLASS == "DEATHKNIGHT" then		
+			eventFrame:RegisterEvent("RUNE_POWER_UPDATE")
 		end
 		
 		if db.hidevehi then
-			mainframe:UnregisterEvent("UNIT_ENTERED_VEHICLE")
-			mainframe:UnregisterEvent("UNIT_EXITED_VEHICLE")			
-			mainframe:UNIT_EXITED_VEHICLE()
+			eventFrame:UnregisterEvent("UNIT_ENTERED_VEHICLE")
+			eventFrame:UnregisterEvent("UNIT_EXITED_VEHICLE")			
+			ns:UNIT_EXITED_VEHICLE()
 		else
-			mainframe:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player", '')
+			eventFrame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player", '')
 			if UnitHasVehicleUI("player") then
-				mainframe:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-				mainframe:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player", '')
+				eventFrame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
+				eventFrame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player", '')
 			end
 		end
-		
+        
+        ns.EnumirateCooldowns('Update')
+
+        --[==[
 		for _, frame in ipairs(cooldowns) do
 			frame:Update()
 		end
@@ -791,23 +512,24 @@ function UpdateSettings()
 		for _, frame in ipairs(frames) do
 			frame:Update()
 		end
-		
-		C:UpdateTooltip()
+        ]==]
+        ns:UpdateTooltip()
+        
+        ns:BAG_UPDATE_DELAYED()
+        ns:PLAYER_EQUIPMENT_CHANGED()
 	else
-		
-		mainframe:UnregisterAllEvents()
-		mainframe:Hide()
-	
+		eventFrame:UnregisterAllEvents()
+        eventFrame:Hide()	
+        mainframe:Hide()
 	end
 end
 
-C.UpdateSettings = UpdateSettings
-	
-function C:InitCooldownLine()
-	
-	db = self.db.profile.cooldownline
-	
-	if db.transferList then
+ns.UpdateSettings = UpdateSettings
+
+function ns:InitCooldownLine()
+    db = self.db.profile.cooldownline
+
+    if db.transferList then
 
 		for k,v in pairs(db.block) do		
 			if v.spellid then
@@ -825,261 +547,1111 @@ function C:InitCooldownLine()
 		if v.itemid then
 			GetItemInfo(v.itemid)
 		end
-	end
-	
-	C:BuildCooldownBlockList()
+    end
+    
+    ns:BuildCooldownBlockList()
 
-	if C.myCLASS == "DEATHKNIGHT" then
-		local runecd = {  -- fix by NeoSyrex
-			[GetSpellInfo(50977) or "Death Gate"] = 11,
-			[GetSpellInfo(43265) or "Death and Decay"] = 11,
-			[GetSpellInfo(42650) or "Army of the Dead"] = 11,
-			[GetSpellInfo(49184) or "Howling Blast"] = 8,
-			[GetSpellInfo(130736) or "Soul Reaper"] = 6,
-		}
-		RuneCheck = function(name, duration)
-			local rc = runecd[name]
-			if not rc or (rc <= duration and (rc > 10 or rc >= duration)) then
-				return true
-			end
-		end
-	end
-	
-	if IsLoggedIn() then
-		mainframe:PLAYER_LOGIN()
-	else
-		mainframe:RegisterEvent("PLAYER_LOGIN")
-	end
-	
-	C:UnlockCooldownLine()
+    UpdateSettings()
+    
+    ns:UnlockCooldownLine()
 end
 
-function mainframe:PLAYER_LOGIN()
-	UpdateSettings()
-	mainframe:RegisterEvent("PLAYER_LEAVING_WORLD")
+--[==[
+    BAG_UPDATE_DELAYED
+    PLAYER_EQUIPMENT_CHANGED
+]==]
+
+local isOnCD = false
+local prevStacks = -1
+local prevEndTime = -1
+
+local spellsForCDCheck = {}
+local recheckTimer = nil 
+
+local function RecheckCDs()
+    --old_print('RecheckCDs')
+    eventFrame:GetScript('OnEvent')(eventFrame, 'SPELL_UPDATE_COOLDOWN')
+end 
+
+eventFrame:SetScript('OnEvent', function(self, event, ...) 
+
+    --print(event, ...)
+
+    if ( event == 'PLAYER_SPECIALIZATION_CHANGED' or event == 'PLAYER_TALENT_UPDATE' ) then
+        --ns.RunCacheSpellBook()
+
+    elseif ( event == 'SPELLS_CHANGED' ) then 
+        --print(event, ...)
+
+    elseif ( event == 'SPELL_UPDATE_COOLDOWN'  or event == 'SPELL_UPDATE_CHARGES' ) then
+	
+        --ns.RunCooldownCheck(event)
+
+        --local spellID = FindBaseSpellByID(205351)
+        local lowestCD = nil
+        local currentTime = GetTime()
+
+        for baseSpellID, spellInfo in pairs(spellsForCDCheck) do
+            local spellID = spellInfo.spellID
+            local startTime, duration, charges, maxCharges, isGCD, gcdStartTime, gcdDuration = ns.GetSpellCooldown_New(spellID)
+       
+            --old_print( spellID, (GetSpellInfo(spellID)), startTime, duration, charges, maxCharges, isGCD)
+
+            if spellInfo.isOnCD and currentTime >= spellInfo.prevEndTime and ( maxCharges and charges == maxCharges or not maxCharges ) then
+                spellInfo.isOnCD = false 
+                spellInfo.prevStacks = nil 
+                spellInfo.prevEndTime = nil 
+
+                
+                --old_print('RemoveCooldown:1', spellID, (GetSpellInfo(spellID)))
+                
+                ns.RemoveCooldown(spellID)
+            elseif spellInfo.isOnCD and isGCD and spellInfo.prevEndTime > gcdStartTime+gcdDuration then
+                --old_print('RemoveCooldown:3', spellID, (GetSpellInfo(spellID)))
+                --old_print('    currentTime=', spellInfo.prevEndTime-currentTime, 'gcd=', spellInfo.prevEndTime - gcdStartTime+gcdDuration  )
+
+                spellInfo.isOnCD = false 
+                spellInfo.prevStacks = nil 
+                spellInfo.prevEndTime = nil 
+
+                ns.RemoveCooldown(spellID)
+            elseif spellInfo.isOnCD and startTime == 0 and duration == 0 then
+                spellInfo.isOnCD = false 
+                spellInfo.prevStacks = nil 
+                spellInfo.prevEndTime = nil 
+
+                --old_print('RemoveCooldown:2', spellID, (GetSpellInfo(spellID)))
+
+                ns.RemoveCooldown(spellID)
+            elseif spellInfo.isOnCD and not isGCD and startTime and ( spellInfo.prevStacks ~= charges or spellInfo.prevEndTime ~= startTime+duration ) then
+                spellInfo.prevStacks = charges
+                spellInfo.prevEndTime = startTime+duration
+                
+                --old_print('UpdateCooldown:2', spellID, (GetSpellInfo(spellID)))
+
+                ns.UpdateCooldown(spellID, duration, startTime)
+            elseif not spellInfo.isOnCD and not isGCD and duration and duration >= 1.5 then 
+                spellInfo.isOnCD = true
+                spellInfo.prevStacks = charges
+                spellInfo.prevEndTime = startTime+duration
+
+                ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
+            elseif spellInfo.prevEndTime and currentTime >= spellInfo.prevEndTime then
+                --old_print('Something happens', spellID, (GetSpellInfo(spellID)))               
+            end 
+            
+            --[==[
+            if ( startTime == 0 and duration == 0 ) or isGCD then 
+                if ( spellInfo.isOnCD ) then 
+                    spellInfo.isOnCD = false 
+                    spellInfo.prevStacks = -1
+
+                    ns.RemoveCooldown(spellID)
+                end
+            elseif ( not spellInfo.isOnCD and not isGCD ) then 
+                spellInfo.isOnCD = true
+                spellInfo.prevStacks = charges
+                spellInfo.prevEndTime = startTime+duration
+
+                ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
+            elseif ( spellInfo.prevStacks ~= charges and not isGCD) then 
+                spellInfo.prevStacks = charges
+                spellInfo.prevEndTime = startTime+duration
+  
+                ns.UpdateCooldown(spellID, duration, startTime)
+            end 
+
+            if ( spellInfo.isOnCD and startTime and duration and currentTime < spellInfo.prevEndTime  ) then 
+
+                if ( spellInfo.prevEndTime ~= startTime+duration ) then 
+                    spellInfo.prevEndTime = startTime+duration
+
+                    ns.UpdateCooldown(spellID, duration, startTime)
+                end
+            elseif ( spellInfo.isOnCD and currentTime > spellInfo.prevEndTime ) then
+                spellInfo.isOnCD = false 
+                spellInfo.prevStacks = -1
+
+                ns.RemoveCooldown(spellID)
+            end
+            ]==]
+
+            if ( spellInfo.isOnCD ) then 
+                if ( not lowestCD or lowestCD > spellInfo.prevEndTime ) then 
+                    lowestCD = spellInfo.prevEndTime
+                end
+            end
+        end
+
+        if ( recheckTimer ) then
+            recheckTimer:Cancel()
+            recheckTimer = nil 
+        --    old_print('Cancel timer')
+        end 
+
+        if ( lowestCD and (lowestCD-GetTime()) > 0 ) then 
+        --    old_print('Run timer for', lowestCD-GetTime())
+            recheckTimer = C_Timer.NewTimer(lowestCD-GetTime(), RecheckCDs)
+        else 
+        --    old_print('No lowestCD or', lowestCD and lowestCD-GetTime())
+        end  
+
+    elseif ( event == 'UNIT_SPELLCAST_SUCCEEDED' ) then
+        local unitID, lineID, spellID1 = ...
+        local _, _, _, _, _, spellID2 = strsplit('-', lineID)
+
+        spellID2 = tonumber(spellID2)
+
+        --old_print(spellID1, GetSpellInfo(spellID1), spellID2, (GetSpellInfo(spellID2)) )
+     
+
+        if (IsSpellKnown(spellID1) or IsSpellKnown(spellID2)) then
+            local baseSpell = FindBaseSpellByID(spellID1)
+            local cd, gcd = GetSpellBaseCooldown(baseSpell)
+            local cd1, gcd1 = GetSpellBaseCooldown(spellID1)
+            local charges, maxCharges = GetSpellCharges(spellID1)
+
+            if ( cd > 0 or cd1 > 0 or ( maxCharges and maxCharges > 0 ) ) then
+               
+                --ns.CheckCooldown(spellID1, spellID2)
+
+                spellsForCDCheck[baseSpell] = spellsForCDCheck[baseSpell] or {
+                    isOnCD = false,
+                    prevStacks = -1,
+                    prevEndTime = -1,
+                    spellID = spellID1,
+                }
+
+                spellsForCDCheck[baseSpell].spellID = spellID1
+            else
+                local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(spellID1)
+                local spellCount = GetSpellCount(spellID1);
+
+                --old_print('CheckCooldown', GetSpellInfo(spellID1), spellID1, baseSpell,cd, gcd, cd1, gcd1)
+                --old_print(charges, maxCharges, spellCount)
+            end
+        --    old_print(baseSpell, spellID1, spellID2)
+        elseif ( IsItemSpellCooldown(spellID1) ) then
+
+            --print('SetLastItemUsed', spellID1)
+            SetLastItemUsed(spellID1)
+        end
+     
+    elseif ( event == 'RUNE_POWER_UPDATE' ) then
+        if ( not self.runeCheck ) then
+            self.runeCheck = GetTime()
+        end
+    elseif ( event == 'BAG_UPDATE_COOLDOWN' ) then
+        ns:BAG_UPDATE_COOLDOWN()
+    elseif ( event == 'UNIT_SPELLCAST_FAILED') then
+        --print(event, ...)
+        local unit, castGUID, spellID = ...
+
+
+        local info = lastItemUsed[spellID]
+
+        if ( info ) then 
+            ns.GlowCooldown('ITEM:'..info.itemID)
+        else 
+            ns.GlowCooldown(spellID)
+        end
+    elseif ( event == 'PET_BAR_UPDATE_COOLDOWN' ) then 
+        ns:PET_BAR_UPDATE_COOLDOWN()
+
+    elseif ( event == 'UNIT_ENTERED_VEHICLE' ) then 
+        ns:UNIT_ENTERED_VEHICLE()
+    elseif ( event == 'UNIT_EXITED_VEHICLE' ) then 
+        ns:UNIT_EXITED_VEHICLE()
+    elseif ( event == 'ACTIONBAR_UPDATE_COOLDOWN' ) then
+        ns:ACTIONBAR_UPDATE_COOLDOWN()
+    elseif ( event == 'BAG_UPDATE_DELAYED' ) then
+        ns:BAG_UPDATE_DELAYED()
+    elseif ( event == 'PLAYER_EQUIPMENT_CHANGED' ) then 
+        ns:PLAYER_EQUIPMENT_CHANGED()
+    end
+end)
+eventFrame:SetScript('OnUpdate', function(self) 
+
+    if ( self.endTime ) then
+        if self.endTime+0.05 < GetTime() then
+            self.endTime = nil
+
+            --print('Run check')
+
+            for spellID1, spellID2 in pairs( self.delayCDCheck ) do
+                self.delayCDCheck[spellID1] = nil
+                ns.RunCheck(spellID1, spellID2) 
+            end
+
+            ns.CheckCooldownList('onupdate')
+        end
+    end
+
+    if ( self.checkCD ) then
+        if self.checkCD+0.05 < GetTime() then
+            self.checkCD = nil
+
+            --print('Run cd check')
+
+            for spellID1, spellID2 in pairs( self.delayCDCheck ) do
+                self.delayCDCheck[spellID1] = nil
+                ns.RunCheck(spellID1, spellID2) 
+            end
+        end
+    end
+
+    if ( self.runeCheck ) then 
+        if self.runeCheck+0.05 < GetTime() then
+            self.runeCheck = nil
+
+            --print('Rune check')
+
+            for runeIndex=1, 6 do
+                local startTime, duration, runeReady = GetRuneCooldown(runeIndex);
+    
+                if ( runeReady ) then
+                    ns.RemoveCooldown('rune'..runeIndex)
+                else
+                    if ( not startTime ) then
+                        return
+                    end    
+                    ns.AddCooldown(
+                        'rune'..runeIndex,
+                        nil, 
+                        duration, 
+                        startTime, 
+                        "Interface\\PlayerFrame\\UI-PlayerFrame-Deathknight-SingleRune",
+                        "RuneDeath"
+                    )
+                end
+            end
+        end
+    end
+
+    if ( self.checkItems ) then 
+        if self.checkItems+0.05 < GetTime() then
+            self.checkItems = nil
+
+            ns:BAG_UPDATE_COOLDOWN(true)
+        end
+    end
+
+    if ( self.checkPet ) then 
+        if self.checkPet+0.05 < GetTime() then
+            self.checkPet = nil
+
+            ns:PET_BAR_UPDATE_COOLDOWN()
+        end
+    end
+end)
+
+function ns.RunCooldownCheck(ev)
+    --[==[
+    if ( not eventFrame.endTime or eventFrame.endTime-GetTime() > 0.05 ) then
+        old_print('RunCooldownCheck Call by event', ev )
+        eventFrame.endTime = GetTime()-0.05
+    else 
+        old_print('Skip from', ev)
+    end
+    ]==]
+
+    eventFrame.endTime = GetTime()-0.05
 end
 
-function mainframe:PLAYER_ENTERING_WORLD()
+function ns.UpdateSpellCooldowns(...)
+    print('UpdateSpellCooldowns', ...)
+end
 
-	if not db.hideplay then
-		mainframe:RegisterEvent("SPELLS_CHANGED")
-		mainframe:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-		mainframe:RegisterEvent("ENCOUNTER_END")
-		mainframe:SPELLS_CHANGED()
-		mainframe:SPELL_UPDATE_COOLDOWN()
+function ns:UNIT_ENTERED_VEHICLE()
+	if not UnitHasVehicleUI("player") then return end
+	eventFrame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
+	ns:ACTIONBAR_UPDATE_COOLDOWN()
+end
+
+function ns:UNIT_EXITED_VEHICLE()
+    eventFrame:UnregisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
+    
+	for i=1, 8 do
+        ns.RemoveCooldown("vhcle"..i)
 	end
 end
 
-function mainframe:PLAYER_LEAVING_WORLD()
-	
-	mainframe:RegisterEvent("PLAYER_ENTERING_WORLD")
-	mainframe:UnregisterEvent("SPELLS_CHANGED")
-	mainframe:UnregisterEvent("SPELL_UPDATE_COOLDOWN")
-	mainframe:UnregisterEvent("ENCOUNTER_END")
-end
+function ns:ACTIONBAR_UPDATE_COOLDOWN()  -- used only for vehicles
+	for i = 1, 8, 1 do
+		local b = _G["OverrideActionBarButton"..i]
+		if b and HasAction(b.action) then
+			local start, duration, enable = GetActionCooldown(b.action)
+            if enable == 1 then
+                local actionType, id, subType = GetActionInfo(b.action)
 
-local iconback = { 
-	bgFile="Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar",
-	tile = true,
-}
-
-local elapsed, throt, ptime, isactive = 0, 1.5, 0, false
-
-local function UpdateBarPoits()
-	
-	if ( true ) then return end
-
-	for i=1, #cooldowns do
-		local f = cooldowns[i]
-		local prep
-		if i == 1 then prep = mainframe 
-		else prep = cooldowns[i-1].icon end
-		
-		if db.vertical then
-			if db.reverse then
-				f.bar:SetPoint("TOP", prep, "TOP", 0, 0);
-			else				
-				f.bar:SetPoint("BOTTOM", prep, "BOTTOM", 0, 0);
-			end
-		else
-			if db.reverse then
-				f.bar:SetPoint("RIGHT", prep, "RIGHT", 0, 0);
-			else
-				f.bar:SetPoint("LEFT", prep, "LEFT", 0, 0);
-			end
-		end
-	end
-end
-
-local function getNextPoint(fromgroup)
-	if fromgroup == 1 or not fromgroup then
-		return mainframe
-	else
-		for i, frame in ipairs(cooldowns) do
-			if frame._group == fromgroup-1 and frame.currentActive and not frame.hiden then
-				return frame.icon
-			end
-		end
-	end
-	
-	return nil
-end
-
-local function UpdateBar_Point(frame, toframe)
-	local offset = iconsize*0.5
-	if toframe == mainframe then
-		offset = 0		
-	end
-	
-	if db.vertical then
-		if db.reverse then
-			frame.bar:SetPoint("TOP", toframe, "TOP", 0, -offset);
-		else				
-			frame.bar:SetPoint("BOTTOM", toframe, "BOTTOM", 0, offset);
-		end
-	else
-		if db.reverse then
-			frame.bar:SetPoint("RIGHT", toframe, "RIGHT", -offset, 0);
-		else
-			frame.bar:SetPoint("LEFT", toframe, "LEFT", offset, 0);
-		end
-	end	
-end
-
-
-function C:UpdateSingleBar()
-	local _i = 0
-	local _lastfr = nil
-	local gettime = GetTime()
-	local prep
-	
-	for i, frame in ipairs(cooldowns) do
-		if not frame.hiden then
-			_i = _i + 1
-			if ( frame.endtime - gettime ) < db.minimal_time_to_fade then -- this one 
-				if _i == 1 or not prep then 
-					prep = mainframe
+				if start > 0 and not ns:GetCooldown(id)then
+					if duration > 3 then
+                        ns.AddCooldown( "vhcle"..i,  nil, duration, start,  GetActionTexture(b.action), "PET_CD")
+					end
 				else
-					prep = _lastfr
-				end
-				
-				UpdateBar_Point(frame, prep)
-				
-				_lastfr = frame
-			else
-				local point = getNextPoint(frame._group)
-				
-				if point then
-					UpdateBar_Point(frame, point)
+                    ns.RemoveCooldown("vhcle"..i)
 				end
 			end
 		end
 	end
 end
 
+function ns:PET_BAR_UPDATE_COOLDOWN()
+    local endTime = nil
 
-local function SortCooldownsFunc(x,y)
-	return x.endtime < y.endtime
+    for i = 1, 10, 1 do
+        local start, duration, enable = GetPetActionCooldown(i)
+
+        if duration > 1.5 then
+            local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(i);
+       
+            if name then
+                if start > 0 and not ns:GetCooldown(spellID) then --and not ns:GetCooldown(spellID) then
+                    if duration > 3 then
+                        ns.AddCooldown('PET:'..i, spellID, duration, start, isToken and _G[texture] or texture, "PET_CD")
+
+                        if not endTime or endTime > duration+start then
+                            endTime = duration+start
+                        end
+                    end
+                else
+                    ns.RemoveCooldown('PET:'..i)
+                end
+            end
+        else
+            ns.RemoveCooldown('PET:'..i)
+        end
+    end
+
+    if ( endTime ) then
+        eventFrame.checkPet = endTime
+    end
 end
 
-local function SortCooldowns()
-	tsort(cooldowns, SortCooldownsFunc)
-end
+eventFrame.delayCDCheck = {}
 
-local function SkipAura(skipaura, frame)
+local match = string.match
 	
-	if skipaura then
-		if frame.isplayer == "AURA_CD_BUFF" or frame.isplayer == "AURA_CD_DEBUFF" then
-			return false
-		end
-	end
-	
-	return true
+function ns.GetItemID(link)
+    local itemID = match(link, "|Hitem:(%-?%d+):")		
+    if itemID then itemID = tonumber(itemID) end
+    
+    return itemID
 end
 
-local function IsItMe(frame, name, texture, spellID, isplayer, force)
-	if ( frame.name == name ) and 
-		( texture and frame.texture == texture or ( not texture ) ) and 
-		( isplayer and frame.isplayer == isplayer or ( not isplayer ) or force ) and 
-		( spellID and frame.spellID == spellID or ( not spellID ) ) then
+do
+    local GetSpellCooldown = GetSpellCooldown
+    local GetSpellCharges = GetSpellCharges
+    local GetSpellCount = GetSpellCount
+
+    local nextCooldownCheck = nil
+    local nextCooldownEndTime = nil
+
+    local AddToActiveCooldown 
+
+    local activeCooldowns = {}
+
+    local function GetRuneIgnore(startTime, duration)
+        for i=1, 6 do
+            local start, runeDuration, runeReady = GetRuneCooldown(i);
+            if not runeReady then
+                if start then			
+                    if abs(duration - runeDuration) < 0.001 then
+                        return true
+                    end
+                end
+            end
+        end
+        
+        return false
+    end
+    
+    local function GetSpellCooldown_New(spellID)
+        
+        local gcdStartTime, gcdDuration = GetSpellCooldown(61304);
+        local startTime, duration, enabled = GetSpellCooldown(spellID)
+
+        local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(spellID)
+        local spellCount = GetSpellCount(spellID);
+        
+        --[==[
+        old_print( spellID )
+        old_print( startTime, duration, enabled )
+        old_print( charges, maxCharges, chargeStart, chargeDuration )
+        old_print( spellCount )
+        ]==]
+        startTime = startTime or 0
+        duration = duration or 0
+
+        if ( enabled == 0 ) then
+            startTime = 0
+            duration = 0
+        end
+
+        if charges then
+            if charges ~= maxCharges then
+                startTime = chargeStart
+                duration = chargeDuration
+            elseif charges == maxCharges then
+                startTime = 0
+                duration = 0
+            end
+        end
+
+        if ( gcdStartTime > 0 and gcdStartTime == startTime and gcdDuration == duration ) then
+
+            --print('IGNORE IN GCD ', spellID, gcdStartTime, gcdDuration,  startTime, duration)
+            return nil, nil, nil, nil, true, gcdStartTime, gcdDuration
+        end
+
+        if ( ns.myCLASS == "DEATHKNIGHT" ) then
+            local cost = GetSpellPowerCost(spellID)
+            local costRunes = false
+
+            if ( cost ) then
+                for i=1, #cost do 
+                    if ( cost[i].name == 'RUNES' ) then
+                        costRunes = true
+                        break
+                    end
+                end
+            end
+            if costRunes and ( GetRuneIgnore(startTime, duration) ) then
+                return
+            end
+        end
+
+        return startTime, duration, charges, maxCharges, false
+    end
+    
+    function AddToActiveCooldown(spellID, startTime, duration, charges)
+        
+        activeCooldowns[spellID] = activeCooldowns[spellID] or {}
+
+        activeCooldowns[spellID].startTime = startTime
+        activeCooldowns[spellID].duration = duration
+        activeCooldowns[spellID].charges = charges
+
+        if ( not activeCooldowns[spellID].enable ) then
+            activeCooldowns[spellID].enable = true
+
+            ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
+
+            --print('Call by AddToActiveCooldown')
+
+            if not eventFrame.endTime then
+                eventFrame.endTime = startTime+duration
+            elseif ( eventFrame.endTime > startTime+duration ) then
+                if ( startTime+duration - GetTime() ) < 0.05 then
+                    eventFrame.endTime = GetTime()+0.05
+                else
+                    eventFrame.endTime = startTime+duration
+                end
+            end
+        end
+    end
+
+    function ns.CheckCooldownList(source)
+        local checkEndTime = nil
+        local runSpellID = nil
+        local currentTime = GetTime()
+
+        for spellID, cooldown in pairs(activeCooldowns) do 
+            if ( cooldown.enable ) then
+                local startTime, duration, charges, maxCharges, isGCD = GetSpellCooldown_New(spellID)
+
+                if ( isGCD ) then 
+                    --old_print( 'Spell is in GCD??', spellID, GetSpellInfo(spellID) )
+
+                    if ( cooldown.startTime+cooldown.duration <= currentTime ) then 
+                        cooldown.enable = false
+                        --old_print('Remove cooldown By GCD', spellID, GetSpellInfo(spellID))
+                        ns.RemoveCooldown(spellID)
+                    else 
+                        --old_print( 'Spell is in GCD and not endTime', spellID, GetSpellInfo(spellID) )
+                    end
+                else 
+                    if ( startTime and charges and cooldown.startTime and cooldown.startTime > 0 and cooldown.duration > 0 and ( cooldown.charges or 0 ) < charges and maxCharges > charges) then
+                        cooldown.startTime = startTime
+                        cooldown.duration = duration
+                        cooldown.charges = charges
+
+                        if ( maxCharges ~= charges ) then
+                            cooldown.enable = true
+                            ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
+                        end
+                    else 
+                        if ( startTime == 0 and duration == 0 or (cooldown.startTime+cooldown.duration < GetTime()) ) then 
+                            cooldown.enable = false
+                            --old_print('Remove cooldown', spellID, GetSpellInfo(spellID))
+                            ns.RemoveCooldown(spellID)
+                        else
+                            if ( startTime and duration and ( cooldown.startTime ~= startTime or cooldown.duration ~= duration ) ) then
+                                cooldown.startTime = startTime
+                                cooldown.duration = duration
+                                --old_print('Update cooldown', spellID, GetSpellInfo(spellID))
+                                ns.UpdateCooldown(spellID, duration, startTime)
+                            else
+                                --old_print('Cooldown stack', spellID, GetSpellInfo(spellID), startTime, duration,  cooldown.startTime, cooldown.duration )
+                            end
+                        end
+                    end
+                end
+
+                if not checkEndTime or checkEndTime > cooldown.startTime+cooldown.duration then
+                    checkEndTime = cooldown.startTime+cooldown.duration
+                    runSpellID = spellID
+                end
+            end
+        end
+
+        if ( checkEndTime ) then
+            --print('Call by checkEndTime from', GetSpellInfo(runSpellID))
+            if not eventFrame.endTime or eventFrame.endTime > checkEndTime then
+                eventFrame.endTime = checkEndTime
+            end
+        end
+    end
+
+    function ns.RunCheck(spellID1, spellID2) 
+        if ( spellID1 ~= spellID2 ) then
+                
+            local spellTexture1, spellTextureReal1 = GetSpellTexture(spellID1)
+            local spellTexture2, spellTextureReal2 = GetSpellTexture(spellID2)
+
+            local startTime, duration, charges = GetSpellCooldown_New(spellID1)
+            local startTime2, duration2, charges2 = GetSpellCooldown_New(spellID2)
+
+            if ( startTime and startTime > 0 and duration > 0 and spellTexture1 == spellTextureReal1 ) then
+                AddToActiveCooldown(spellID1, startTime, duration, charges) 
+            end
+
+            if ( startTime2 and startTime2 > 0 and duration2 > 0 and spellTexture2 == spellTextureReal2 ) then
+                AddToActiveCooldown(spellID2, startTime2, duration2, charges2) 
+            end
+        else
+            local startTime, duration, charges = GetSpellCooldown_New(spellID1)
+
+            if ( startTime and startTime > 0 and duration > 0 ) then
+                AddToActiveCooldown(spellID1, startTime, duration, charges) 
+            end
+        end
+    end
+
+    function ns.CheckCooldown(spellID1, spellID2)
+
+        if ( spellID1 ~= spellID2 ) then
+            eventFrame.delayCDCheck[spellID1] = spellID2
+        else 
+            eventFrame.delayCDCheck[spellID1] = spellID1
+        end
+
+        
+        --print('Call by checkCooldown')
+      
+        eventFrame.checkCD = GetTime()
+    end
+
+    ns.GetSpellCooldown_New = GetSpellCooldown_New
+end
+
+do
+	local GetItemInfo = GetItemInfo
+	local GetInventoryItemCooldown, GetInventoryItemTexture = GetInventoryItemCooldown, GetInventoryItemTexture
+	local GetContainerItemCooldown, GetContainerItemInfo = GetContainerItemCooldown, GetContainerItemInfo
+	local GetContainerNumSlots = GetContainerNumSlots
+	
+	local bagUpdateThrottle = true
+	
+	local equippedItems = {}
+    
+    local function checkcd(name, tip)
 		
+		if tip == "item" then
+			if db.hideinv then -- если скрывать все кд
+			
+			--	if block[name] == false then return true end
+				if ns:GetCooldown(name) == false then return true end
+			
+		--		print(name, tip, "false")
+				return false
+			else
+				if not ns:GetCooldown(name) then return true end
+				if ns:GetCooldown(name) then return false end
+			end
+		elseif tip == "bag" then
+			if db.hidebag then -- если скрывать все кд
+			
+			--	if block[name] == false  then return true end
+				if ns:GetCooldown(name) == false then return true end
+				
+		--		print(name, tip, "false")
+				return false
+			else
+				if not ns:GetCooldown(name) then return true end
+				if ns:GetCooldown(name) then return false end
+			end
+		end
+		
+	--	print(name, tip, "true")
 		return true
 	end
-	
-	return false
-end
 
-local function ClearCooldown(f, name, texture, spellID)
-	name = name or (f and f.name)
-	
-	for index, frame in ipairs(cooldowns) do
-		if (spellID and (frame.spellID == spellID) or not spellID and ( frame.name == name and ( texture and frame.texture == texture or ( not texture ) ) ) ) then
+	local function UpdateBag()
+		bagUpdateThrottle = true
 		
-			C:PlaySoundCooldown(name, "sound_onhide")
-			
-			print("CLEAR CD", name)
-			if not frame.hiden then frame:Splash() end
-			
-			frame:Hide()
-			frame.name = nil
-			frame.endtime = nil
-			frame.isplayer = nil
-			frame.index = nil
-			frame.spellID = nil
-			frame.texture = nil
-			frame.position = nil			
-		
-			frame.hiden = nil
-			frame._group = nil
-			frame.currentActive = nil
-			frame._currentTickLine = nil
-			
-			if frame.showtooltip then 
-				frame.showtooltip:HideTooltip() 
-				frame.showtooltip.child = nil
-				frame.showtooltip = nil
-			end
+		wipe(equippedItems)
+    
+        local endTime = nil
 
-			tinsert(frames, tremove(cooldowns, index))
 
-			SortCooldowns()
+        for spellID in pairs(lastItemUsed) do
+            local info = lastItemUsed[spellID]
 
-			C:UpdateFading1()
-			C:UpdateSingleBar()
-			
-			break
-		end
+            if ( info.invID ) then 
+                local start, duration, enable = GetInventoryItemCooldown("player", info.invID)
+
+                if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "item") then
+                    ns.AddCooldown('ITEM:'..info.itemID, info.itemID, duration, start, GetInventoryItemTexture("player", info.invID), "PLAYER_ITEMS")
+
+                    if not endTime or endTime > duration+start then
+                        endTime = duration+start
+                    end
+                else
+                    ns.RemoveCooldown('ITEM:'..info.itemID)
+                    lastItemUsed[spellID] = nil
+                end
+            elseif ( lastItemUsed[spellID].bag ) then
+                local start, duration, enable = GetItemCooldown(info.itemID)
+            
+                if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "bag") then
+                    local  _, _, _, _, icon = GetItemInfoInstant(info.itemID)
+
+                    ns.AddCooldown('ITEM:'..info.itemID, info.itemID, duration, start, icon,"BAG_SLOTS")
+
+                    if not endTime or endTime > duration+start then
+                        endTime = duration+start
+                    end
+                else
+                    ns.RemoveCooldown('ITEM:'..info.itemID)
+                    lastItemUsed[spellID] = nil
+                end
+            end
+        end
+
+        if ( endTime ) then
+            eventFrame.checkItems = endTime
+        end
 	end
+	
+    function ns:BAG_UPDATE_COOLDOWN(skip)
+        if ( skip ) then
+            UpdateBag()
+        else
+            if bagUpdateThrottle then
+                bagUpdateThrottle = false
+                C_Timer.After(0.1, UpdateBag)
+            end
+        end
+    end
+    
+    function ns:BAG_UPDATE_DELAYED()
+        spellToItems.bags = {}
+
+        for i = 0, 4, 1 do -- (db.hidebag and -1) or
+			for j = 1, GetContainerNumSlots(i), 1 do
+            --    local start, duration, enable = GetContainerItemCooldown(i, j)                
+            --    if enable == 1 then
+                    local link = GetContainerItemLink(i, j)
+
+                    if ( link ) then                    
+                        local itemID = ns.GetItemID(link)
+
+                        if ( itemID ) then
+                            local spellName, spellID = GetItemSpell(itemID)
+
+                            if ( spellName ) then
+                                spellToItems.bags[spellID] = {
+                                    itemID = itemID,
+                                    spellName = spellName,
+                                    bag = true
+                                }
+                            end
+                        end
+                    end
+			--	end
+			end
+        end
+    end
+
+    function ns:PLAYER_EQUIPMENT_CHANGED()
+        spellToItems.gear = {}
+
+        for i = 1, 18, 1 do --(db.hideinv and 0) or
+		--	local start, duration, enable = GetInventoryItemCooldown("player", i)
+        --    if enable == 1 then
+                local link = GetInventoryItemLink("player", i)
+
+                if ( link ) then
+                    local itemID = ns.GetItemID(link)
+
+                    if ( itemID ) then
+                        local spellName, spellID = GetItemSpell(itemID)
+
+                        if ( spellName ) then
+                
+                            spellToItems.gear[spellID] = {
+                                itemID = itemID,
+                                spellName = spellName,
+                                invID = i
+                            }
+
+                        end
+                    end
+                end
+		--	end
+        end
+    end
 end
 
-local function HideCooldown(f, name, texture)
-	name = name or (f and f.name)
-	for index, frame in ipairs(cooldowns) do
-	--	if IsItMe(frame, name, texture, spellID, false, false) then
-		if frame.name == name and ( texture and frame.texture == texture or ( not texture ) ) then
-			frame:Hide()
-			
-			frame.hiden = true
-			frame.spellID = nil
-			frame._group = nil
-			frame.currentActive = nil
-			frame._currentTickLine = nil
-			
-			if frame.showtooltip then 
-				frame.showtooltip:HideTooltip() 
-				frame.showtooltip.child = nil
-				frame.showtooltip = nil
-			end
+--[==[
+hooksecurefunc("UseAction", function(slot)
+    local actionType,itemID = GetActionInfo(slot)
+    if (actionType == "item") then
+        print('UseAction', itemID, GetItemInfo(itemID))
+    end
+end)
 
-			SortCooldowns()
-			
-			C:UpdateFading1()
-			C:UpdateSingleBar()
-			
-			break
-		end
+hooksecurefunc("UseInventoryItem", function(slot)
+    local itemID = GetInventoryItemID("player", slot);
+    if (itemID) then
+        print('UseInventoryItem', itemID, GetItemInfo(itemID))
+    end
+end)
+hooksecurefunc("UseContainerItem", function(bag,slot)
+    local itemID = GetContainerItemID(bag, slot)
+    if (itemID) then
+        print('UseContainerItem', itemID, GetItemInfo(itemID))
+    end
+end)
+]==]
+
+
+do
+
+    local cooldowns = {}
+
+    --[==[
+    local cooldownLine = CreateFrame('Frame', nil, UIParent)
+
+    cooldownLine:SetSize(400, 20)
+    cooldownLine:SetPoint("CENTER", UIParent, "CENTER", 0, -200)
+
+    cooldownLine.bg = cooldownLine:CreateTexture()
+    cooldownLine.bg:SetAllPoints()
+    cooldownLine.bg:SetColorTexture(0, 0, 0, 0.5)
+
+
+    cooldownLine.points = {0, 1, 10, 30, 60, 120}
+
+    local ceilSize = (400/( #ticks-1 ))
+
+    for i=1, #cooldownLine.points do
+        local text = cooldownLine:CreateFontString()
+        text:SetFont(STANDARD_TEXT_FONT, 12, 'OVERLAY')
+        text:SetPoint('CENTER', cooldownLine, 'LEFT', ceilSize*(i-1), 0)
+        text:SetText( cooldownLine.points[i] )
+
+        local texture = cooldownLine:CreateTexture()
+        texture:SetColorTexture(0, 0, 0, 1)
+        texture:SetSize(2, 30)
+        texture:SetPoint('CENTER', cooldownLine, 'LEFT', ceilSize*(i-1), 0)
+    end
+    ]==]    
+
+    mainframe:SetScript('OnUpdate', function(self, elapsed)
+        local current = GetTime()
+        local lineSize = db.w
+      
+        local ceilSize = (lineSize/( #ticks-1 ))
+
+        local isactive = false
+        
+        for i=1, #cooldowns do 
+            local timeLeft = cooldowns[i].endTime - current
+
+            if ( timeLeft  >=  0 and cooldowns[i].enable ) then 
+                local startPoint = 1
+                local width = 1
+                local nextStep = 1
+
+                for i=#ticks-1, 1, -1 do 
+                    if ( ticks[i] <= timeLeft ) then
+                        startPoint = ticks[i]
+                        nextStep = ticks[i+1]
+
+                        nextWidth = ceilSize*i
+                        width = ceilSize*(i-1)
+                        break
+                    end
+                end
+
+                local needToTransit = nextWidth-width
+                local transitIn = nextStep-startPoint
+                local transitStep = needToTransit/transitIn
+                local sectionTransit = timeLeft-startPoint
+                local offset = sectionTransit*transitStep
+
+                --print('needToTransit=', needToTransit, 'transitIn=', transitIn )
+                local fullOffset = width+offset
+
+                if ( fullOffset > lineSize ) then
+                    fullOffset = lineSize
+                elseif ( fullOffset < 0 ) then
+                    fullOffset = lineSize
+                end
+
+                cooldowns[i].frame.textcd:SetFormattedText(ns.FormatTimeCooldown(timeLeft))
+                --cooldowns[i].frame:SetPoint('CENTER', cooldownLine, 'LEFT', fullOffset, 0)
+                SetValue(cooldowns[i].frame, fullOffset)
+
+                isactive = true
+            elseif cooldowns[i].enable and ( 
+                cooldowns[i].cdType == 'AURA_CD_BUFF' or 
+                cooldowns[i].cdType == 'INTERNAL_CD' or 
+                cooldowns[i].cdType == 'AURA_CD_DEBUFF' ) then 
+               
+                ns.RemoveCooldownByFrame(cooldowns[i].frame)
+            else
+
+            end
+        end
+
+        
+        if not isactive and not mainframe.unlock then
+            mainframe:SetAlpha(db.inactivealpha)
+        else
+            mainframe:SetAlpha(db.activealpha)
+        end
+    end)
+
+    local function SortCooldownsFunc(x,y)
+        return x.endTime < y.endTime
+    end
+    
+    local function SortCooldowns(source)
+        table.sort(cooldowns, SortCooldownsFunc)
+
+        --print('SortFrames', source)
+
+        local firstFrame = mainframe
+        local frameLevel = 10
+        local numCDs = #cooldowns
+
+        for i=1, numCDs do 
+            if ( cooldowns[i].enable ) then
+                local f = cooldowns[i].frame
+
+                f._frameLevel = 10+numCDs-i
+                f:SetFrameLevel( f._frameLevel )
+                f.barframe:SetFrameLevel(1)
+                
+                if db.vertical then
+                    if db.reverse then
+                        f.bar:SetPoint("BOTTOM", f.icon,"TOP",0, -1);
+                        f.bar:SetPoint("TOP", firstFrame, "TOP");
+                    else
+                        f.bar:SetPoint("TOP", f.icon,"BOTTOM",0, 1);					
+                        f.bar:SetPoint("BOTTOM", firstFrame, "BOTTOM");
+                    end
+                else
+                    if db.reverse then
+                        f.bar:SetPoint("LEFT",f.icon,"RIGHT",-1, 0);
+                        f.bar:SetPoint("RIGHT", firstFrame, "RIGHT");
+                    else
+                        f.bar:SetPoint("RIGHT",f.icon,"LEFT",1, 0);
+                        f.bar:SetPoint("LEFT", firstFrame, "LEFT");
+                    end
+                end
+
+                firstFrame = f
+            end
+        end
+    end
+    
+    function ns.EnumirateCooldowns(func) 
+        for i=1, #cooldowns do 
+            cooldowns[i].frame[func](cooldowns[i].frame)
+        end
+    end
+
+    
+    function ns.isMouseOverButton()
+        --[==[
+		for index, frame in pairs(cooldowns) do			
+			if frame:IsMouseOver() then return true end
+        end
+        ]==]
+
+        for i=1, #cooldowns do 
+            if cooldowns[i].frame:IsMouseOver() then return true end
+        end
 	end
+    
+    
+    function ns.AddCooldown(spellID, rawID, duration, startTime, texture, cdType)
+        local exists = false
+
+        for i=1, #cooldowns do 
+            if ( cooldowns[i].spellID == spellID ) then
+                exists = true
+                break
+            end
+        end
+
+        if not exists then
+            --[==[
+            local frame = CreateFrame('Frame', nil, mainframe)
+            frame:SetSize(30, 30)
+            frame.bg = frame:CreateTexture()
+            frame.bg:SetAllPoints()
+            frame.bg:SetTexture(texture or GetSpellTexture(spellID))
+            frame.bg:SetAlpha(1)
+
+            frame.timer = frame:CreateFontString()
+            frame.timer:SetPoint('BOTTOMLEFT', frame, 'BOTTOMLEFT', 0, 0)
+            frame.timer:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+            ]==]
+
+            local frame = ns.CreateCooldownFrame()
+            frame:Update()
+            frame.enable  = true
+            frame.cdType = cdType
+            frame.name = GetSpellInfo(spellID) or spellID
+            frame.endTime = startTime+duration
+
+            frame._texturePath = ns:GetCustomCooldownTexture( (GetSpellInfo(spellID)) )  or ( spellID and GetSpellTexture(spellID) ) or texture
+            frame.texture = frame._texturePath
+            frame.icon:SetTexture(frame._texturePath)		
+            frame.splashicon:SetTexture(frame._texturePath)
+            frame.splashiconbug:SetTexture(frame._texturePath)
+            frame.rawID = rawID
+        
+            local cColor = ns:GetCooldownColor(frame.name)
+
+            if cColor then
+                frame.bar:SetVertexColor(cColor[1], cColor[2], cColor[3], 0.6);
+                frame.glow:SetVertexColor(cColor[1], cColor[2], cColor[3]);	
+            else
+                local dColor = ns:GetCooldownTypeColor(cdType)
+                frame.bar:SetVertexColor(dColor[1], dColor[2], dColor[3], 0.6);
+                frame.glow:SetVertexColor(dColor[1], dColor[2], dColor[3]);
+            end
+        
+            cooldowns[#cooldowns+1] = {
+                enable  = true,
+                name = frame.name,
+                spellID = spellID,
+                endTime = startTime+duration,
+                frame = frame,
+                startTime = startTime,
+                texture = texture,
+                cdType = cdType,
+                rawID = rawID,
+            }
+
+            SortCooldowns('AddCooldown')
+        else 
+            ns.UpdateCooldown(spellID, duration, startTime)
+        end
+    end
+
+    function ns.RemoveCooldown(spellID)
+        for i=1, #cooldowns do 
+            if ( cooldowns[i].spellID == spellID ) then
+                if ( cooldowns[i].enable == true ) then
+                    cooldowns[i].enable = false
+                    cooldowns[i].frame.enable  = false
+                    cooldowns[i].frame:Hide()
+                    cooldowns[i].frame.barframe:Hide()
+                    cooldowns[i].frame:Splash()
+
+                    if cooldowns[i].frame.showtooltip then 
+                        cooldowns[i].frame.showtooltip:HideTooltip() 
+                        cooldowns[i].frame.showtooltip.child = nil
+                        cooldowns[i].frame.showtooltip = nil
+                    end
+                    SortCooldowns('RemoveCooldown')
+                end
+                break
+            end
+        end
+    end
+
+    function ns.RemoveCooldownByFrame(frame)
+        for i=1, #cooldowns do 
+            if ( cooldowns[i].frame == frame ) then
+                if ( cooldowns[i].enable == true ) then
+                    cooldowns[i].enable = false
+                    cooldowns[i].frame.enable  = false
+                    cooldowns[i].frame:Hide()
+                    cooldowns[i].frame.barframe:Hide()
+                    cooldowns[i].frame:Splash()
+
+                    if cooldowns[i].frame.showtooltip then 
+                        cooldowns[i].frame.showtooltip:HideTooltip() 
+                        cooldowns[i].frame.showtooltip.child = nil
+                        cooldowns[i].frame.showtooltip = nil
+                    end
+                    SortCooldowns('RemoveCooldown')
+                end
+                break
+            end
+        end
+    end
+
+    function ns.UpdateCooldown(spellID, duration, startTime)
+        for i=1, #cooldowns do 
+            if ( cooldowns[i].spellID == spellID ) then
+
+                if ( 
+                    cooldowns[i].enable ~= true or 
+                    cooldowns[i].startTime ~= startTime or 
+                    cooldowns[i].endTime ~= startTime + duration
+                ) then
+                    cooldowns[i].enable  = true
+                    cooldowns[i].startTime = startTime
+                    cooldowns[i].endTime = startTime + duration
+                    cooldowns[i].frame:Show()
+                    cooldowns[i].frame.enable  = true
+                    cooldowns[i].frame.barframe:Show()
+                    cooldowns[i].frame.endTime = startTime+duration
+
+                    SortCooldowns('UpdateCooldown')
+                end
+
+                break
+            end
+        end
+    end
+
+    function ns.GlowCooldown(spellID)
+        if #cooldowns == 0 then return end
+        for i=1, #cooldowns do
+            if cooldowns[i].spellID == spellID then
+                if cooldowns[i].endTime - GetTime() > 1 then
+                    cooldowns[i].frame:Glow()
+                end
+                break
+            end
+        end
+    end
+
+    function ns.GetCooldownsList()
+        return cooldowns
+    end
 end
+
 
 do
     local hour, minute = 3600, 60
@@ -1139,125 +1711,338 @@ do
 		end,
 	}
 	
-    function C.FormatTimeCooldown(s)
-		local t = db.fortam_s or 1
-		
-		return formats[t](s)
+    function ns.FormatTimeCooldown(s)
+        local t = db.fortam_s or 1
+        
+        return formats[t](s)
     end
-	
-	
-	function C.ButtonOnClick(self, button) -- - осталось до перезарядки "]
-		if not C:GetAnonce(self.f.name, self.f.isplayer) then return end
+
+    
+	function ns.ButtonOnClick(self, button) -- - осталось до перезарядки "]
+		if not ns:GetAnonce(self.f.name, self.f.cdType) then return end
 		
 		if button == "LeftButton" then
-			local compspellName = gsub(self.f.name, stackspellpattern, "")
-			
+			local compspellName = self.f.spellID --gsub(self.f.name, stackspellpattern, "")
 			local spellLink = GetSpellLink(compspellName) or compspellName
 
 			
-			C.ChatMessage(spellLink..L[" - remains cooldown"]..format(C.FormatTimeCooldown(self.f.endtime-GetTime())))
+			ns.ChatMessage(spellLink..L[" - remains cooldown"]..format(ns.FormatTimeCooldown(self.f.endTime-GetTime())))
 		elseif button == "RightButton" and self.barbutton then		
-			HideCooldown(self.f)
+            ns.RemoveCooldownByFrame(self.f)
 		end
 		if self.tooltip then self.parent:HideTooltip() end
 	end		
 end
 
-local function SetupIcon(frame, position, tthrot, active, fl, tN, tV)
-	throt = (throt < tthrot and throt) or tthrot
-	if not frame.hiden then isactive = active or isactive end
+do
+    local t_coord_1 = 0.08
+        
+    local Update = function(f)
+        f:SetWidth(iconsize)
+        f:SetHeight(iconsize)
+        
+        if db.mouse_events and not db.hide_cooldown_line then
+            f.button:EnableMouse(true)
+        else
+            f.button:EnableMouse(false)
+        end
+    
+        f.button:SetSize(iconsize, iconsize)
+        
+        f.splashbig:SetSize(db.slash_size, db.slash_size)
+        f.splashsmall:SetSize(iconsize*1.5, iconsize*1.5)
+        
+        f.border:SetBackdrop(icon_backdrop)
+        f.border:SetBackdropColor(db.icon_backgroundcolor.r,db.icon_backgroundcolor.g,db.icon_backgroundcolor.b,db.icon_backgroundcolor.a)				
+        f.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, db.icon_bordercolor.a)
+        f.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
+        f.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
+        
+        f.splashbig.border:SetBackdrop(icon_backdrop)
+        f.splashbig.border:SetBackdropColor(db.splash_background_color.r,db.splash_background_color.g,db.splash_background_color.b,db.splash_background_color.a)
+        f.splashbig.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, db.icon_bordercolor.a)
+        f.splashbig.border:SetPoint("TOPLEFT", -db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
+        f.splashbig.border:SetPoint("BOTTOMRIGHT", db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
+    
+        f.splashsmall.border:SetBackdrop(icon_backdrop)
+        f.splashsmall.border:SetBackdropColor(db.splashsmall_background_color.r,db.splashsmall_background_color.g,db.splashsmall_background_color.b,db.splashsmall_background_color.a)
+        f.splashsmall.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, db.icon_bordercolor.a)
+        f.splashsmall.border:SetPoint("TOPLEFT",  -db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
+        f.splashsmall.border:SetPoint("BOTTOMRIGHT", db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
+    
+        if db.hidestatusbar then
+            f.bar:Hide()
+        else
+            f.bar:Show()
+        end
+        f.bar:SetTexture("Interface\\ChatFrame\\ChatFrameBackground") --"Interface\\Tooltips\\UI-Tooltip-Background");
+        f.bar:ClearAllPoints()
+        
+        if db.vertical then
+            f.bar:SetSize(db.h, db.h)
+            if db.reverse then
+                f.bar:SetPoint("BOTTOM",f.icon,"TOP",0, -1);
+                f.bar:SetPoint("TOP", mainframe, "TOP");
+            else
+                f.bar:SetPoint("TOP",f.icon,"BOTTOM",0, 1);					
+                f.bar:SetPoint("BOTTOM", mainframe, "BOTTOM");
+            end
+        else
+            f.bar:SetSize(db.h, db.h)
+            if db.reverse then
+                f.bar:SetPoint("LEFT",f.icon,"RIGHT",-1, 0);
+                f.bar:SetPoint("RIGHT", mainframe, "RIGHT");
+            else
+                f.bar:SetPoint("RIGHT",f.icon,"LEFT",1, 0);
+                f.bar:SetPoint("LEFT", mainframe, "LEFT");
+            end
+        end
+        
+        f.textcd:SetFont(smed:Fetch("font", db.icon_font), db.icon_fontsize, db.icon_fontflaggs)
+        f.textcd:SetTextColor(db.icon_fontcolor.r, db.icon_fontcolor.g, db.icon_fontcolor.b, db.icon_fontcolor.a)
+        f.textcd:SetSize(iconsize*2, db.icon_fontsize)
+        f.textcd:SetShadowColor(db.icon_fontshadowcolor.r, db.icon_fontshadowcolor.g, db.icon_fontshadowcolor.b, db.icon_fontshadowcolor.a)
+        f.textcd:SetShadowOffset(db.icon_fontshadowoffset[1],db.icon_fontshadowoffset[2])
+    end
 
-	if fl then		
-		local frame_level = (#cooldowns-fl+1) * 2 + 8
-		frame:SetFrameLevel( frame_level <= 0 and 8 or frame_level )
+    local StopPulse = function(self)
+        self.pulse:Hide()
+        self:SetAlpha(1)
+    end
+    local PulseIn = function(self)
+        self.pulse.elapsed = self:GetAlpha()
+        self.pulse.step = 1 - self.pulse.elapsed
+        self.pulse.mode = 'IN'
+        self.pulse:Show()
+    end
+    local PulseOut = function(self)
+        self.pulse.elapsed = self:GetAlpha()
+        self.pulse.step = -2 + self.pulse.elapsed
+        self.pulse.mode = 'OUT'
+        self.pulse:Show()
+    end
+    
+    local Splash = function(self)
+        DoBigSplash(self.splashbig)
+        DoSmallSplash(self.splashsmall)
+    end
+
+    local IsMouseOver = function(self)
+        if not self.enable then return false end
+        return MouseIsOver(self.button) or self.button.enter
+    end
+    local Glow = function(self)
+        self.elapsed = 1
+        self:SetFrameLevel(50)
+    end
+    local PulseOnUpdate = function(self, elapsed)
+        self.elapsed = self.elapsed + ( elapsed * self.step )
+        
+        if self.mode == 'IN' and self.elapsed >=1 then -- 0 -> 1
+            self.f:SetAlpha(self.elapsed/self.duration)
+            self:Hide()
+        elseif ( self.mode == 'OUT' and self.elapsed <= 0 ) then -- 1 -> 0
+            self.f:SetAlpha(self.elapsed/self.duration)
+            self:Hide()
+        else
+            if self.f.glow:IsShown() then
+                self.f:SetAlpha(1)
+            else
+                if ( self.mode == 'IN' and self.elapsed >= 0.5 ) then						
+                    self.f.button:EnableMouse(db.mouse_events and not db.hide_cooldown_line)
+                elseif ( self.mode == 'OUT' and self.elapsed <= 0.5 ) then						
+                    self.f.button:EnableMouse(false)
+                end
+                self.f:SetAlpha(self.elapsed/self.duration)
+            end
+        end
+    end
+
+    local FrameOnUpdate = function(self, elapsed)
+        self.elapsed = self.elapsed - elapsed
+        
+        if self.elapsed > -0.5 then 
+            self:SetFrameLevel(50) 
+        else
+            self:SetFrameLevel(self._frameLevel) 
+        end
+        
+        if self.elapsed < 0 then return end
+        self.glow:Hide()
+            
+        local x,y = self:GetSize()				
+        local x1, y1 = x*4*self.elapsed, y*4*self.elapsed
+        
+        if ( x1 <= x*2.5 ) or ( y1 <= y*2.5 ) then
+            self.elapsed = 0
+            self.glow:Hide()
+            return
+        end
+        self.glow:SetAlpha(self.elapsed*2)
+        self.glow:SetSize(x*3*self.elapsed, y*3*self.elapsed)
+        self.glow:Show()
+    end
+
+    function ns.CreateCooldownFrame()
+        local f = CreateFrame("Frame", nil, mainframe.border)
+        f.button = CreateFrame("Button", nil, f)
+        f.button.f = f
+        f.button:SetPoint("TOPLEFT", f, "TOPLEFT")
+        f.button:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT")
+
+        if db.mouse_events and not db.hide_cooldown_line then
+            f.button:EnableMouse(true)
+        else
+            f.button:EnableMouse(false)
+        end
+        
+        f.button:SetFrameLevel(f:GetFrameLevel()+1)
+        f.button.barbutton = true
+        f.button:RegisterForClicks("LeftButtonUp", "RightButtonUp")			
+        f.button:SetScript("OnClick", ns.ButtonOnClick )			
+        f.button:SetScript("OnEnter", ns.OnEnter)			
+        f.button:SetScript("OnLeave", ns.OnLeave)
+        
+        f.border = CreateFrame("Frame", nil, f)
+        f.border:SetFrameLevel(f:GetFrameLevel()-1)
+        f.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
+        f.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
+        f.border:SetBackdrop(icon_backdrop)
+        f.border:SetBackdropBorderColor(db.bordercolor.r, db.bordercolor.g, db.bordercolor.b, db.bordercolor.a)
+
+        f:SetScript("OnUpdate", FrameOnUpdate)
+        
+        
+        f.elapsed = 0
+
+        f.icon = f:CreateTexture(nil, "ARTWORK", nil, 5)
+        f.icon:SetTexCoord(t_coord_1, 1-t_coord_1, t_coord_1, 1-t_coord_1)
+        f.icon:SetPoint("TOPLEFT", 1, -1)
+        f.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        f.icon.f = f
+        
+        f.splashsmall = CreateFrame("Frame", nil, smallsplash)
+        f.splashsmall.types = "small"
+        f.splashsmall.parent = f
+        f.splashsmall:SetAlpha(0.6)
+        f.splashsmall:SetPoint("CENTER",smallsplash,"CENTER")
+        f.splashsmall:SetFrameStrata("HIGH")
+        f.splashsmall:Hide()
+        
+        f.splashsmall.border = CreateFrame("Frame", nil, f.splashsmall)		
+        f.splashsmall.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
+        f.splashsmall.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
+        f.splashsmall.border:SetBackdrop(icon_backdrop)
+        f.splashsmall.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, 0.8)
+        
+        f.splashicon = f.splashsmall:CreateTexture(nil, "ARTWORK", nil, 3)
+
+        f.splashicon:SetTexCoord(t_coord_1, 1-t_coord_1, t_coord_1, 1-t_coord_1)
+        f.splashicon:SetPoint("TOPLEFT", 1, -1)
+        f.splashicon:SetPoint("BOTTOMRIGHT", -1, 1)
+
+        f.splashbig = CreateFrame("Frame", nil, bigsplashparent)
+        f.splashbig.types = "big"
+        f.splashbig.parent = f
+        f.splashbig:SetAlpha(0.6)
+        f.splashbig:SetPoint("CENTER",bigsplashparent,"CENTER")
+        f.splashbig:SetFrameStrata("LOW")
+        f.splashbig:Hide()
+        
+        f.splashbig.border = CreateFrame("Frame", nil, f.splashbig)
+        f.splashbig.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
+        f.splashbig.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
+        f.splashbig.border:SetBackdrop(icon_backdrop)
+        f.splashbig.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, 0.8)
+        
+        f.splashiconbug = f.splashbig:CreateTexture(nil, "ARTWORK", nil, 3)
+        f.splashiconbug:SetTexCoord(t_coord_1, 1-t_coord_1, t_coord_1, 1-t_coord_1)
+        f.splashiconbug:SetPoint("TOPLEFT", 1, -1)
+        f.splashiconbug:SetPoint("BOTTOMRIGHT", -1, 1)
+        
+
+        f.pulse = CreateFrame("Frame", nil, f)
+        f.pulse.duration = 1
+        f.pulse.elapsed = 0
+        f.pulse.f = f
+        f.pulse:Hide()
+        f.pulse:SetScript("OnUpdate", PulseOnUpdate)
+
+
+        f.glow = f.border:CreateTexture(nil,"ARTWORK");
+        f.glow:SetPoint("CENTER",f.icon,"CENTER");
+        f.glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border") --"Interface\\Tooltips\\UI-Tooltip-Background") --"Interface\\AddOns\\Forte_Core\\Textures\\Spark2");
+        f.glow:SetBlendMode("ADD");
+        f.glow:Hide()
+        
+        f.barframe = CreateFrame("Frame", nil, mainframe.border)
+        f.barframe:SetFrameLevel(f:GetFrameLevel()-2)
+        
+        f.bar = f.barframe:CreateTexture(nil,"ARTWORK", nil, 3);
+        f.bar:Show()
+        f.bar:SetAlpha(0.6)
+        -- db.vertical and (db.reverse
+        
+        f.textcd = f:CreateFontString(nil, "ARTWORK", nil, 5)
+        f.textcd:SetPoint("BOTTOM", f, "BOTTOM")
+
+        f.Glow = Glow
+        f.IsMouseOver = IsMouseOver
+        f.StopPulse = StopPulse
+        f.PulseIn = PulseIn
+        f.PulseOut = PulseOut    
+        f.Splash = Splash
+        f.Update = Update
+
+        return f
+    end
+end
+
+
+function ns:UnlockCooldownLine()
+
+	mainframe:SetMovable(true)
+	mainframe:SetResizable(true)
+	mainframe:RegisterForDrag("LeftButton")
+	mainframe:SetScript("OnDragStart", function(this) this:StartMoving() end)
+	mainframe:SetScript("OnDragStop", function(this) 
+		this:StopMovingOrSizing()
+		local x, y = this:GetCenter()
+		local ux, uy = parent:GetCenter()
+		db.x, db.y = floor(x - ux + 0.5), floor(y - uy + 0.5)
+		this:ClearAllPoints()
+		UpdateSettings()
+	end)
+	splashbigmover:SetMovable(true)
+	splashbigmover:SetResizable(true)
+	splashbigmover:RegisterForDrag("LeftButton")
+	splashbigmover:SetScript("OnDragStart", function(this) this:StartMoving() end)
+	splashbigmover:SetScript("OnDragStop", function(this) 
+		this:StopMovingOrSizing()
+		local x, y = this:GetCenter()
+		local ux, uy = parent:GetCenter()
+		db.slash_x, db.slash_y = floor(x - ux + 0.5), floor(y - uy + 0.5)
+		this:ClearAllPoints()
+		UpdateSettings()
+	end)
+
+	if not self.db.profile.locked then
+		mainframe.unlock = true
+		mainframe:EnableMouse(true)
+		mainframe:SetAlpha(db.activealpha)
+		
+		splashbigmover:EnableMouse(true)
+		splashbigmover:Show()
 	else
-		frame:SetFrameLevel(mainframe.border:GetFrameLevel()+1)
-	end
-
-	
-	if not frame._tN then
-		frame._tN = tN
-	end
-	
-	if frame._tN ~= tN then
-		frame._tN = tN
-		C:UpdateFading1()
-		C:UpdateSingleBar()
-	end
-	
-	frame.position = position
-	
-	if frame.endtime-GetTime() > 0 then
-		frame.textcd:SetFormattedText(C.FormatTimeCooldown(frame.endtime-GetTime()))
-	else
-		frame.textcd:SetText("")
-	end
-	SetValue(frame, position)
-end
-
-local function gettick(timer)
-	for k,v in ipairs(ticks) do  
-	   if timer < v then
-		  return k,v
-	   end 
-	end
-	return 
-end
-
-local function OnUpdate(this, a1, ctime, dofl)
-	elapsed = elapsed + a1
-	C:DoFading()
---	if elapsed < 0.01 then return end
---	elapsed = 0
-
-	if #cooldowns == 0 then
-		if not mainframe.unlock then
-			mainframe:SetScript("OnUpdate", nil)
-			mainframe:SetAlpha(db.inactivealpha)
-		end
-		return
-	end
-	
-	ctime = ctime or GetTime()
-	if ctime > ptime then
-		dofl, ptime = true, ctime + 0.4
-	end
-	isactive, throt = false, 1.5
-	for index, frame in pairs(cooldowns) do
-		local remain = frame.endtime - ctime		
-		local tN, tV = gettick(remain)
-	
-		frame.index = index
-		if ticks[3] and remain < ticks[3] and remain < 30 then --10
-			if not frame.hiden then isactive = true end
-			if remain > ticks[2] then --1 >1
-				SetupIcon(frame, min_len*((tN-2)+(remain-sR[tN][1])/sR[tN][2]), 0.02, true, index, tN, tV)  -- 1 + (remain - 1) / 2
-			elseif remain > 0 then
-				if min_len*((tN-2)+(remain-sR[tN][1])/sR[tN][2]) < 0 then
-					SetupIcon(frame, 0, 0.02, true, index, tN, tV)
-				else
-					SetupIcon(frame, min_len*((tN-2)+(remain-sR[tN][1])/sR[tN][2]), 0.02, true, index)
-				end
-			elseif remain > -0.1 then
-				SetupIcon(frame, 1, 0.02, true, -1, tN, tV)
-				if not frame.hiden then frame:Splash() end
-				frame:SetAlpha(1+(remain/0.1))
-			else
-				throt = (throt < 0.2 and throt) or 0.2
-				ClearCooldown(frame)
-			end
-		elseif tV and ( remain < tV ) then
-			if not frame.hiden then isactive = true end
-			SetupIcon(frame,  min_len*((tN-2)+(remain-sR[tN][1])/sR[tN][2]) , 0.02*tN, true, index, tN, tV)  -- 5 + (remain - 120) / 240
-		else
-			SetupIcon(frame, db.w , 2, false, nil, tN, tV)
-		end
-	end
-	
-	if not isactive and not mainframe.unlock then
-		mainframe:SetAlpha(db.inactivealpha)
+		mainframe.unlock = nil
+		mainframe:EnableMouse(false)
+		--OnUpdate(mainframe, 2)
+		
+		splashbigmover:EnableMouse(false)
+		splashbigmover:Hide()
 	end
 end
+
 
 do
 
@@ -1281,14 +2066,14 @@ do
 	local function updatebuttontext(self)
 		if self:IsShown() then
 		
-			local endtime, curtime = 0, GetTime()
-				
-			if self.f.endtime and self.f.endtime > curtime then
-				endtime = self.f.endtime - curtime
+			local endTime, curtime = 0, GetTime()
+            
+			if self.f.endTime and self.f.endTime > curtime then
+				endTime = self.f.endTime - curtime
 			end
 			
 			self.l:SetText("\124T"..self.f.texture..":12\124t")
-			self.r:SetText(format(" %.1f ", endtime))		
+			self.r:SetText(format(" %.1f ", endTime))		
 			
 			self:SetText(self.f.name)
 		end
@@ -1323,7 +2108,7 @@ do
 	local x = 0
 	local y = 0
 	
-	function C:UpdateTooltip()
+	function ns:UpdateTooltip()
 		if db.tooltip_anchor_to == 1 then -- СВЕРХУ
 			to, to2, x, y = "BOTTOM", "TOP", 0, db.tooltip_anchor_gap
 		elseif db.tooltip_anchor_to == 2 then -- СНИЗУ
@@ -1369,7 +2154,7 @@ do
 		f.r:SetJustifyH("RIGHT")
 		
 		f:RegisterForClicks("LeftButtonUp", "RightButtonUp")			
-		f:SetScript("OnClick", C.ButtonOnClick )
+		f:SetScript("OnClick", ns.ButtonOnClick )
 		f.tooltip = true
 		--[[
 		f.UpdateText = function(self)
@@ -1381,12 +2166,6 @@ do
 		return f
 	end
 	
-	local function isMouseOverButton()
-		for index, frame in pairs(cooldowns) do			
-			if frame:IsMouseOver() then return true end
-		end
-	end
-	
 	local loop = CreateFrame("Frame")
 	loop:Hide()
 	loop.elapsed = 0
@@ -1395,7 +2174,7 @@ do
 		self.elapsed = self.elapsed + elapsed
 		self.trottle = self.trottle + elapsed
 		
-		if MouseIsOver(cd_tooltip) or isMouseOverButton() then 
+		if MouseIsOver(cd_tooltip) or ns.isMouseOverButton() then 
 			self.elapsed = 0
 			cd_tooltip:SetAlpha(1)
 		end
@@ -1427,15 +2206,21 @@ do
 		if not db.show_tooltip then return end
 		if db.hide_cooldown_line then return end
 		
-		wipe(frames)
-		for index, frame in pairs(cooldowns) do
-			if frame:IsMouseOver() then 
-				if C:GetAnonce(frame.name, frame.isplayer) then 
-					tinsert(frames, frame)
+        wipe(frames)
+        
+        local cooldowns = ns.GetCooldownsList()
+
+        for i=1, #cooldowns do 
+            if cooldowns[i].frame:IsMouseOver() then 
+                
+                --print(cooldowns[i].frame.name, cooldowns[i].frame.cdType, ns:GetAnonce(cooldowns[i].frame.name, cooldowns[i].frame.cdType))
+
+				if ns:GetAnonce(cooldowns[i].frame.name, cooldowns[i].frame.cdType) then 
+					frames[#frames+1] = cooldowns[i].frame
 				end
 			end
 		end
-	
+        
 		if #frames > 0 then
 			cd_tooltip:Show()
 			cd_tooltip:SetAlpha(1)
@@ -1456,1065 +2241,47 @@ do
 	--	print("Total:"..#frames)
 	end
 	
-	function C.OnEnter(self)
+	function ns.OnEnter(self)
 		self.enter = true
 		TotalMouseover()
 	end
 	
-	function C.OnLeave(self)
+	function ns.OnLeave(self)
 		self.enter = nil
 		TotalMouseover()
 	end
 	
 end
 
-do
 
-	local trottle = 1
-	local last_trotte = 0
-	
-	local group = {}
+local cachedNameToTableKey = {}
 
-	local banspell = {
-		["rune1"] = true,
-		["rune2"] = true,
-		["rune3"] = true,
-		["rune4"] = true,
-		["rune5"] = true,
-		["rune6"] = true,
-	}
-	
-	function C:UpdateFading1()
-		wipe(group)
-	
-		if last_trotte > 0 then
-			last_trotte = last_trotte - 0.2
-		end
-		
-	--	old_print('Reset fading throttle by 0.5')
-		
-		local first, dur = nil, 0
-		local curtime = GetTime()
-		
-		local _i, total = 0, 0
-		
-		for i, frame in ipairs(cooldowns) do
-			if not frame.hiden and frame.position > 0 then
-				local remain = frame.endtime - curtime
-				if not first then
-					first = frame
-					dur = frame.position
-					_i = 1
-					total = 1
-					frame._group = _i
-					frame._state = 1
-					frame.currentActive = true
-					group[_i] = {}
-					group[_i]._current = 1
-					group[_i]._total = total
-					tinsert(group[_i], frame)
-				--	print("1", frame.name)
-				else
-		
-					if abs(dur - frame.position) < iconsize*0.5 and ( remain > db.minimal_time_to_fade ) and not banspell[frame.name] then
-						frame._group = _i
-						total = total + 1
-						group[_i]._total = total
-						tinsert(group[_i], frame)
-					else
-						first = frame
-						dur = frame.position				
-						_i = _i + 1
-						frame.currentActive = true
-						frame._group = _i
-						total = 1
-						frame._state = 1
-						group[_i] = {}
-						group[_i]._current = 1
-						group[_i]._total = total
-						tinsert(group[_i], frame)
-					end
-				end
-			end
-		end
-	end
-	
-	function C:DoFading()
-		if GetTime() - last_trotte < trottle then return end		
-
-		last_trotte = GetTime()
-
-		for gr, t in ipairs(group) do
-			if t._total > 0 then
-				if t._current >= t._total then 
-					t._current = 0 
-				end
-				
-				t._current = t._current + 1
-				
-				for index=1, #t do
-					local value = t[index]
-					
-					if ( value.endtime - GetTime() ) < db.minimal_time_to_fade or #t == 1 then
-						if db.mouse_events and not db.hide_cooldown_line then
-							value.button:EnableMouse(true)
-						else
-							value.button:EnableMouse(false)
-						end
-						
-						value:StopPulse()
-						value.currentActive = true
-					elseif index == t._current then
-						value:PulseIn()
-						value.currentActive = true	
-					else
-						value:PulseOut()
-						value.currentActive = false
-					end
-				end
-			end
-		end
-		
-		C:UpdateSingleBar()
-	end
+function ns:GetCooldownBlockName(name)
+	return cachedNameToTableKey[name]
 end
 
-
-
-local function NewCooldown(name, icon, endtime, isplayer, force, spellID)
-	local f
-	
-	if not db.enabled then return end
-	if C:GetCooldown(name) then return end
-
-	for index, frame in pairs(cooldowns) do
-	--	if IsItMe(frame, name, texture, spellID, isplayer, force) then
-		if (spellID and (frame.spellID == spellID) or not spellID and ( frame.name == name and frame.texture == icon ) ) and ( frame.isplayer == isplayer or force ) then
-			f = frame
-			break
-		elseif frame.endtime == endtime then
-	--		return
-		end
-	end
-	
-	if not f then
-		f = f or tremove(frames)
-		if not f then
-
-			f = CreateFrame("Frame", nil, mainframe.border)
-			f.button = CreateFrame("Button", nil, f)
-			f.button.f = f
-			f.button:SetPoint("TOPLEFT", f, "TOPLEFT")
-			f.button:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT")
-
-			if db.mouse_events and not db.hide_cooldown_line then
-				f.button:EnableMouse(true)
-			else
-				f.button:EnableMouse(false)
-			end
-			
-			f.button:SetFrameLevel(f:GetFrameLevel()+1)
-			f.button.barbutton = true
-			f.button:RegisterForClicks("LeftButtonUp", "RightButtonUp")			
-			f.button:SetScript("OnClick", C.ButtonOnClick )			
-			f.button:SetScript("OnEnter", C.OnEnter)			
-			f.button:SetScript("OnLeave", C.OnLeave)
-			f.IsMouseOver = function(self)
-				if self.hiden then return false end
-				return MouseIsOver(self.button) or self.button.enter
-			end
-			
-			f.border = CreateFrame("Frame", nil, f)
-			f.border:SetFrameLevel(f:GetFrameLevel()-1)
-			f.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
-			f.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
-			f.border:SetBackdrop(icon_backdrop)
-			f.border:SetBackdropBorderColor(db.bordercolor.r, db.bordercolor.g, db.bordercolor.b, db.bordercolor.a)
-		
-			f:SetScript("OnUpdate", function(self, elapsed)
-				self.elapsed = self.elapsed - elapsed
-				
-				if self.elapsed > -0.5 then 
-					self:SetFrameLevel(50) 
-				end
-				
-				if self.elapsed < 0 then return end
-				self.glow:Hide()
-					
-				local x,y = self:GetSize()				
-				local x1, y1 = x*4*self.elapsed, y*4*self.elapsed
-				
-				if ( x1 <= x*2.5 ) or ( y1 <= y*2.5 ) then
-					self.elapsed = 0
-					self.glow:Hide()
-					return
-				end
-				self.glow:SetAlpha(self.elapsed*2)
-				self.glow:SetSize(x*3*self.elapsed, y*3*self.elapsed)
-				self.glow:Show()
-			end)
-			
-			
-			f.elapsed = 0
-
-			f.Glow = function(self)
-				self.elapsed = 1
-				self:SetFrameLevel(50)
-			end
-			local t_coord_1 = 0.08
-			
-			f.icon = f:CreateTexture(nil, "ARTWORK", nil, 5)
-			f.icon:SetTexCoord(t_coord_1, 1-t_coord_1, t_coord_1, 1-t_coord_1)
-			f.icon:SetPoint("TOPLEFT", 1, -1)
-			f.icon:SetPoint("BOTTOMRIGHT", -1, 1)
-			f.icon.f = f
-			
-			f.splashsmall = CreateFrame("Frame", nil, smallsplash)
-			f.splashsmall.types = "small"
-			f.splashsmall.parent = f
-			f.splashsmall:SetAlpha(0.6)
-			f.splashsmall:SetPoint("CENTER",smallsplash,"CENTER")
-			f.splashsmall:SetFrameStrata("HIGH")
-			f.splashsmall:Hide()
-			
-			f.splashsmall.border = CreateFrame("Frame", nil, f.splashsmall)		
-			f.splashsmall.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
-			f.splashsmall.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
-			f.splashsmall.border:SetBackdrop(icon_backdrop)
-			f.splashsmall.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, 0.8)
-			
-			f.splashicon = f.splashsmall:CreateTexture(nil, "ARTWORK", nil, 3)
-
-			f.splashicon:SetTexCoord(t_coord_1, 1-t_coord_1, t_coord_1, 1-t_coord_1)
-			f.splashicon:SetPoint("TOPLEFT", 1, -1)
-			f.splashicon:SetPoint("BOTTOMRIGHT", -1, 1)
-
-			f.splashbig = CreateFrame("Frame", nil, bigsplashparent)
-			f.splashbig.types = "big"
-			f.splashbig.parent = f
-			f.splashbig:SetAlpha(0.6)
-			f.splashbig:SetPoint("CENTER",bigsplashparent,"CENTER")
-			f.splashbig:SetFrameStrata("LOW")
-			f.splashbig:Hide()
-			
-			f.splashbig.border = CreateFrame("Frame", nil, f.splashbig)
-			f.splashbig.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
-			f.splashbig.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
-			f.splashbig.border:SetBackdrop(icon_backdrop)
-			f.splashbig.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, 0.8)
-			
-			f.splashiconbug = f.splashbig:CreateTexture(nil, "ARTWORK", nil, 3)
-			f.splashiconbug:SetTexCoord(t_coord_1, 1-t_coord_1, t_coord_1, 1-t_coord_1)
-			f.splashiconbug:SetPoint("TOPLEFT", 1, -1)
-			f.splashiconbug:SetPoint("BOTTOMRIGHT", -1, 1)
-			
-
-			f.pulse = CreateFrame("Frame", nil, f)
-			f.pulse.duration = 1
-			f.pulse.elapsed = 0
-			f.pulse.f = f
-			f.pulse:Hide()
-			f.pulse:SetScript("OnUpdate", function(self, elapsed)
-				self.elapsed = self.elapsed + ( elapsed * self.step )
-				
-				if self.mode == 'IN' and self.elapsed >=1 then -- 0 -> 1
-					self.f:SetAlpha(self.elapsed/self.duration)
-					self:Hide()
-				elseif ( self.mode == 'OUT' and self.elapsed <= 0 ) then -- 1 -> 0
-					self.f:SetAlpha(self.elapsed/self.duration)
-					self:Hide()
-				else
-					if self.f.glow:IsShown() then
-						self.f:SetAlpha(1)
-					else
-						if ( self.mode == 'IN' and self.elapsed >= 0.5 ) then						
-							self.f.button:EnableMouse(db.mouse_events and not db.hide_cooldown_line)
-						elseif ( self.mode == 'OUT' and self.elapsed <= 0.5 ) then						
-							self.f.button:EnableMouse(false)
-						end
-						self.f:SetAlpha(self.elapsed/self.duration)
-					end
-				end
-			end)
-			
-			--[==[
-			f.pulse:SetScript("OnUpdate", function(self, elapsed)
-				local rate = GetFramerate()
-				local limit = 30/rate
-				
-				local value = self.To
-				local cur = self.f:GetAlpha()*100
-		
-				local new = cur + min((value-cur)/3, max(value-cur, limit))
-				if new ~= new then
-					new = value
-				end
-				self.f:SetAlpha(new/100)			
-				if (cur == value or abs(new - value) < 2) then
-					self.f:SetAlpha(value/100)
-					self:Hide()
-				end
-				old_print(self.f:GetAlpha())
-				
-			end)
-			]==]
-
-			f.StopPulse = function(self)
-				self.pulse:Hide()
-				self:SetAlpha(1)
-			end
-			f.PulseIn = function(self)
-				--[==[
-					
-					0 -> 1
-					
-					0 -> 1
-					
-					0.3 - > 0.7
-					
-					0.5 - > 0.5
-					
-					0.2 - > 0.8
-					
-				]==]
-				
-				self.pulse.elapsed = self:GetAlpha()
-				self.pulse.step = 1 - self.pulse.elapsed
-				self.pulse.mode = 'IN'
-				self.pulse:Show()
-			end
-			f.PulseOut = function(self)
-				--[==[
-					
-					1 -> 0
-					
-					1 -> 1
-					
-					0.7 - > 1.3
-					
-					0.5 - > 1.5
-					
-					0.2 - > 1.8
-					
-				]==]
-				self.pulse.elapsed = self:GetAlpha()
-				self.pulse.step = -2 + self.pulse.elapsed
-				self.pulse.mode = 'OUT'
-				self.pulse:Show()
-			end
-			
-			f.Splash = function(self)
-				DoBigSplash(self.splashbig, self.name)
-				DoSmallSplash(self.splashsmall)
-			end
-
-			f.glow = f.border:CreateTexture(nil,"ARTWORK");
-			f.glow:SetPoint("CENTER",f.icon,"CENTER");
-			f.glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border") --"Interface\\Tooltips\\UI-Tooltip-Background") --"Interface\\AddOns\\Forte_Core\\Textures\\Spark2");
-			f.glow:SetBlendMode("ADD");
-			f.glow:Hide()
-			
-			f.barframe = CreateFrame("Frame", nil, f)
-			f.barframe:SetFrameLevel(f:GetFrameLevel()-2)
-			
-			f.bar = f.barframe:CreateTexture(nil,"ARTWORK", nil, 3);
-			f.bar:Show()
-			f.bar:SetAlpha(0.6)
-			-- db.vertical and (db.reverse
-			
-			f.textcd = f:CreateFontString(nil, "ARTWORK", nil, 5)
-			f.textcd:SetPoint("BOTTOM", f, "BOTTOM")
-
-			f.Update = function(f)
-				f:SetWidth(iconsize)
-				f:SetHeight(iconsize)
-				
-				if db.mouse_events and not db.hide_cooldown_line then
-					f.button:EnableMouse(true)
-				else
-					f.button:EnableMouse(false)
-				end
-			
-				f.button:SetSize(iconsize, iconsize)
-				
-				f.splashbig:SetSize(db.slash_size, db.slash_size)
-				f.splashsmall:SetSize(iconsize*1.5, iconsize*1.5)
-				
-				f.border:SetBackdrop(icon_backdrop)
-				f.border:SetBackdropColor(db.icon_backgroundcolor.r,db.icon_backgroundcolor.g,db.icon_backgroundcolor.b,db.icon_backgroundcolor.a)				
-				f.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, db.icon_bordercolor.a)
-				f.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
-				f.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
-				
-				f.splashbig.border:SetBackdrop(icon_backdrop)
-				f.splashbig.border:SetBackdropColor(db.splash_background_color.r,db.splash_background_color.g,db.splash_background_color.b,db.splash_background_color.a)
-				f.splashbig.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, db.icon_bordercolor.a)
-				f.splashbig.border:SetPoint("TOPLEFT", -db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
-				f.splashbig.border:SetPoint("BOTTOMRIGHT", db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
-			
-				f.splashsmall.border:SetBackdrop(icon_backdrop)
-				f.splashsmall.border:SetBackdropColor(db.splashsmall_background_color.r,db.splashsmall_background_color.g,db.splashsmall_background_color.b,db.splashsmall_background_color.a)
-				f.splashsmall.border:SetBackdropBorderColor(db.icon_bordercolor.r, db.icon_bordercolor.g, db.icon_bordercolor.b, db.icon_bordercolor.a)
-				f.splashsmall.border:SetPoint("TOPLEFT",  -db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
-				f.splashsmall.border:SetPoint("BOTTOMRIGHT", db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
-			
-				if db.hidestatusbar then
-					f.bar:Hide()
-				else
-					f.bar:Show()
-				end
-				f.bar:SetTexture("Interface\\ChatFrame\\ChatFrameBackground") --"Interface\\Tooltips\\UI-Tooltip-Background");
-				f.bar:ClearAllPoints()
-				
-				if db.vertical then
-					f.bar:SetSize(db.h, db.h)
-					if db.reverse then
-						f.bar:SetPoint("BOTTOM",f.icon,"TOP",0, -1);
-						f.bar:SetPoint("TOP", mainframe, "TOP");
-					else
-						f.bar:SetPoint("TOP",f.icon,"BOTTOM",0, 1);					
-						f.bar:SetPoint("BOTTOM", mainframe, "BOTTOM");
-					end
-				else
-					f.bar:SetSize(db.h, db.h)
-					if db.reverse then
-						f.bar:SetPoint("LEFT",f.icon,"RIGHT",-1, 0);
-						f.bar:SetPoint("RIGHT", mainframe, "RIGHT");
-					else
-						f.bar:SetPoint("RIGHT",f.icon,"LEFT",1, 0);
-						f.bar:SetPoint("LEFT", mainframe, "LEFT");
-					end
-				end
-				
-				f.textcd:SetFont(smed:Fetch("font", db.icon_font), db.icon_fontsize, db.icon_fontflaggs)
-				f.textcd:SetTextColor(db.icon_fontcolor.r, db.icon_fontcolor.g, db.icon_fontcolor.b, db.icon_fontcolor.a)
-				f.textcd:SetSize(iconsize*2, db.icon_fontsize)
-				f.textcd:SetShadowColor(db.icon_fontshadowcolor.r, db.icon_fontshadowcolor.g, db.icon_fontshadowcolor.b, db.icon_fontshadowcolor.a)
-				f.textcd:SetShadowOffset(db.icon_fontshadowoffset[1],db.icon_fontshadowoffset[2])
-				
-			end
-			
-			f:Update()
-		end
-		tinsert(cooldowns, f)
-	--	print("1", name, isplayer)
-	end	
-
-	if force or f.isplayer ~= isplayer or f.name ~= name or f.endtime ~= endtime or f.texture ~= icon or f.spellID ~= spellID then
-	
-	--	print("NEW_COOLDOWN", name, force, (f.isplayer ~= isplayer), ( f.name ~= name),(f.endtime ~= endtime), (f.texture == icon) )
-		
-		local ctime = GetTime()
-		local t_coord = 0.08
-		f:SetWidth(iconsize)
-		f:SetHeight(iconsize)
-		
-		f:SetAlpha((endtime - ctime > ticks[#ticks]) and 0.6 or 0.8)
-		f.name, f.endtime, f.isplayer, f.texture = name, endtime, isplayer, icon
-		f.spellID = spellID
-		
-		f.hiden = nil
-		f.position = 0
-		f._group = nil
-		f.currentActive = nil
-		f._currentTickLine = nil
-		
-		C:PlaySoundCooldown(name, "sound_onshow")
-		
-		f._texturePath = C:GetCustomCooldownTexture(name) or ( spellID and GetSpellTexture(spellID) ) or icon
-		
-		f.icon:SetTexture(f._texturePath)		
-		f.splashicon:SetTexture(f._texturePath)
-		f.splashiconbug:SetTexture(f._texturePath)
-				
-		--[[
-			"PLAYER_ITEMS"
-			"BAG_SLOTS"
-			"PET_CD"
-			"VEHICLE_CD"
-			"PLAYER_CD"
-			"INTERNAL_CD"	
-		]]
-		local cColor = C:GetCooldownColor(name)
-
-		if cColor then
-			local cR,cG,cB = unpack(cColor)		
-			f.bar:SetVertexColor(cR,cG,cB, 0.6);
-			f.glow:SetVertexColor(cR,cG,cB);	
-		else
-			local dColor = C:GetCooldownTypeColor(isplayer)
-			local cR,cG,cB = unpack(dColor)
-			f.bar:SetVertexColor(cR,cG,cB, 0.6);
-			f.glow:SetVertexColor(cR,cG,cB);
-		end
-		f:Show()
-		
-		SortCooldowns()
-		mainframe:SetScript("OnUpdate", OnUpdate)
-		
-		mainframe:SetAlpha(db.activealpha)
-		OnUpdate(mainframe, 2, ctime)
-		
-		C:UpdateFading1()
-		C:UpdateSingleBar()
-	end
-end
-
-local function UpdateCooldownStyle()
-	for index, frame in pairs(cooldowns) do
-		frame:Update()
-	end
-	for index, frame in pairs(frames) do 
-		frames:Update()
-	end
-end
-
-mainframe.NewCooldown, mainframe.ClearCooldown, mainframe.UpdateCooldownStyle = NewCooldown, ClearCooldown, UpdateCooldownStyle
-C.NewCooldown, C.ClearCooldown, C.UpdateCooldownStyle = NewCooldown, ClearCooldown, UpdateCooldownStyle
-
-do
-	local GetSpellBookItemName, GetSpellBookItemInfo = GetSpellBookItemName, GetSpellBookItemInfo
-	local function CacheBook(btype)
-		local lastId, spellName, last, subSpellName
-		local slotType, spellId
-		
-		wipe( spells[btype])
-		
-		local sb = spells[btype]
-	
-		local _, _, offset, numSpells = GetSpellTabInfo(2)
-		
-		for i = 1, offset + numSpells, 1 do
-			spellName, subSpellName = GetSpellBookItemName(i, btype)
-			
-			if not spellName then break end
-			
-			local slotType, spellId = GetSpellBookItemInfo(i, btype)		
-			local isPassive = IsPassiveSpell(i, btype);
-	
-			if spellId and not disable_spells[spellId] and not isPassive then
-				if slotType == "FLYOUT" then
-					local _, _, numSlots, isKnown = GetFlyoutInfo(spellId)
-					for fi = 1, ((isKnown and numSlots) or 0), 1 do
-						local flySpellId, _, _, flySpellName, _ = GetFlyoutSlotInfo(spellId, fi)
-						last = flySpellName
-						if flySpellId then
-							local flycd = MyGetSpellBaseCooldown(flySpellId)
-							if flycd and flycd > 2499 and flycd < 1200000 then
-								sb[flySpellId] = specialspells[flySpellId] or flySpellName
-								
-						--		flyOutCooldown[flySpellId] = spellId
-								
-						--		flyOutCooldownList[spellId] = flyOutCooldownList[spellId] or {}
-								
-						--		if flyOutCooldownList[spellId][flySpellId] == nil then
-						--			flyOutCooldownList[spellId][flySpellId] = flyOutCooldownList[spellId][flySpellId] or true
-						--		end
-							end
-						end
-					end
-				elseif slotType ~= "FUTURESPELL" and spellId ~= last then
-					local name, _, _, _, _, _, spellID = GetSpellInfo(i, btype) 
-					
-					last = spellId
-			--		local spellcd = MyGetSpellBaseCooldown(spellId)
-					
-					if spellId ~= spellID  then
-				--	old_print('T', spellName, subSpellName, isPassive, slotType, spellId, spellID, spellcd)
-					end
-					
-					if spellID then
-						sb[spellID] = name
-						if specialspells[name] then
-							sb[ specialspells[name] ] = name
-						end
-					end
-					--[==[
-					sb[spellId] = spellName
-					if specialspells[spellName] then
-						sb[ specialspells[spellName] ] = spellName
-					end
-					]==]
-				end
-			end
-		end
-	end
-
-	function mainframe:SPELLS_CHANGED()
-
-		CacheBook(BOOKTYPE_SPELL)
-		if not db.hidepet then
-			CacheBook(BOOKTYPE_PET)
-		end
-		
-	--	C.CacheTaletsIDs(spells[BOOKTYPE_SPELL])
-		
-		for name, opts in pairs(C:GetPlayerCooldownList()) do
-			if not disable_spells[opts.spellid] and opts.spellid and GetSpellInfo(name) and IsSpellKnown(opts.spellid) then			
-				spells[BOOKTYPE_SPELL][opts.spellid] = name
-			end
-		end
-	end
-	
-	C.UpdateSpellCooldowns = mainframe.SPELLS_CHANGED
-end
-
-
-do
-
-	local selap = 0
-	local spellthrot = CreateFrame("Frame", nil, mainframe)
-	local GetSpellCooldown, GetSpellTexture,GetSpellCharges = GetSpellCooldown, GetSpellTexture,GetSpellCharges
-	
-	local function GetSpellCooldownCharges(spellID)
-	
-		if cooldowns_placeholder[spellID] then
-			spellID = cooldowns_placeholder[spellID] 
-		end
-		
-		local startTime, duration, enabled, modRate = GetSpellCooldown(spellID)
-		local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(spellID)
-		local charger = false
-		
-		if InCombatRes[spellID] then 
-			charges = nil;
-			maxCharges = nil;
-		end
-		
-		if charges and charges ~= maxCharges then
-			charger = true
-		end
-
-		
-		return ( charger and chargeStart or startTime ), ( charger and chargeDuration or duration ), charges, maxCharges, modRate
-	end
-	
-	local function CheckSpellBook(btype)
-		for id, name in pairs(spells[btype]) do
-			local texture = GetSpellTexture(id)
-			local start, duration, currentCharges, maxCharges, modRate = GetSpellCooldownCharges(id)
-			
-			--[==[
-			if start and duration and duration > 0 and GetMinimumCooldownDuration(id, duration, start) then
-				print('Check1', id, name)
-				print('Check2', C:GetCooldown(name))
-				print('Check3', (not RuneCheck or RuneCheck(name, duration)) )
-				print('Check4', C:IsFlyCDLastUsed(id))
-				print('Check5', GetMinimumCooldownDuration(id, duration, start))
-			end
-			]==]
-			
-			if start and duration and duration > 0 and not C:GetCooldown(name) and (not RuneCheck or RuneCheck(name, duration)) and C:IsFlyCDLastUsed(id) and GetMinimumCooldownDuration(id, duration, start) then		
-				if false and maxCharges and maxCharges > 1 then
-					if ( maxCharges ~= currentCharges) then
-					--	for i=1, currentCharges do
-					--		ClearCooldown(nil, name..format(stackspellpattern, i), texture, id, skipWarning)
-					--	end
-					
-						NewCooldown(name..format(stackspellpattern, currentCharges), texture, start+duration*(1+(maxCharges-i)), BookType[btype], nil, id)			
-					end
-				else
-					NewCooldown(name, texture, start + duration, BookType[btype],nil,id)
-					
-					for index, frame in ipairs(cooldowns) do
-						if frame.name == name and frame.texture == texture then
-							if frame.endtime > start + duration + 0.1 then
-								frame.endtime = start + duration
-							end
-							break
-						end
-					end
-				end
-			else
-				if false and maxCharges and maxCharges > 1 then					
-					for i=1, currentCharges do
-						ClearCooldown(nil, name..format(stackspellpattern, i), texture, id)
-					end
-				else
-					ClearCooldown(nil, name, texture, id) 
-				end
-			end
-		end
-	end
-	spellthrot:SetScript("OnUpdate", function(this, a1)
-		selap = selap + a1
-		if selap < 0.3 then return end
-		selap = 0
-		this:Hide()
-		CheckSpellBook(BOOKTYPE_SPELL)
-		if not db.hidepet and HasPetUI() then
-			CheckSpellBook(BOOKTYPE_PET)
-		end
-	end)
-	spellthrot:Hide()
-	
-	function mainframe:SPELL_UPDATE_COOLDOWN()
-		spellthrot:Show()
-	end
-	
-	mainframe.ENCOUNTER_END = mainframe.SPELL_UPDATE_COOLDOWN
-end
-
-do
-
-	local function checkcd(name, tip)
-		
-		if tip == "item" then
-			if db.hideinv then -- если скрывать все кд
-			
-			--	if block[name] == false then return true end
-				if C:GetCooldown(name) == false then return true end
-			
-		--		print(name, tip, "false")
-				return false
-			else
-				if not C:GetCooldown(name) then return true end
-				if C:GetCooldown(name) then return false end
-			end
-		elseif tip == "bag" then
-			if db.hidebag then -- если скрывать все кд
-			
-			--	if block[name] == false  then return true end
-				if C:GetCooldown(name) == false then return true end
-				
-		--		print(name, tip, "false")
-				return false
-			else
-				if not C:GetCooldown(name) then return true end
-				if C:GetCooldown(name) then return false end
-			end
-		end
-		
-	--	print(name, tip, "true")
-		return true
-	end
-
-
-	
-	local GetItemInfo = GetItemInfo
-	local GetInventoryItemCooldown, GetInventoryItemTexture = GetInventoryItemCooldown, GetInventoryItemTexture
-	local GetContainerItemCooldown, GetContainerItemInfo = GetContainerItemCooldown, GetContainerItemInfo
-	local GetContainerNumSlots = GetContainerNumSlots
-	
-	local bagUpdateThrottle = true
-	
-	local equippedItems = {}
-	
-	local function UpdateBag()
-		bagUpdateThrottle = true
-		
-		wipe(equippedItems)
-		
-		for i = 1, 18, 1 do --(db.hideinv and 0) or
-			local start, duration, enable = GetInventoryItemCooldown("player", i)
-			if enable == 1 then
-				local name = GetItemInfo(GetInventoryItemLink("player", i))
-				
-				equippedItems[name] = true
-				
-				if start > 0 and checkcd(name, "item") then
-					if duration > 3 and duration < 3601 then
-						NewCooldown(name and 'ITEM:'..name or name, GetInventoryItemTexture("player", i), start + duration, "PLAYER_ITEMS")
-					end
-				else
-					ClearCooldown(nil, name and 'ITEM:'..name or name)
-				end
-			end
-		end
-		for i = 0, 4, 1 do -- (db.hidebag and -1) or
-			for j = 1, GetContainerNumSlots(i), 1 do
-				local start, duration, enable = GetContainerItemCooldown(i, j)
-				if enable == 1 then
-					local name = GetItemInfo(GetContainerItemLink(i, j))
-					
-					if not equippedItems[name] then
-						if start > 0 and checkcd(name, "bag") then
-							if duration > 3 and duration < 3601 then
-								NewCooldown(name and 'ITEM:'..name or name, GetContainerItemInfo(i, j), start + duration, "BAG_SLOTS")
-							end
-						else
-							ClearCooldown(nil, name and 'ITEM:'..name or name)
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	function mainframe:BAG_UPDATE_COOLDOWN()
-		if bagUpdateThrottle then
-			bagUpdateThrottle = false
-			C_Timer.After(0.3, UpdateBag)
+local function BuildCooldownBlockList()
+	for k,v in pairs(db.blockList) do		
+		if v.itemid then
+			cachedNameToTableKey[v.itemid] = k
+		elseif v.spellid then
+			cachedNameToTableKey[v.spellid] = k
 		end
 	end
 end
 
-function mainframe:PET_BAR_UPDATE_COOLDOWN()
-	for i = 1, 10, 1 do
-		local start, duration, enable = GetPetActionCooldown(i)
-		if enable == 1 then
-			local name, _, texture = GetPetActionInfo(i)
-			if name then
-				if start > 0 and not C:GetCooldown(name)then
-					if duration > 3 then
-						NewCooldown(name, texture, start + duration, "PET_CD")
-					end
-				else
-					ClearCooldown(nil, name)
-				end
-			end
-		end
-	end
+function ns:BuildCooldownBlockList()
+	C_Timer.After(1, BuildCooldownBlockList)
+	C_Timer.After(1.5, BuildCooldownBlockList)
 end
 
-function mainframe:UNIT_PET(a1)
-	if UnitExists("pet") and not HasPetUI() then
-		mainframe:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
-	else
-		mainframe:UnregisterEvent("PET_BAR_UPDATE_COOLDOWN")
-	end
-end
-
-local GetActionCooldown, HasAction = GetActionCooldown, HasAction
-
-function mainframe:ACTIONBAR_UPDATE_COOLDOWN()  -- used only for vehicles
-	for i = 1, 8, 1 do
-		local b = _G["OverrideActionBarButton"..i]
-		if b and HasAction(b.action) then
-			local start, duration, enable = GetActionCooldown(b.action)
-			if enable == 1 then
-				if start > 0 and not C:GetCooldown(GetActionInfo(b.action))then
-					if duration > 3 then
-						NewCooldown("vhcle"..i, GetActionTexture(b.action), start + duration, "VEHICLE_CD")
-					end
-				else
-					ClearCooldown(nil, "vhcle"..i)
-				end
-			end
-		end
-	end
-end
-
-function mainframe:UNIT_ENTERED_VEHICLE()
-	if not UnitHasVehicleUI("player") then return end
-	mainframe:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-	mainframe:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player", '')
-	mainframe:ACTIONBAR_UPDATE_COOLDOWN()
-end
-
-function mainframe:UNIT_EXITED_VEHICLE()
-	mainframe:UnregisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-	for index, frame in ipairs(cooldowns) do
-		if strmatch(frame.name, "vhcle") then
-			ClearCooldown(nil, frame.name)
-		end
-	end
-end
-
-local failborder
-----------------------------------------------------
-function mainframe:UNIT_SPELLCAST_FAILED(unit, spell)
-----------------------------------------------------
-	if #cooldowns == 0 then return end
-	local currentCharges, maxCharges = GetSpellCharges(spell)
-	if maxCharges then
-		local total = 0
-		for index, frame in pairs(cooldowns) do		
-			for cd=1 , (maxCharges-currentCharges) do
-				if frame.name == spell..format(stackspellpattern, cd) then
-					total = total + 1
-					if frame.endtime - GetTime() > 1 then
-						frame:Glow()
-					end
-				end
-			end
-			
-			if total == maxCharges then break end
-		end
-	else
-		for index, frame in pairs(cooldowns) do
-			if frame.name == spell then
-				if frame.endtime - GetTime() > 1 then
-					frame:Glow()
-				end
-				break
-			end
-		end
-	end
-end
-
-function mainframe:UNIT_SPELLCAST_SUCCEEDED(unit, spell, rank, lineID, spellID)
-
-	if unit ~= 'player' then return end
-	
-	if flyOutCooldown[spellID] then
-		for id in pairs(flyOutCooldownList[flyOutCooldown[spellID]]) do
-			if id == spellID then			
-				flyOutCooldownList[flyOutCooldown[spellID]][id] = true
-			else
-				flyOutCooldownList[flyOutCooldown[spellID]][id] = false
-			end
-		end
-	end
---	flyOutCooldown[flySpellId] = spellId							
---	flyOutCooldownList[spellId] = flyOutCooldownList[spellId] or {}
---	flyOutCooldownList[spellId][flySpellId] = flyOutCooldownList[spellId][flySpellId] or -1						
-end
-
-function C:IsFlyCDLastUsed(spellID)
-	
-	local spell = flyOutCooldown[spellID]
-
-	if spell then
-		return flyOutCooldownList[spell][spellID]
-	end
-	
-	return true
-end
-
-function C:RegisterAsShareSpellCooldown(tag, spellID)
-	flyOutCooldown[spellID] = tag
-	flyOutCooldownList[tag] = flyOutCooldownList[tag] or {}
-	flyOutCooldownList[tag][spellID] = false
-end
-
-C:RegisterAsShareSpellCooldown('Warlock:BurstCooldown', 18540)
-C:RegisterAsShareSpellCooldown('Warlock:BurstCooldown', 1122)
-
-
-do
-	local RUNETYPE_BLOOD = 1;
-	local RUNETYPE_UNHOLY = 2;
-	local RUNETYPE_FROST = 3;
-	local RUNETYPE_DEATH = 4;
-		
-	local iconTextures = {
-		[RUNETYPE_BLOOD] = "Interface\\AddOns\\"..addon.."\\media\\BlizzardBlood",
-		[RUNETYPE_UNHOLY]= "Interface\\AddOns\\"..addon.."\\media\\BlizzardUnholy",
-		[RUNETYPE_FROST] = "Interface\\AddOns\\"..addon.."\\media\\BlizzardFrost",
-		[RUNETYPE_DEATH] = "Interface\\AddOns\\"..addon.."\\media\\BlizzardDeath",
-	}
-	
-	local runeName = {
-		"RuneBlood",
-		"RuneUnholy",
-		"RuneFrost",
-		"RuneDeath",
-	}
-	
-	local indexToType = {1,1,2,2,3,3}
-	
-	local function UpdateDKRunes(runeIndex, force)
-		if ( runeIndex == 1 or runeIndex == 2 ) and db.blood_runes then return end
-		if ( runeIndex == 5 or runeIndex == 6 ) and db.frost_runes then return end
-		if ( runeIndex == 3 or runeIndex == 4 ) and db.unholy_runes then return end
-		
-		local start, duration, runeReady = GetRuneCooldown(runeIndex);
-	--	local runeType = GetRuneType(runeIndex)
-
-		if ( not start ) then
-			return
-		end 
-
-		if runeReady then
-			ClearCooldown(nil, "rune"..runeIndex)
-		else
-			NewCooldown("rune"..runeIndex, "Interface\\PlayerFrame\\UI-PlayerFrame-Deathknight-SingleRune", start + duration, runeName[indexToType[4]], force)
-		end
-	end
-	function mainframe:RUNE_POWER_UPDATE(runeIndex, isEnergize)
-		UpdateDKRunes(runeIndex)				
-	end
-	
-	function mainframe:RUNE_TYPE_UPDATE(runeIndex)
-		UpdateDKRunes(runeIndex, true)
-	end	
-end
-
-function C:UnlockCooldownLine()
-
-	mainframe:SetMovable(true)
-	mainframe:SetResizable(true)
-	mainframe:RegisterForDrag("LeftButton")
-	mainframe:SetScript("OnDragStart", function(this) this:StartMoving() end)
-	mainframe:SetScript("OnDragStop", function(this) 
-		this:StopMovingOrSizing()
-		local x, y = this:GetCenter()
-		local ux, uy = parent:GetCenter()
-		db.x, db.y = floor(x - ux + 0.5), floor(y - uy + 0.5)
-		this:ClearAllPoints()
-		UpdateSettings()
-	end)
-	splashbigmover:SetMovable(true)
-	splashbigmover:SetResizable(true)
-	splashbigmover:RegisterForDrag("LeftButton")
-	splashbigmover:SetScript("OnDragStart", function(this) this:StartMoving() end)
-	splashbigmover:SetScript("OnDragStop", function(this) 
-		this:StopMovingOrSizing()
-		local x, y = this:GetCenter()
-		local ux, uy = parent:GetCenter()
-		db.slash_x, db.slash_y = floor(x - ux + 0.5), floor(y - uy + 0.5)
-		this:ClearAllPoints()
-		UpdateSettings()
-	end)
-
-	if not self.db.profile.locked then
-		mainframe.unlock = true
-		mainframe:EnableMouse(true)
-		mainframe:SetAlpha(db.activealpha)
-		
-		splashbigmover:EnableMouse(true)
-		splashbigmover:Show()
-	else
-		mainframe.unlock = nil
-		mainframe:EnableMouse(false)
-		OnUpdate(mainframe, 2)
-		
-		splashbigmover:EnableMouse(false)
-		splashbigmover:Hide()
-	end
-end
 
 --[==[
-do
-	local icd_cache = CreateFrame("Frame")
-	icd_cache:RegisterEvent("PLAYER_LOGIN")
-	icd_cache:RegisterEvent("PLAYER_LOGOUT")
-	icd_cache.logginin = false
-	icd_cache.elapsed = 0
-	icd_cache:Hide()
-	icd_cache:SetScript("OnUpdate", function(self, elapsed)
-		if not self.logginin then return end		
-		self.elapsed = self.elapsed - elapsed		
-		if self.elapsed > 0 then return end	
-		if not SPTimersICD_Cache then SPTimersICD_Cache = {} end
-		for k,v in pairs(SPTimersICD_Cache) do	
-			if v.timer > time() then
-				NewCooldown(v.name, v.icon, GetTime()+v.endtime, v.isplayer)
-			end
-		end	
-		wipe(SPTimersICD_Cache)		
-		self:Hide()
-		self:SetScript("OnUpdate", nil)
-	end)
-
-	icd_cache:SetScript("OnEvent", function(self, event)
-		if not SPTimersICD_Cache then SPTimersICD_Cache = {} end	
-		if event == "PLAYER_LOGIN" then
-			self.elapsed = 0.3
-			self.logginin = true
-			self:Show()
-		elseif event == "PLAYER_LOGOUT" then
-			wipe(SPTimersICD_Cache)
-			for i, f in ipairs(cooldowns) do
-				if f.isplayer == "INTERNAL_CD" then
-					local lastdur = f.endtime - GetTime()
-					local _endtime = time() + lastdur
-					
-					SPTimersICD_Cache[f.name..f.isplayer] = { timer = _endtime, isplayer = f.isplayer, name = f.name, endtime = lastdur, icon = f.icon:GetTexture() }
-				end
-			end
-		end
-	end)
-end
+    PET_BAR_UPDATE_COOLDOWN
+    ACTIONBAR_UPDATE_COOLDOWN
+    BAG_UPDATE_COOLDOWN
+    SPELL_UPDATE_COOLDOWN
+    SPELLS_CHANGED
+    UNIT_SPELLCAST_FAILED
+    UNIT_SPELLCAST_SUCCEEDED
 ]==]

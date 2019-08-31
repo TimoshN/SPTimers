@@ -1,6 +1,14 @@
 local addon, C = ...
 local changelog = 
-[[3.13.2
+[[3.14.1
+fix various "New achor system error"
+
+3.14.0
+fix various "New achor system error"
+fix text flickering on bars
+[WIP] Rewrite cooldown line.
+
+3.13.2
 fix CoP bug
 
 3.13.1

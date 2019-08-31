@@ -691,6 +691,7 @@ function C:InitBarAnchor(i)
 				v:UpdateText()
 			end
 			
+			self:ClearAllPoints()
 			self:SetPoint("CENTER", parent, "CENTER", self.parent.opts.point[1] or 0,self.parent.opts.point[2] or 0)	
 			
 		--	print('T', C:GetRelativePoint(self.parent))
