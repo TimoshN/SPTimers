@@ -4,6 +4,24 @@ local L = AleaUI_GUI.GetLocale("SPTimers")
 
 local pingWorkAround = true
 
+
+local UnitChannelInfo = UnitChannelInfo
+local UnitCastingInfo = UnitCastingInfo
+
+if ( C.isClassic ) then 
+	UnitChannelInfo = function(unit) 
+		if UnitIsUnit(unit, 'player') then 
+			return ChannelInfo()
+		end
+	end
+
+	UnitCastingInfo = function(unit) 
+		if UnitIsUnit(unit, 'player') then 
+			return CastingInfo()
+		end
+	end
+end 
+
 local events = {
 	"UNIT_SPELLCAST_CHANNEL_START",
 	"UNIT_SPELLCAST_CHANNEL_STOP",
@@ -16,10 +34,13 @@ local events = {
 	"UNIT_SPELLCAST_INTERRUPTED",
 	"UNIT_SPELLCAST_STOP",
 	--"UNIT_SPELLCAST_SUCCEEDED",
-	
-	"UNIT_SPELLCAST_INTERRUPTIBLE",
-	"UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
 }	
+
+if ( not C.isClassic ) then
+
+	table.insert(events, 'UNIT_SPELLCAST_INTERRUPTIBLE')
+	table.insert(events, 'UNIT_SPELLCAST_NOT_INTERRUPTIBLE')
+end 
 
 local colors = {
 	["notinterruptible"] = {0.2,0.2,0.2,1},
@@ -906,55 +927,57 @@ function C:CastBarInit()
 	
 	_addmover(castbar_frames.playerCastBar, self.db.profile.castBars.player)
 	
-	castbar_frames.targetCastBar = CreateFrame("Frame", nil, self.Parent)
-	castbar_frames.targetCastBar:SetSize(1,1)
-	castbar_frames.targetCastBar:SetPoint("CENTER", 0, -310)
-	castbar_frames.targetCastBar.unit = "target"
-	castbar_frames.targetCastBar:SetScript("OnEvent", function(self, event, ...)	
-		self[event](self, event, ...)	
-	end)
 	
-	CreateCastBar(castbar_frames.targetCastBar, 410, 20)
-	
-	_addmover(castbar_frames.targetCastBar, self.db.profile.castBars.target)
-	
-	castbar_frames.targettargetCastBar = CreateFrame("Frame", nil, self.Parent)
-	castbar_frames.targettargetCastBar:SetSize(1,1)
-	castbar_frames.targettargetCastBar:SetPoint("CENTER", 0, -310)
-	castbar_frames.targettargetCastBar.unit = "targettarget"
-	castbar_frames.targettargetCastBar:SetScript("OnEvent", function(self, event, ...)	
-		self[event](self, event, ...)	
-	end)
-	
-	CreateCastBar(castbar_frames.targettargetCastBar, 410, 20)
-	
-	_addmover(castbar_frames.targettargetCastBar, self.db.profile.castBars.targettarget)
-	
-	
-	castbar_frames.focusCastBar = CreateFrame("Frame", nil, self.Parent)
-	castbar_frames.focusCastBar:SetSize(1,1)
-	castbar_frames.focusCastBar:SetPoint("CENTER", 0, -310)
-	castbar_frames.focusCastBar.unit = "focus"
-	castbar_frames.focusCastBar:SetScript("OnEvent", function(self, event, ...)	
-		self[event](self, event, ...)	
-	end)
-	
-	CreateCastBar(castbar_frames.focusCastBar, 410, 20)
-	
-	_addmover(castbar_frames.focusCastBar, self.db.profile.castBars.focus)
-	
-	castbar_frames.petCastBar = CreateFrame("Frame", nil, self.Parent)
-	castbar_frames.petCastBar:SetSize(1,1)
-	castbar_frames.petCastBar:SetPoint("CENTER", 0, -310)
-	castbar_frames.petCastBar.unit = "pet"
-	castbar_frames.petCastBar:SetScript("OnEvent", function(self, event, ...)	
-		self[event](self, event, ...)	
-	end)
-	
-	CreateCastBar(castbar_frames.petCastBar, 410, 20)
-	
-	_addmover(castbar_frames.petCastBar, self.db.profile.castBars.pet)
-	
+	if ( not C.isClassic ) then 
+		castbar_frames.targetCastBar = CreateFrame("Frame", nil, self.Parent)
+		castbar_frames.targetCastBar:SetSize(1,1)
+		castbar_frames.targetCastBar:SetPoint("CENTER", 0, -310)
+		castbar_frames.targetCastBar.unit = "target"
+		castbar_frames.targetCastBar:SetScript("OnEvent", function(self, event, ...)	
+			self[event](self, event, ...)	
+		end)
+		
+		CreateCastBar(castbar_frames.targetCastBar, 410, 20)
+		
+		_addmover(castbar_frames.targetCastBar, self.db.profile.castBars.target)
+		
+		castbar_frames.targettargetCastBar = CreateFrame("Frame", nil, self.Parent)
+		castbar_frames.targettargetCastBar:SetSize(1,1)
+		castbar_frames.targettargetCastBar:SetPoint("CENTER", 0, -310)
+		castbar_frames.targettargetCastBar.unit = "targettarget"
+		castbar_frames.targettargetCastBar:SetScript("OnEvent", function(self, event, ...)	
+			self[event](self, event, ...)	
+		end)
+		
+		CreateCastBar(castbar_frames.targettargetCastBar, 410, 20)
+		
+		_addmover(castbar_frames.targettargetCastBar, self.db.profile.castBars.targettarget)
+		
+		
+		castbar_frames.focusCastBar = CreateFrame("Frame", nil, self.Parent)
+		castbar_frames.focusCastBar:SetSize(1,1)
+		castbar_frames.focusCastBar:SetPoint("CENTER", 0, -310)
+		castbar_frames.focusCastBar.unit = "focus"
+		castbar_frames.focusCastBar:SetScript("OnEvent", function(self, event, ...)	
+			self[event](self, event, ...)	
+		end)
+		
+		CreateCastBar(castbar_frames.focusCastBar, 410, 20)
+		
+		_addmover(castbar_frames.focusCastBar, self.db.profile.castBars.focus)
+		
+		castbar_frames.petCastBar = CreateFrame("Frame", nil, self.Parent)
+		castbar_frames.petCastBar:SetSize(1,1)
+		castbar_frames.petCastBar:SetPoint("CENTER", 0, -310)
+		castbar_frames.petCastBar.unit = "pet"
+		castbar_frames.petCastBar:SetScript("OnEvent", function(self, event, ...)	
+			self[event](self, event, ...)	
+		end)
+		
+		CreateCastBar(castbar_frames.petCastBar, 410, 20)
+		
+		_addmover(castbar_frames.petCastBar, self.db.profile.castBars.pet)
+	end
 	self:UnlockCastBars()
 	self:UpdateCastBarsVisible()
 	self:DisableBlizzCastBars(true)
@@ -1015,62 +1038,79 @@ function C:UpdateCastBarsVisible()
 		castbar_frames.playerCastBar:Hide()
 	end
 
-	if self.db.profile.targetCastBar then
-		castbar_frames.targetCastBar:Show()
-	else
-		castbar_frames.targetCastBar:Hide()
-	end
 	
-	if self.db.profile.targettargetCastBar then
-		castbar_frames.targettargetCastBar:Show()
-	else
-		castbar_frames.targettargetCastBar:Hide()
-	end
-	
-	if self.db.profile.focusCastBar then
-		castbar_frames.focusCastBar:Show()
-	else
-		castbar_frames.focusCastBar:Hide()
-	end
-	
-	if self.db.profile.petCastBar then
-		castbar_frames.petCastBar:Show()
-	else
-		castbar_frames.petCastBar:Hide()
+	if ( not C.isClassic ) then 
+
+		if self.db.profile.targetCastBar then
+			castbar_frames.targetCastBar:Show()
+		else
+			castbar_frames.targetCastBar:Hide()
+		end
+		
+		if self.db.profile.targettargetCastBar then
+			castbar_frames.targettargetCastBar:Show()
+		else
+			castbar_frames.targettargetCastBar:Hide()
+		end
+		
+		if self.db.profile.focusCastBar then
+			castbar_frames.focusCastBar:Show()
+		else
+			castbar_frames.focusCastBar:Hide()
+		end
+		
+		if self.db.profile.petCastBar then
+			castbar_frames.petCastBar:Show()
+		else
+			castbar_frames.petCastBar:Hide()
+		end
 	end
 end
 
 function C:UnlockCastBars()
 	if self.db.profile.locked then
 		castbar_frames.playerCastBar.mover:Hide()
-		castbar_frames.targetCastBar.mover:Hide()
-		castbar_frames.targettargetCastBar.mover:Hide()
-		castbar_frames.focusCastBar.mover:Hide()
-		castbar_frames.petCastBar.mover:Hide()
-		
 		castbar_frames.playerCastBar.mover:EnableMouse(false)
-		castbar_frames.targetCastBar.mover:EnableMouse(false)
-		castbar_frames.targettargetCastBar.mover:EnableMouse(false)
-		castbar_frames.focusCastBar.mover:EnableMouse(false)
-		castbar_frames.petCastBar.mover:EnableMouse(false)
-		
+
+		if ( not C.isClassic ) then 
+			castbar_frames.targetCastBar.mover:Hide()
+			castbar_frames.targettargetCastBar.mover:Hide()
+			castbar_frames.focusCastBar.mover:Hide()
+			castbar_frames.petCastBar.mover:Hide()
+
+			castbar_frames.targetCastBar.mover:EnableMouse(false)
+			castbar_frames.targettargetCastBar.mover:EnableMouse(false)
+			castbar_frames.focusCastBar.mover:EnableMouse(false)
+			castbar_frames.petCastBar.mover:EnableMouse(false)
+		end
 	else
-		castbar_frames.playerCastBar.mover:Show()
-		castbar_frames.targetCastBar.mover:Show()
-		castbar_frames.targettargetCastBar.mover:Show()
-		castbar_frames.focusCastBar.mover:Show()
-		castbar_frames.petCastBar.mover:Show()
-		
+		castbar_frames.playerCastBar.mover:Show()	
 		castbar_frames.playerCastBar.mover:EnableMouse(true)
-		castbar_frames.targetCastBar.mover:EnableMouse(true)
-		castbar_frames.targettargetCastBar.mover:EnableMouse(true)
-		castbar_frames.focusCastBar.mover:EnableMouse(true)
-		
-		castbar_frames.petCastBar.mover:EnableMouse(true)
+
+		if ( not C.isClassic ) then 
+			castbar_frames.targetCastBar.mover:Show()
+			castbar_frames.targettargetCastBar.mover:Show()
+			castbar_frames.focusCastBar.mover:Show()
+			castbar_frames.petCastBar.mover:Show()
+			
+			castbar_frames.targetCastBar.mover:EnableMouse(true)
+			castbar_frames.targettargetCastBar.mover:EnableMouse(true)
+			castbar_frames.focusCastBar.mover:EnableMouse(true)
+			
+			castbar_frames.petCastBar.mover:EnableMouse(true)
+		end
 	end
 end
 
-local myCastBars = { "player", "target", "targettarget", "focus", "pet" }
+local myCastBars = { "player" }
+
+if ( not C.isClassic ) then 
+	table.insert(myCastBars, "target")
+	table.insert(myCastBars, "targettarget")
+	table.insert(myCastBars, "focus")
+	table.insert(myCastBars, "pet")
+end 
+
 local justifu = {
 	["RIGHT"] = "RIGHT",
 	["CENTER"] = "CENTER",

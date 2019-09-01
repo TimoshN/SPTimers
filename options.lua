@@ -261,6 +261,10 @@ local RoleSelect = {
 }
 
 local function GetRole()
+	if( C.isClassic ) then 
+		return ALL
+	end 
+
 	local talent = GetSpecialization()
 	local role
 	local _, classFileName = UnitClass("player")
@@ -275,6 +279,9 @@ local function GetRole()
 end
 
 local function GetClassSpec(spec)
+	if( C.isClassic ) then 
+		return true
+	end 
 
 	if not CHOSEN_CLASS_SPEC then CHOSEN_CLASS_SPEC = GetSpecialization() and ""..GetSpecialization().."" or ALL end
 	
@@ -284,6 +291,10 @@ local function GetClassSpec(spec)
 end
 
 local function SpecSelect()
+	if( C.isClassic ) then 
+		return  { [ALL] = L['ALL'] }
+	end 
+
 	local max_specs = 3
 	if C.myCLASS == "DRUID" then max_specs = 4 end
 	if C.myCLASS == 'DEMONHUNTER' then max_specs = 2 end
@@ -2044,6 +2055,10 @@ function C:OptionsTable()
 									CHOSEN_CLASS_SPEC = val
 								end,
 								get = function(info, val)
+									if ( C.isClassic ) then 
+										return ALL 
+									end
+
 									if not CHOSEN_CLASS_SPEC then CHOSEN_CLASS_SPEC = GetSpecialization() and ""..GetSpecialization().."" or ALL end							
 									return CHOSEN_CLASS_SPEC
 								end
@@ -4384,6 +4399,10 @@ end
 						CHOSEN_CLASS_SPEC = val
 					end,
 					get = function(info, val)
+						if ( C.isClassic ) then 
+							return ALL 
+						end
+
 						if not CHOSEN_CLASS_SPEC then CHOSEN_CLASS_SPEC = GetSpecialization() and ""..GetSpecialization().."" or ALL end							
 						return CHOSEN_CLASS_SPEC
 					end
@@ -4454,6 +4473,10 @@ end
 						CHOSEN_CLASS_SPEC = val
 					end,
 					get = function(info, val)
+						if ( C.isClassic ) then 
+							return ALL 
+						end
+						
 						if not CHOSEN_CLASS_SPEC then CHOSEN_CLASS_SPEC = GetSpecialization() and ""..GetSpecialization().."" or ALL end							
 						return CHOSEN_CLASS_SPEC
 					end

@@ -1581,7 +1581,7 @@ do
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
 		local skip = false
-		if self.db.profile.classSpells[self.myCLASS][spellID] and self.db.profile.classSpells[self.myCLASS][spellID].cleu then
+		if self.db.profile.classSpells[self.myCLASS][spellID] and ( C.isClassic or self.db.profile.classSpells[self.myCLASS][spellID].cleu ) then
 			
 			if self.db.profile.classlistFiltersoff then return false end
 			
@@ -1625,7 +1625,7 @@ do
 			if data.tick and 
 				data.tick > 0 then 
 				
-				if data.haste then
+				if data.haste and not C.isClassic then
 					return data.tick/(1+(UnitSpellHaste("player")/100))
 				end
 				
@@ -1638,6 +1638,10 @@ do
 	
 	function C:IsPandemiaSpell(spellID)
 		
+		if ( C.isClassic ) then 
+			return false 
+		end 
+
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
 		return self.db.profile.classSpells[self.myCLASS][spellID] and self.db.profile.classSpells[self.myCLASS][spellID].pandemia
@@ -1995,9 +1999,13 @@ do
 	end
 	
 	function C:GetDuration(spellID, dstGUID, pandemia_t, isplayer)
-	
+		
+		--print('spellID:1', spellID)
+
 		spellID = IsGroupUpSpell(spellID) or spellID
 	
+		--print('spellID:2', spellID)
+
 		if self.db.profile.classSpells[self.myCLASS][spellID].haste then
 			if C.db.profile.classSpells[self.myCLASS][spellID].tick and
 				C.db.profile.classSpells[self.myCLASS][spellID].tick > 0 and

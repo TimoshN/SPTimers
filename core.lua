@@ -47,6 +47,11 @@ local MAX_TOTEMS = MAX_TOTEMS
 -- GLOBALS: SPTIMERSDEBUGHandler
 -- GLOBALS: DEFAULT_CHAT_FRAME
 
+local versionStr, internalVersion, dateofpatch, uiVersion = GetBuildInfo();
+
+C.uibuild	= tonumber(uiVersion)
+C.isClassic = C.uibuild < 20000
+
 -- EVENTFRAME -----
 
 do
@@ -129,7 +134,7 @@ C.myCLASS = select(2, UnitClass("player"))
 
 local old_print = print
 local print = function(...)
-	if C.dodebugging then	
+	if true then --C.dodebugging then	
 		old_print(GetTime(),debugprefix, ...)
 	end
 end
@@ -497,7 +502,7 @@ do
 	function C:UNIT_AURA(event, unit)
 		if unit == "player" then 
 			PlayerAuras(unit)
-		elseif ( units[unit]  and  not UnitIsUnit(unit, 'player') ) then --( nameplateUnits[unit] and UnitIsEnemy('player', unit) ) )
+		elseif ( not C.isClassic and units[unit] and not UnitIsUnit(unit, 'player') ) then --( nameplateUnits[unit] and UnitIsEnemy('player', unit) ) )
 			OthersAuras(unit)		
 		end
 	end
@@ -583,7 +588,7 @@ do
 					srcGUID, srcName, srcFlags, srcFlags2,
 					dstGUID, dstName, dstFlags, dstFlags2,
 					spellID, spellName, spellSchool, auraType, amount, extraSchool, extraType, ...)
-			
+		
 		anchor, endTime, showticks, sourceFunc  = 1, nil, false, "CLEU"
 
 		if eventType == "UNIT_DIED" or eventType == "UNIT_DESTROYED" or eventType == "SPELL_INSTAKILL" or eventType == "PARTY_KILL" then
@@ -596,6 +601,10 @@ do
 		if not truedEvents[eventType] then return end		
 		if srcGUID ~= self.myGUID and srcGUID ~= self.petGUID then return end
 		
+		if ( C.isClassic ) then 
+			spellID = select(7, GetSpellInfo(spellName) )
+		end 
+
 		local skip = false
 		for i=1, #externalHandlers do
 			if externalHandlers[i](event, timestamp, eventType, hideCaster,
@@ -628,6 +637,13 @@ do
 
 		
 		local isPlayer = C.IsPlayer(dstFlags)
+
+		
+		-- print('T', event, timestamp, eventType, hideCaster,
+		-- srcGUID, srcName, srcFlags, srcFlags2,
+		-- dstGUID, dstName, dstFlags, dstFlags2,
+		-- spellID, spellName, spellSchool, auraType, amount, extraSchool, extraType)
+
 
 		if eventType == "SPELL_AURA_REFRESH" then
 			C.Timer(self:GetDuration(spellID, dstGUID, 2, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
@@ -709,11 +725,9 @@ do
 		for spellid, data in pairs(options.bars_cooldowns[self.myCLASS] or {}) do
 	
 			if not data.hide and not data.deleted and not data.fulldel then
-				spellname_list[GetSpellInfo(spellid)] = spellid
+				spellname_list[GetSpellInfo(spellid) or ''] = spellid
 			end
-		end
-		
-		
+		end	
 	end
 	
 	
@@ -736,7 +750,7 @@ do
 
 	local function CheckGCD()
 		local event;
-		local startTime, duration = GetSpellCooldown(61304);
+		local startTime, duration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
 		
 		if(duration and duration > 0) then
 			gcdStart, gcdDuration = startTime, duration;
@@ -753,13 +767,13 @@ do
 	end
 	 
 	local function GetGCD()
-		local startTime, duration = GetSpellCooldown(61304);
+		local startTime, duration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
 		
 		return duration or 0, startTime
 	end
 	
 	local function IsGCDCooldown(start, duration)
-		local startTime, durationTime = GetSpellCooldown(61304);
+		local startTime, durationTime = GetSpellCooldown(ns.isClassic and 29515 or 61304);
 		return ( startTime == start and durationTime == duration )
 	end
 	
@@ -991,7 +1005,10 @@ function C:CoreBarsStatusUpdate()
 	if options.bar_module_enabled then
 		
 		self:RegisterEvent("PLAYER_TARGET_CHANGED")
-		self:RegisterEvent("PLAYER_FOCUS_CHANGED")
+		if ( not C.isClassic ) then 
+			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
+		end 
+
 		self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
@@ -1003,7 +1020,9 @@ function C:CoreBarsStatusUpdate()
 		self:RegisterEvent("UNIT_SPELLCAST_STOP")
 	else
 		self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-		self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+		if ( not C.isClassic ) then 
+			self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+		end 
 		self:UnregisterEvent("UPDATE_MOUSEOVER_UNIT")
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
@@ -1151,7 +1170,7 @@ do
 end
 
 do
-	local isInPetBattle = C_PetBattles.IsInBattle;
+	local isInPetBattle = C_PetBattles and C_PetBattles.IsInBattle;
 	function C:PET_BAR_UPDATE()	
 		if ( options.hide_during_petbattle and isInPetBattle() ) then 
 			parent:Hide() 
@@ -1257,11 +1276,13 @@ function C:OnInitialize()
 	self:RegisterEvent("RAID_INSTANCE_WELCOME")
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	
-	self:RegisterEvent("PET_BAR_UPDATE")
-	self:RegisterEvent("PET_BATTLE_OPENING_START")
-	self:RegisterEvent("PET_BATTLE_OPENING_DONE")
-	self:RegisterEvent("PET_BATTLE_CLOSE")
-	self:RegisterEvent("PET_BATTLE_OVER")
+	if ( not C.isClassic ) then 
+		self:RegisterEvent("PET_BAR_UPDATE")
+		self:RegisterEvent("PET_BATTLE_OPENING_START")
+		self:RegisterEvent("PET_BATTLE_OPENING_DONE")
+		self:RegisterEvent("PET_BATTLE_CLOSE")
+		self:RegisterEvent("PET_BATTLE_OVER")
+	end
 
 	
 	
@@ -1390,8 +1411,11 @@ do
 	local init = false
 	
 	function C:InitTalentCheck()
-		eventframe:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player", '')
-		eventframe:RegisterEvent("PLAYER_TALENT_UPDATE")
+		if ( not C.isClassic ) then 
+			eventframe:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player", '')
+		
+			eventframe:RegisterEvent("PLAYER_TALENT_UPDATE")
+		end
 		eventframe:RegisterEvent("PLAYER_LEVEL_UP")
 		eventframe:RegisterEvent("SPELLS_CHANGED")
 		eventframe:RegisterEvent("PLAYER_LOGIN")

@@ -483,25 +483,27 @@ function UpdateSettings()
 			eventFrame:RegisterEvent("ENCOUNTER_END")
 			ns.RunCooldownCheck('START_UP')
 		end
-		
-		if ( db.blood_runes and db.frost_runes and db.unholy_runes ) or ns.myCLASS ~= "DEATHKNIGHT" then
-			eventFrame:UnregisterEvent("RUNE_POWER_UPDATE")
-		elseif ns.myCLASS == "DEATHKNIGHT" then		
-			eventFrame:RegisterEvent("RUNE_POWER_UPDATE")
-		end
-		
-		if db.hidevehi then
-			eventFrame:UnregisterEvent("UNIT_ENTERED_VEHICLE")
-			eventFrame:UnregisterEvent("UNIT_EXITED_VEHICLE")			
-			ns:UNIT_EXITED_VEHICLE()
-		else
-			eventFrame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player", '')
-			if UnitHasVehicleUI("player") then
-				eventFrame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-				eventFrame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player", '')
-			end
-		end
         
+        if ( not ns.isClassic ) then
+            if ( db.blood_runes and db.frost_runes and db.unholy_runes ) or ns.myCLASS ~= "DEATHKNIGHT" then
+                eventFrame:UnregisterEvent("RUNE_POWER_UPDATE")
+            elseif ns.myCLASS == "DEATHKNIGHT" then		
+                eventFrame:RegisterEvent("RUNE_POWER_UPDATE")
+            end
+
+            if db.hidevehi then
+                eventFrame:UnregisterEvent("UNIT_ENTERED_VEHICLE")
+                eventFrame:UnregisterEvent("UNIT_EXITED_VEHICLE")			
+                ns:UNIT_EXITED_VEHICLE()
+            else
+                eventFrame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player", '')
+                if UnitHasVehicleUI("player") then
+                    eventFrame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
+                    eventFrame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player", '')
+                end
+            end
+        end 
+
         ns.EnumirateCooldowns('Update')
 
         --[==[
@@ -968,7 +970,7 @@ do
     
     local function GetSpellCooldown_New(spellID)
         
-        local gcdStartTime, gcdDuration = GetSpellCooldown(61304);
+        local gcdStartTime, gcdDuration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
         local startTime, duration, enabled = GetSpellCooldown(spellID)
 
         local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(spellID)

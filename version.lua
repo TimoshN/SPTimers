@@ -138,7 +138,9 @@ function C:InitVersionCheck()
 	events:RegisterEvent("RAID_INSTANCE_WELCOME")
 	events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	events:RegisterEvent("GUILD_MOTD")
+	if ( not C.isClassic ) then 
 	events:RegisterEvent("GUILD_NEWS_UPDATE")
+	end
 	events:RegisterEvent("GUILD_ROSTER_UPDATE")
 	
 	events:SendAddonIndo()
