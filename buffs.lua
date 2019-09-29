@@ -1030,12 +1030,20 @@ function C:GetCooldown(spellName)
 	
 	--local isInBlockList = C:GetCooldownBlockName(spellName)
 	
-	if spellName and 
-		self.db.profile.cooldownline.blockList[spellName] and 
-		not self.db.profile.cooldownline.blockList[spellName].deleted and 
-		not self.db.profile.cooldownline.blockList[spellName].fulldel then 
+	if spellName then 
+		local blocklist = self.db.profile.cooldownline.blockList
 
-		return self.db.profile.cooldownline.blockList[spellName].hide
+		local typetag = 'item:'..spellName 
+
+		if  blocklist[typetag] and not blocklist[typetag].deleted and not blocklist[typetag].fulldel then
+			return blocklist[typetag].hide
+		end
+
+		typetag = 'spell:'..spellName 
+
+		if  blocklist[typetag] and not blocklist[typetag].deleted and not blocklist[typetag].fulldel then
+			return blocklist[typetag].hide
+		end
 	end
 	
 	return nil
@@ -1577,27 +1585,36 @@ do
 	}
 	
 	function C:GetCLEUFilter(spellID, types)
-		
+		print('GetCLEUFilter')
+
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
 		local skip = false
+
+		--print('   A:0', spellID, types, skip, C.isClassic, self.db.profile.classSpells[self.myCLASS][spellID])
+
 		if self.db.profile.classSpells[self.myCLASS][spellID] and ( C.isClassic or self.db.profile.classSpells[self.myCLASS][spellID].cleu ) then
 			
+			--print('   A:0:0', spellID, types, skip, C.isClassic)
+
 			if self.db.profile.classlistFiltersoff then return false end
 			
+			--print('   A:0:1', spellID, types, skip, C.isClassic)
+
 			if self.db.profile.classSpells[self.myCLASS][spellID].hide then return false end
 			if self.db.profile.classSpells[self.myCLASS][spellID].deleted then return false end
 			if self.db.profile.classSpells[self.myCLASS][spellID].fulldel then return false end
 			
+			--print('   A:1', spellID, types, skip)
 			if types ~= "SPELL_CAST" and not self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu then skip = true end
 			if self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu == 4 then skip = true end
 			if types == C.SPELL_ENERGIZE and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu ~= typesFilter[types] then return false end
-			
+			--print('   A:2', spellID, types, skip)
 			if types and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu == typesFilter[types] then skip = true end
 			
 			if self.db.profile.classSpells[self.myCLASS][spellID].blacklist_cleu == 4 then skip = false end			
 			if types and self.db.profile.classSpells[self.myCLASS][spellID].blacklist_cleu == typesFilter[types] then skip = false end
-			
+			--print('   A:3', spellID, types, skip)
 		end
 		return skip
 	end

@@ -1,6 +1,9 @@
 local addon, C = ...
 local changelog = 
-[[3.14.1
+[[3.14.2
+fix cooldownline filters 
+
+3.14.1
 fix various "New achor system error"
 
 3.14.0

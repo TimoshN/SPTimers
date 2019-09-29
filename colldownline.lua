@@ -30,7 +30,7 @@ end
 -- debug print ------------------
 local old_print = print
 local print = function(...)
-	if false then return end
+	if true then return end
 	
 	old_print("SPTimers-CooldownLine, ", ...)
 end
@@ -506,15 +506,6 @@ function UpdateSettings()
 
         ns.EnumirateCooldowns('Update')
 
-        --[==[
-		for _, frame in ipairs(cooldowns) do
-			frame:Update()
-		end
-		
-		for _, frame in ipairs(frames) do
-			frame:Update()
-		end
-        ]==]
         ns:UpdateTooltip()
         
         ns:BAG_UPDATE_DELAYED()
@@ -595,93 +586,66 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
 
         for baseSpellID, spellInfo in pairs(spellsForCDCheck) do
             local spellID = spellInfo.spellID
-            local startTime, duration, charges, maxCharges, isGCD, gcdStartTime, gcdDuration = ns.GetSpellCooldown_New(spellID)
-       
-            --old_print( spellID, (GetSpellInfo(spellID)), startTime, duration, charges, maxCharges, isGCD)
+            local spellName = GetSpellInfo(spellID) 
 
-            if spellInfo.isOnCD and currentTime >= spellInfo.prevEndTime and ( maxCharges and charges == maxCharges or not maxCharges ) then
-                spellInfo.isOnCD = false 
-                spellInfo.prevStacks = nil 
-                spellInfo.prevEndTime = nil 
+            --print(spellID, spellName, ns:GetCooldown(spellName) )
 
-                
-                --old_print('RemoveCooldown:1', spellID, (GetSpellInfo(spellID)))
-                
-                ns.RemoveCooldown(spellID)
-            elseif spellInfo.isOnCD and isGCD and spellInfo.prevEndTime > gcdStartTime+gcdDuration then
-                --old_print('RemoveCooldown:3', spellID, (GetSpellInfo(spellID)))
-                --old_print('    currentTime=', spellInfo.prevEndTime-currentTime, 'gcd=', spellInfo.prevEndTime - gcdStartTime+gcdDuration  )
+            if not ns:GetCooldown(spellName) then 
 
-                spellInfo.isOnCD = false 
-                spellInfo.prevStacks = nil 
-                spellInfo.prevEndTime = nil 
+                local startTime, duration, charges, maxCharges, isGCD, gcdStartTime, gcdDuration = ns.GetSpellCooldown_New(spellID)
+        
+                --old_print( spellID, (GetSpellInfo(spellID)), startTime, duration, charges, maxCharges, isGCD)
 
-                ns.RemoveCooldown(spellID)
-            elseif spellInfo.isOnCD and startTime == 0 and duration == 0 then
-                spellInfo.isOnCD = false 
-                spellInfo.prevStacks = nil 
-                spellInfo.prevEndTime = nil 
-
-                --old_print('RemoveCooldown:2', spellID, (GetSpellInfo(spellID)))
-
-                ns.RemoveCooldown(spellID)
-            elseif spellInfo.isOnCD and not isGCD and startTime and ( spellInfo.prevStacks ~= charges or spellInfo.prevEndTime ~= startTime+duration ) then
-                spellInfo.prevStacks = charges
-                spellInfo.prevEndTime = startTime+duration
-                
-                --old_print('UpdateCooldown:2', spellID, (GetSpellInfo(spellID)))
-
-                ns.UpdateCooldown(spellID, duration, startTime)
-            elseif not spellInfo.isOnCD and not isGCD and duration and duration >= 1.5 then 
-                spellInfo.isOnCD = true
-                spellInfo.prevStacks = charges
-                spellInfo.prevEndTime = startTime+duration
-
-                ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
-            elseif spellInfo.prevEndTime and currentTime >= spellInfo.prevEndTime then
-                --old_print('Something happens', spellID, (GetSpellInfo(spellID)))               
-            end 
-            
-            --[==[
-            if ( startTime == 0 and duration == 0 ) or isGCD then 
-                if ( spellInfo.isOnCD ) then 
+                if spellInfo.isOnCD and currentTime >= spellInfo.prevEndTime and ( maxCharges and charges == maxCharges or not maxCharges ) then
                     spellInfo.isOnCD = false 
-                    spellInfo.prevStacks = -1
+                    spellInfo.prevStacks = nil 
+                    spellInfo.prevEndTime = nil 
+
+                    
+                    --old_print('RemoveCooldown:1', spellID, (GetSpellInfo(spellID)))
+                    
+                    ns.RemoveCooldown(spellID)
+                elseif spellInfo.isOnCD and isGCD and spellInfo.prevEndTime > gcdStartTime+gcdDuration then
+                    --old_print('RemoveCooldown:3', spellID, (GetSpellInfo(spellID)))
+                    --old_print('    currentTime=', spellInfo.prevEndTime-currentTime, 'gcd=', spellInfo.prevEndTime - gcdStartTime+gcdDuration  )
+
+                    spellInfo.isOnCD = false 
+                    spellInfo.prevStacks = nil 
+                    spellInfo.prevEndTime = nil 
 
                     ns.RemoveCooldown(spellID)
-                end
-            elseif ( not spellInfo.isOnCD and not isGCD ) then 
-                spellInfo.isOnCD = true
-                spellInfo.prevStacks = charges
-                spellInfo.prevEndTime = startTime+duration
+                elseif spellInfo.isOnCD and startTime == 0 and duration == 0 then
+                    spellInfo.isOnCD = false 
+                    spellInfo.prevStacks = nil 
+                    spellInfo.prevEndTime = nil 
 
-                ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
-            elseif ( spellInfo.prevStacks ~= charges and not isGCD) then 
-                spellInfo.prevStacks = charges
-                spellInfo.prevEndTime = startTime+duration
-  
-                ns.UpdateCooldown(spellID, duration, startTime)
-            end 
+                    --old_print('RemoveCooldown:2', spellID, (GetSpellInfo(spellID)))
 
-            if ( spellInfo.isOnCD and startTime and duration and currentTime < spellInfo.prevEndTime  ) then 
-
-                if ( spellInfo.prevEndTime ~= startTime+duration ) then 
+                    ns.RemoveCooldown(spellID)
+                elseif spellInfo.isOnCD and not isGCD and startTime and ( spellInfo.prevStacks ~= charges or spellInfo.prevEndTime ~= startTime+duration ) then
+                    spellInfo.prevStacks = charges
                     spellInfo.prevEndTime = startTime+duration
+                    
+                    --old_print('UpdateCooldown:2', spellID, (GetSpellInfo(spellID)))
 
                     ns.UpdateCooldown(spellID, duration, startTime)
-                end
-            elseif ( spellInfo.isOnCD and currentTime > spellInfo.prevEndTime ) then
-                spellInfo.isOnCD = false 
-                spellInfo.prevStacks = -1
+                elseif not spellInfo.isOnCD and not isGCD and duration and duration >= 1.5 then 
+                    spellInfo.isOnCD = true
+                    spellInfo.prevStacks = charges
+                    spellInfo.prevEndTime = startTime+duration
 
+                    ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
+                elseif spellInfo.prevEndTime and currentTime >= spellInfo.prevEndTime then
+                    --old_print('Something happens', spellID, (GetSpellInfo(spellID)))               
+                end 
+    
+                if ( spellInfo.isOnCD ) then 
+                    if ( not lowestCD or lowestCD > spellInfo.prevEndTime ) then 
+                        lowestCD = spellInfo.prevEndTime
+                    end
+                end
+            else 
                 ns.RemoveCooldown(spellID)
-            end
-            ]==]
-
-            if ( spellInfo.isOnCD ) then 
-                if ( not lowestCD or lowestCD > spellInfo.prevEndTime ) then 
-                    lowestCD = spellInfo.prevEndTime
-                end
             end
         end
 
@@ -1165,44 +1129,35 @@ do
 	
 	local bagUpdateThrottle = true
 	
-	local equippedItems = {}
+	--local equippedItems = {}
     
     local function checkcd(name, tip)
 		
 		if tip == "item" then
-			if db.hideinv then -- если скрывать все кд
-			
-			--	if block[name] == false then return true end
+			if db.hideinv then
 				if ns:GetCooldown(name) == false then return true end
-			
-		--		print(name, tip, "false")
 				return false
 			else
 				if not ns:GetCooldown(name) then return true end
 				if ns:GetCooldown(name) then return false end
 			end
 		elseif tip == "bag" then
-			if db.hidebag then -- если скрывать все кд
-			
-			--	if block[name] == false  then return true end
+			if db.hidebag then
 				if ns:GetCooldown(name) == false then return true end
-				
-		--		print(name, tip, "false")
 				return false
 			else
 				if not ns:GetCooldown(name) then return true end
 				if ns:GetCooldown(name) then return false end
 			end
 		end
-		
-	--	print(name, tip, "true")
+
 		return true
 	end
 
 	local function UpdateBag()
 		bagUpdateThrottle = true
 		
-		wipe(equippedItems)
+		--wipe(equippedItems)
     
         local endTime = nil
 
@@ -1213,11 +1168,18 @@ do
             if ( info.invID ) then 
                 local start, duration, enable = GetInventoryItemCooldown("player", info.invID)
 
-                if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "item") then
-                    ns.AddCooldown('ITEM:'..info.itemID, info.itemID, duration, start, GetInventoryItemTexture("player", info.invID), "PLAYER_ITEMS")
+                print( start, duration, enable, info.itemID, spellID, checkcd(info.itemID, "item") )
 
-                    if not endTime or endTime > duration+start then
-                        endTime = duration+start
+                if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "item") then 
+                    
+                    if enable == 1 then
+                        ns.AddCooldown('ITEM:'..info.itemID, info.itemID, duration, start, GetInventoryItemTexture("player", info.invID), "PLAYER_ITEMS")
+
+                        if not endTime or endTime > duration+start then
+                            endTime = duration+start
+                        end
+                    else 
+                        ns.RemoveCooldown('ITEM:'..info.itemID)
                     end
                 else
                     ns.RemoveCooldown('ITEM:'..info.itemID)
@@ -1226,13 +1188,20 @@ do
             elseif ( lastItemUsed[spellID].bag ) then
                 local start, duration, enable = GetItemCooldown(info.itemID)
             
-                if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "bag") then
-                    local  _, _, _, _, icon = GetItemInfoInstant(info.itemID)
+                print( start, duration, enable, info.itemID, spellID, checkcd(info.itemID, "bag")  )
 
-                    ns.AddCooldown('ITEM:'..info.itemID, info.itemID, duration, start, icon,"BAG_SLOTS")
+                if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "bag") then 
+                    
+                    if enable == 1 then
+                        local  _, _, _, _, icon = GetItemInfoInstant(info.itemID)
 
-                    if not endTime or endTime > duration+start then
-                        endTime = duration+start
+                        ns.AddCooldown('ITEM:'..info.itemID, info.itemID, duration, start, icon,"BAG_SLOTS")
+
+                        if not endTime or endTime > duration+start then
+                            endTime = duration+start
+                        end
+                    else 
+                        ns.RemoveCooldown('ITEM:'..info.itemID)
                     end
                 else
                     ns.RemoveCooldown('ITEM:'..info.itemID)
@@ -1247,6 +1216,8 @@ do
 	end
 	
     function ns:BAG_UPDATE_COOLDOWN(skip)
+        print('BAG_UPDATE_COOLDOWN', 'skip:',skip)
+
         if ( skip ) then
             UpdateBag()
         else
@@ -1512,24 +1483,24 @@ do
         end
 
         if not exists then
-            --[==[
-            local frame = CreateFrame('Frame', nil, mainframe)
-            frame:SetSize(30, 30)
-            frame.bg = frame:CreateTexture()
-            frame.bg:SetAllPoints()
-            frame.bg:SetTexture(texture or GetSpellTexture(spellID))
-            frame.bg:SetAlpha(1)
-
-            frame.timer = frame:CreateFontString()
-            frame.timer:SetPoint('BOTTOMLEFT', frame, 'BOTTOMLEFT', 0, 0)
-            frame.timer:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
-            ]==]
 
             local frame = ns.CreateCooldownFrame()
             frame:Update()
             frame.enable  = true
             frame.cdType = cdType
-            frame.name = GetSpellInfo(spellID) or spellID
+
+            
+            local cColor 
+
+
+            if ( cdType == 'PLAYER_ITEMS' or cdType == 'BAG_SLOTS' ) then 
+                frame.name = GetItemInfo(rawID) or rawID
+                cColor = ns:GetCooldownColor(spellID)
+            else 
+                frame.name = GetSpellInfo(spellID) or spellID
+                cColor = ns:GetCooldownColor(frame.name)
+            end 
+
             frame.endTime = startTime+duration
 
             frame._texturePath = ns:GetCustomCooldownTexture( (GetSpellInfo(spellID)) )  or ( spellID and GetSpellTexture(spellID) ) or texture
@@ -1539,8 +1510,6 @@ do
             frame.splashiconbug:SetTexture(frame._texturePath)
             frame.rawID = rawID
         
-            local cColor = ns:GetCooldownColor(frame.name)
-
             if cColor then
                 frame.bar:SetVertexColor(cColor[1], cColor[2], cColor[3], 0.6);
                 frame.glow:SetVertexColor(cColor[1], cColor[2], cColor[3]);	
@@ -1723,12 +1692,21 @@ do
 	function ns.ButtonOnClick(self, button) -- - осталось до перезарядки "]
 		if not ns:GetAnonce(self.f.name, self.f.cdType) then return end
 		
-		if button == "LeftButton" then
-			local compspellName = self.f.spellID --gsub(self.f.name, stackspellpattern, "")
-			local spellLink = GetSpellLink(compspellName) or compspellName
+        if button == "LeftButton" then
+            
+            print(self.f.name, self.f.rawID, self.f.spellID, self.f.cdType)
 
-			
-			ns.ChatMessage(spellLink..L[" - remains cooldown"]..format(ns.FormatTimeCooldown(self.f.endTime-GetTime())))
+            local spellLink
+
+            if ( self.f.cdType == 'PLAYER_ITEMS' or self.f.cdType == 'BAG_SLOTS' ) then 
+                spellLink = select(2, GetItemInfo(self.f.rawID))
+            else 
+                spellLink = GetSpellLink(self.f.rawID)
+            end 
+
+			if ( spellLink ) then 
+                ns.ChatMessage(spellLink..L[" - remains cooldown"]..format(ns.FormatTimeCooldown(self.f.endTime-GetTime())))
+            end
 		elseif button == "RightButton" and self.barbutton then		
             ns.RemoveCooldownByFrame(self.f)
 		end

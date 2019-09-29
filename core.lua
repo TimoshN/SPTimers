@@ -134,7 +134,7 @@ C.myCLASS = select(2, UnitClass("player"))
 
 local old_print = print
 local print = function(...)
-	if true then --C.dodebugging then	
+	if false then --C.dodebugging then	
 		old_print(GetTime(),debugprefix, ...)
 	end
 end
@@ -602,7 +602,12 @@ do
 		if srcGUID ~= self.myGUID and srcGUID ~= self.petGUID then return end
 		
 		if ( C.isClassic ) then 
-			spellID = select(7, GetSpellInfo(spellName) )
+			local _, _, _, _, _, _, spellID2 = GetSpellInfo(spellName..'(Уровень 1)')
+
+			if ( spellID2 ) then 
+				--print('T', spellName, spellID, spellID2, FindBaseSpellByID(spellID2), FindSpellOverrideByID(spellID2) )
+				spellID = spellID2
+			end
 		end 
 
 		local skip = false
@@ -631,8 +636,17 @@ do
 		end
 
 		if self:IsChanneling(spellID) then return end	
+
+		print('T:1', spellID, spellName, auraType)
+
 		if not self:GetCLEUFilter(spellID, auraType) then return end
+
+		print('T:2', spellID, spellName, auraType)
+
 		if not self:CLEU_AffilationCheck(srcFlags, spellID) then return end
+
+		print('T:3', spellID, spellName, auraType)
+
 		if not self:CLEU_AffilationCheckTarget(dstFlags, spellID) then return end
 
 		
@@ -644,6 +658,7 @@ do
 		-- dstGUID, dstName, dstFlags, dstFlags2,
 		-- spellID, spellName, spellSchool, auraType, amount, extraSchool, extraType)
 
+		print('T:4', spellID, spellName, auraType)
 
 		if eventType == "SPELL_AURA_REFRESH" then
 			C.Timer(self:GetDuration(spellID, dstGUID, 2, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
@@ -750,7 +765,7 @@ do
 
 	local function CheckGCD()
 		local event;
-		local startTime, duration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
+		local startTime, duration = GetSpellCooldown(C.isClassic and 29515 or 61304);
 		
 		if(duration and duration > 0) then
 			gcdStart, gcdDuration = startTime, duration;
@@ -767,13 +782,13 @@ do
 	end
 	 
 	local function GetGCD()
-		local startTime, duration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
+		local startTime, duration = GetSpellCooldown(C.isClassic and 29515 or 61304);
 		
 		return duration or 0, startTime
 	end
 	
 	local function IsGCDCooldown(start, duration)
-		local startTime, durationTime = GetSpellCooldown(ns.isClassic and 29515 or 61304);
+		local startTime, durationTime = GetSpellCooldown(C.isClassic and 29515 or 61304);
 		return ( startTime == start and durationTime == duration )
 	end
 	
