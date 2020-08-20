@@ -54,7 +54,7 @@ eventFrame:RegisterUnitEvent('UNIT_SPELLCAST_SUCCEEDED', 'player', '')
 eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player", '')
 ]==]
 
-local splashbigmover = CreateFrame("Frame", "SPTimersCooldownLineSplashBigMover", parent)
+local splashbigmover = CreateFrame("Frame", "SPTimersCooldownLineSplashBigMover", parent, BackdropTemplateMixin and 'BackdropTemplate')
 splashbigmover:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground",})
 splashbigmover:SetBackdropColor(0, 0, 0, 0.8)
 splashbigmover.text = splashbigmover:CreateFontString(nil, "OVERLAY", "GameFontNormal");
@@ -364,7 +364,7 @@ function UpdateSettings()
 			mainframe.bg:SetTexCoord(0,1, 0,1)
 		end
 		
-		mainframe.border = mainframe.border or CreateFrame("Frame", nil, mainframe)
+		mainframe.border = mainframe.border or CreateFrame("Frame", nil, mainframe, BackdropTemplateMixin and 'BackdropTemplate')
 		mainframe.border:SetPoint("TOPLEFT",-db.borderinset, db.borderinset) -- Implemented 'insets'
 		mainframe.border:SetPoint("BOTTOMRIGHT",db.borderinset, -db.borderinset) -- Implemented 'insets'
 		backdrop = {
@@ -2030,7 +2030,7 @@ do
 	local frames = {}
 	local createbutton
 	
-	local cd_tooltip = CreateFrame("Frame", "SPTimersCooldownLineCDToolTip", parent)
+	local cd_tooltip = CreateFrame("Frame", "SPTimersCooldownLineCDToolTip", parent, BackdropTemplateMixin and 'BackdropTemplate')
 	cd_tooltip:SetSize(100, 20)
 	cd_tooltip:SetPoint("BOTTOM", mainframe, "TOP",0,0)
 	cd_tooltip:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground",})	

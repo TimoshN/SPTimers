@@ -619,7 +619,7 @@ local function CreateCastBar(frame, w, h, drawticks)
 	lat2.text:SetPoint("BOTTOMRIGHT", lat2, "BOTTOMRIGHT", 1,1)
 	lat2.text:SetSize(40,12)
 	
-	f.border = CreateFrame("Frame", nil, f)
+	f.border = CreateFrame("Frame", nil, f, BackdropTemplateMixin and 'BackdropTemplate')
 	f.UpdateIntrerruptState = function(self, state)
 		local opts = C.db.profile.castBars[self.unit]
 		if state then
@@ -679,7 +679,7 @@ local function CreateCastBar(frame, w, h, drawticks)
 	
 	f.icon.bg = bg
 	
-	f.icon.border = CreateFrame("Frame", nil, f)
+	f.icon.border = CreateFrame("Frame", nil, f, BackdropTemplateMixin and 'BackdropTemplate')
 
 	for i, event in ipairs(events) do
 		frame:RegisterEvent(event)

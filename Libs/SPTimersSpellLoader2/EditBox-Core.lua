@@ -145,7 +145,7 @@ dropdownFrame.Update = function(self)
 	update(self.scrollFrame)
 end
 
-dropdownFrame.border1 = CreateFrame("Frame", nil, dropdownFrame)
+dropdownFrame.border1 = CreateFrame("Frame", nil, dropdownFrame, BackdropTemplateMixin and 'BackdropTemplate')
 dropdownFrame.border1:SetPoint("TOPLEFT", dropdownFrame, "TOPLEFT", -10, 10)
 dropdownFrame.border1:SetPoint("BOTTOMRIGHT", dropdownFrame, "BOTTOMRIGHT", 10, -10)
 dropdownFrame.border1:SetBackdrop({

@@ -105,7 +105,7 @@ end
 	
 	local copy_w, copy_h = 500, 300
 	
-	local copyframe = CreateFrame("Frame", nil, UIParent)
+	local copyframe = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and 'BackdropTemplate')
 	copyframe:SetPoint("CENTER")
 	copyframe:SetSize(copy_w, copy_h)
 	
@@ -146,7 +146,7 @@ end
 	copyframe:SetBackdropColor(0 , 0 , 0 , 0.7) --цвет фона
 	copyframe:SetBackdropBorderColor(1 , 1 , 1 , 1) --цвет фона
 	
-	copyframe.button = CreateFrame("Button",nil,copyframe)
+	copyframe.button = CreateFrame("Button",nil,copyframe, BackdropTemplateMixin and 'BackdropTemplate')
 	copyframe.button:SetPoint('TOP', copyframe, 'BOTTOM', 130, -10)
 	copyframe.button:SetWidth(100)
 	copyframe.button:SetHeight(20)
@@ -165,7 +165,7 @@ end
 	copyframe.button:Show()
 	
 	
-	copyframe.button2 = CreateFrame("Button",nil,copyframe)
+	copyframe.button2 = CreateFrame("Button",nil,copyframe, BackdropTemplateMixin and 'BackdropTemplate')
 	copyframe.button2:SetPoint('TOP', copyframe, 'BOTTOM', -130, -10)
 	copyframe.button2:SetWidth(100)
 	copyframe.button2:SetHeight(20)
@@ -183,7 +183,7 @@ end
 	copyframe.button2:SetHighlightTexture("Interface\\Tooltips\\UI-Tooltip-Background")
 	copyframe.button2:Show()
 	
-	copyframe.button3 = CreateFrame("Button",nil,copyframe)
+	copyframe.button3 = CreateFrame("Button",nil,copyframe, BackdropTemplateMixin and 'BackdropTemplate')
 	copyframe.button3:SetPoint('TOP', copyframe, 'BOTTOM', 0, -10)
 	copyframe.button3:SetWidth(100)
 	copyframe.button3:SetHeight(20)

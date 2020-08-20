@@ -191,7 +191,7 @@ end)
 local stackspellpattern = " №%d"
 mainframe:SetClampedToScreen(true)
 
-local splashbigmover = CreateFrame("Frame", "SPTimersCooldownLineSplashBigMover", parent)
+local splashbigmover = CreateFrame("Frame", "SPTimersCooldownLineSplashBigMover", parent, BackdropTemplateMixin and 'BackdropTemplate')
 splashbigmover:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground",})
 splashbigmover:SetBackdropColor(0, 0, 0, 0.8)
 splashbigmover.text = splashbigmover:CreateFontString(nil, "OVERLAY", "GameFontNormal");
@@ -640,7 +640,7 @@ function UpdateSettings()
 			mainframe.bg:SetTexCoord(0,1, 0,1)
 		end
 		
-		mainframe.border = mainframe.border or CreateFrame("Frame", nil, mainframe)
+		mainframe.border = mainframe.border or CreateFrame("Frame", nil, mainframe, BackdropTemplateMixin and 'BackdropTemplate')
 		mainframe.border:SetPoint("TOPLEFT",-db.borderinset, db.borderinset) -- Implemented 'insets'
 		mainframe.border:SetPoint("BOTTOMRIGHT",db.borderinset, -db.borderinset) -- Implemented 'insets'
 		backdrop = {
@@ -1265,7 +1265,7 @@ do
 	local frames = {}
 	local createbutton
 	
-	local cd_tooltip = CreateFrame("Frame", "SPTimersCooldownLineCDToolTip", parent)
+	local cd_tooltip = CreateFrame("Frame", "SPTimersCooldownLineCDToolTip", parent, BackdropTemplateMixin and 'BackdropTemplate')
 	cd_tooltip:SetSize(100, 20)
 	cd_tooltip:SetPoint("BOTTOM", mainframe, "TOP",0,0)
 	cd_tooltip:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground",})	
@@ -1624,7 +1624,7 @@ local function NewCooldown(name, icon, endtime, isplayer, force, spellID)
 				return MouseIsOver(self.button) or self.button.enter
 			end
 			
-			f.border = CreateFrame("Frame", nil, f)
+			f.border = CreateFrame("Frame", nil, f, BackdropTemplateMixin and 'BackdropTemplate')
 			f.border:SetFrameLevel(f:GetFrameLevel()-1)
 			f.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
 			f.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
@@ -1677,7 +1677,7 @@ local function NewCooldown(name, icon, endtime, isplayer, force, spellID)
 			f.splashsmall:SetFrameStrata("HIGH")
 			f.splashsmall:Hide()
 			
-			f.splashsmall.border = CreateFrame("Frame", nil, f.splashsmall)		
+			f.splashsmall.border = CreateFrame("Frame", nil, f.splashsmall, BackdropTemplateMixin and 'BackdropTemplate')		
 			f.splashsmall.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
 			f.splashsmall.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
 			f.splashsmall.border:SetBackdrop(icon_backdrop)
@@ -1697,7 +1697,7 @@ local function NewCooldown(name, icon, endtime, isplayer, force, spellID)
 			f.splashbig:SetFrameStrata("LOW")
 			f.splashbig:Hide()
 			
-			f.splashbig.border = CreateFrame("Frame", nil, f.splashbig)
+			f.splashbig.border = CreateFrame("Frame", nil, f.splashbig, BackdropTemplateMixin and 'BackdropTemplate')
 			f.splashbig.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
 			f.splashbig.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
 			f.splashbig.border:SetBackdrop(icon_backdrop)

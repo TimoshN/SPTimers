@@ -3712,7 +3712,7 @@ function C.GetBar(anchor)
 	local bb1 = sb:CreateTexture(nil, "BACKGROUND", nil, 0)
 	bb1:SetAllPoints(sb)
 	
-	local bg1 = CreateFrame("Frame", nil, f)
+	local bg1 = CreateFrame("Frame", nil, f, BackdropTemplateMixin and 'BackdropTemplate')
 	bg1:SetParent(f)
 	
 	local b = sb:CreateTexture(nil, "BACKGROUND", nil, 0)
@@ -3739,7 +3739,7 @@ function C.GetBar(anchor)
 		
 	local libf = CreateFrame("Frame",nil, sb)
 
-	local bg2 = CreateFrame("Frame", nil, libf)
+	local bg2 = CreateFrame("Frame", nil, libf, BackdropTemplateMixin and 'BackdropTemplate')
 	
 	local stacktext = bg2:CreateFontString(nil, "ARTWORK");
 	
@@ -3752,7 +3752,7 @@ function C.GetBar(anchor)
 	
 	local ribf = CreateFrame("Frame",nil, sb)
 
-	local bg3 = CreateFrame("Frame", nil, ribf)
+	local bg3 = CreateFrame("Frame", nil, ribf, BackdropTemplateMixin and 'BackdropTemplate')
 	
 	local stacktext2 = bg3:CreateFontString(nil, "OVERLAY")
 	

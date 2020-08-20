@@ -1476,7 +1476,7 @@ do
 	local function createbutton(parent, name)
 		if not parent.buttons then parent.buttons = {} end
 		
-		local f = CreateFrame("Button", parent:GetName().."Button"..#parent.buttons+1, parent)
+		local f = CreateFrame("Button", parent:GetName().."Button"..#parent.buttons+1, parent, BackdropTemplateMixin and 'BackdropTemplate')
 		f:SetFrameLevel(parent:GetFrameLevel() + 1)
 		f.parent = parent
 		
@@ -1528,7 +1528,7 @@ do
 	
 	local function createeditboxe(parent)
 		if not parent.editboxes then parent.editboxes = {} end
-		local textbox = CreateFrame("EditBox", parent:GetName().."EditBox"..#parent.editboxes+1, parent)
+		local textbox = CreateFrame("EditBox", parent:GetName().."EditBox"..#parent.editboxes+1, parent, BackdropTemplateMixin and 'BackdropTemplate')
 		textbox:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
 		textbox:SetFrameLevel(parent:GetFrameLevel() + 1)
 		textbox:SetAutoFocus(false)
@@ -1579,7 +1579,7 @@ do
 
 	function C.AddMoverButtons(self, opts, tip, tomover, float)
 		if not self.mover_add_button then			
-			self.mover_add_button = CreateFrame("Frame", (self:GetName() or "SPTimersUnnamedFrame"..CountUnnamesFrames()).."MoverToolTip", self)
+			self.mover_add_button = CreateFrame("Frame", (self:GetName() or "SPTimersUnnamedFrame"..CountUnnamesFrames()).."MoverToolTip", self, BackdropTemplateMixin and 'BackdropTemplate')
 			self.mover_add_button.mover = self
 			self.mover_add_button.opts = opts
 			self.mover_add_button.tip = tip
