@@ -1,4 +1,4 @@
-local addon, C = ...
+local addon, ns = ...
 local changelog = 
 [[3.14.2
 fix cooldownline filters 
@@ -497,4 +497,4 @@ MA and Skull Banner source fix
 add 4p16 shadow buff
 
 ]]
-C.changeLog = changelog
+ns.changeLog = changelog

@@ -5,16 +5,10 @@
     <Script file="core.lua"/>
 	<Script file="media.lua"/>
 	<Script file="bars.lua"/>
-	<Script file="colldownline.lua"/>
+	<Script file="cooldownline.lua"/>
 	<Script file="buffs.lua"/>
-	<!--<Script file="drag.lua"/>-->
 	<Script file="profilestaff.lua"/>
 	<Script file="castbar.lua"/>
-	
-	<!-- <Script file="cooldowns.lua"/> -->
-	
-	<!--<Script file="cop.lua"/>-->
-	<!--<Script file="statweight.lua"/>-->
 	<Script file="version.lua"/>
 	<Script file="changelog.lua"/>
 	<Script file="options.lua"/>

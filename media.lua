@@ -1,5 +1,5 @@
-local addon, C = ...
-local LSM = C.LSM
+local addon, ns = ...
+local LSM = ns.LSM
 
 LSM:Register("border", "ElvUI Style2", "Interface\\AddOns\\"..addon.."\\\media\\BorderSquarePerso2.tga")
 LSM:Register("border", "Flat", "Interface\\AddOns\\"..addon.."\\\media\\Flat.tga")
@@ -13,8 +13,8 @@ LSM:Register("statusbar", "WHITE8x8", [[Interface\Buttons\WHITE8x8]])
 
 
 
-if not C.CustomColors then C.CustomColors = {} end
-local colors = C.CustomColors
+if not ns.CustomColors then ns.CustomColors = {} end
+local colors = ns.CustomColors
 -- COLORS
 colors["ELV_DBLUE"]			= { 23/255, 131/255, 209/255 }
 colors["ELV_LBLUE"]			= { 79/255, 115/255, 161/255 }
@@ -89,8 +89,8 @@ colors["REJUV"]				= { 1, 0.2, 1 }
 colors["REGROW"]			= { 198/255, 233/255, 80/255}
 colors["INSANITY"]			= { 5/255, 173/255, 202/255 }
 
-if not C.CustomSounds then C.CustomSounds = {} end
-local sounds = C.CustomSounds
+if not ns.CustomSounds then ns.CustomSounds = {} end
+local sounds = ns.CustomSounds
 
 local weakauras_sounds = {
 	  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BatmanPunch.ogg"] = "Batman Punch",

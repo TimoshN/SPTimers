@@ -1,9 +1,9 @@
-local addon, C = ...
-if C.myCLASS ~= "WARLOCK" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "WARLOCK" then return end
 
 local L = AleaUI_GUI.GetLocale("SPTimers")
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 --[[
@@ -112,17 +112,17 @@ local spells = {
 	-- [80240]		 = { spec = "3",duration = 15, color = colors.LRED, group = "player", whitelist = 2 },
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 local cooldown = {
 	[GetSpell(17962)] = { spellid = 17962, color = colors.PINK },
 	[GetSpell(105174)] = { spellid = 105174, color = colors.CURSE },
 }	
 
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns()
+function ns:SetupClassCooldowns()
 	return cooldown
 end
 
@@ -146,12 +146,12 @@ do
 			dstGUID, dstName, dstFlags, dstFlags2,
 			spellID, spellName, spellSchool = ...
 		
-		if srcGUID ~= C.myGUID then return end
+		if srcGUID ~= ns.myGUID then return end
 
 		if spellID == 157736 and ( eventType == 'SPELL_AURA_APPLIED' or eventType == 'SPELL_AURA_REFRESH' ) then
 		--	print('T', eventType, srcName, dstName, spellName, spellID)
 			
-			if C.IsTalentKnown(205184) then
+			if ns.IsTalentKnown(205184) then
 				data[dstGUID] = 0
 			else
 				data[dstGUID] = nil
@@ -159,7 +159,7 @@ do
 		elseif spellID == 17962 and eventType == 'SPELL_DAMAGE' then
 		--	print('T', eventType, srcName, dstName, spellName, spellID)
 			
-			if data[dstGUID] and C.IsTalentKnown(205184) then
+			if data[dstGUID] and ns.IsTalentKnown(205184) then
 				data[dstGUID] = data[dstGUID] + 1
 			end
 		elseif spellID == 157736 and eventType == 'SPELL_AURA_REMOVED' then
@@ -169,7 +169,7 @@ do
 		end
 	end)
 	
-	function C:GetImmolateBuffsStacks(guid)
+	function ns:GetImmolateBuffsStacks(guid)
 		
 		if enableImmolate and data[guid] then			
 			return data[guid]
@@ -180,7 +180,7 @@ do
 	
 	local function OnEvent()
 
-		if C.IsTalentKnown(205184) then
+		if ns.IsTalentKnown(205184) then
 			event:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
 			enableImmolate = true
 		else
@@ -191,15 +191,15 @@ do
 		
 	--	local prevPandemic = nil
 	--	local showTicks = nil
-		C.ignorePandemicForCorruption = false
+		ns.ignorePandemicForCorruption = false
 		
-		if C.IsTalentKnown(196103) then
-			C.ignorePandemicForCorruption = true
+		if ns.IsTalentKnown(196103) then
+			ns.ignorePandemicForCorruption = true
 		end
 	end
 	--[==[
 	local function ClassGUIChange(dir, spellID)
-		if (spellID == 146739 ) and C.IsTalentKnown(196103) then
+		if (spellID == 146739 ) and ns.IsTalentKnown(196103) then
 			if dir.args.classGrop and
 				dir.args.classGrop.args.Pandemia then
 				
@@ -228,6 +228,6 @@ do
 		end
 	end
 	]==]
---	C:AddOnClassGUIChangeHandler(ClassGUIChange)	
-	C:AddToTalentCheck(OnEvent)
+--	ns:AddOnClassGUIChangeHandler(ClassGUIChange)	
+	ns:AddToTalentCheck(OnEvent)
 end

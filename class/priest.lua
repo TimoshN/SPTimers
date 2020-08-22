@@ -1,7 +1,7 @@
-local addon, C = ...
-if C.myCLASS ~= "PRIEST" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "PRIEST" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 
@@ -110,7 +110,7 @@ local spells = {
 --	[87194] = { spec = '3', color = colors.RED, duration = 4, }, -- mb root glyph
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 local cooldown = {
 
 	[GetSpell(8092)]  = { spellid = 8092, color = colors.CURSE },
@@ -122,11 +122,11 @@ local cooldown = {
 }
 
 
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns()
+function ns:SetupClassCooldowns()
 	return cooldown
 end
 
@@ -137,12 +137,12 @@ do
 
 		if IsSpellKnown(157223) then
 		
-			C.db.profile.classSpells[C.myCLASS][15407].tick = 3/4
-			C.db.profile.classSpells[C.myCLASS][129197].tick = 3/4
+			ns.db.profile.classSpells[ns.myCLASS][15407].tick = 3/4
+			ns.db.profile.classSpells[ns.myCLASS][129197].tick = 3/4
 
 		else
-			C.db.profile.classSpells[C.myCLASS][15407].tick = 1
-			C.db.profile.classSpells[C.myCLASS][129197].tick = 1
+			ns.db.profile.classSpells[ns.myCLASS][15407].tick = 1
+			ns.db.profile.classSpells[ns.myCLASS][129197].tick = 1
 		end
 	end
 

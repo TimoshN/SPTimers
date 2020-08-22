@@ -1,4 +1,4 @@
-local addon, C = ...
+local addon, ns = ...
 local w, h
 local L = AleaUI_GUI.GetLocale("SPTimers")
 
@@ -8,7 +8,7 @@ local pingWorkAround = true
 local UnitChannelInfo = UnitChannelInfo
 local UnitCastingInfo = UnitCastingInfo
 
-if ( C.isClassic ) then 
+if ( ns.isClassic ) then 
 	UnitChannelInfo = function(unit) 
 		if UnitIsUnit(unit, 'player') then 
 			return ChannelInfo()
@@ -36,7 +36,7 @@ local events = {
 	--"UNIT_SPELLCAST_SUCCEEDED",
 }	
 
-if ( not C.isClassic ) then
+if ( not ns.isClassic ) then
 
 	table.insert(events, 'UNIT_SPELLCAST_INTERRUPTIBLE')
 	table.insert(events, 'UNIT_SPELLCAST_NOT_INTERRUPTIBLE')
@@ -153,7 +153,7 @@ end
 
 local function CreateTicks(f)
 	
-	local opts = C.db.profile.castBars[f.unit]
+	local opts = ns.db.profile.castBars[f.unit]
 	local h = f:GetHeight()
 	
 	local tick = f.ticksparent:CreateTexture(nil, "ARTWORK")
@@ -461,7 +461,7 @@ end
 
 
 local function UpdateVisual(f)
-	local opts = C.db.profile.castBars[f.unit]
+	local opts = ns.db.profile.castBars[f.unit]
 	
 	f.mover:SetSize(opts.w, opts.h)
 	if f.mover2 then
@@ -469,7 +469,7 @@ local function UpdateVisual(f)
 	end
 	
 	f.opts = opts
-	f:SetStatusBarTexture(C.LSM:Fetch("statusbar",opts.startusbar))
+	f:SetStatusBarTexture(ns.LSM:Fetch("statusbar",opts.startusbar))
 	f:GetStatusBarTexture():SetDrawLayer("ARTWORK")
 	f:SetStatusBarColor(unpack(opts.color_inter))
 	f:SetPoint("TOPRIGHT", f.mover, "TOPRIGHT", -0, -0)
@@ -478,14 +478,14 @@ local function UpdateVisual(f)
 	
 	f.channelLatency:SetStatusBarColor(opts.ping_color[1],opts.ping_color[2],opts.ping_color[3],opts.ping_color[4])
 	f.channelLatency:SetSize(40, opts.h)
-	f.channelLatency.text:SetFont(C.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
+	f.channelLatency.text:SetFont(ns.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
 	
 	f.castLatency:SetStatusBarColor(opts.ping_color[1],opts.ping_color[2],opts.ping_color[3],opts.ping_color[4])
 	f.castLatency:SetSize(40, opts.h)
-	f.castLatency.text:SetFont(C.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
+	f.castLatency.text:SetFont(ns.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
 	
 	f.border:SetBackdrop({
-		edgeFile = C.LSM:Fetch("border",opts.border), 
+		edgeFile = ns.LSM:Fetch("border",opts.border), 
 		edgeSize = opts.border_size, 
 	})
 	f.border:SetBackdropBorderColor(unpack(opts.border_color))
@@ -502,7 +502,7 @@ local function UpdateVisual(f)
 	f.icon:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", -opts.icon_gap, 0)
 	
 	f.icon.border:SetBackdrop({
-		edgeFile = C.LSM:Fetch("border",opts.border), 
+		edgeFile = ns.LSM:Fetch("border",opts.border), 
 		edgeSize = opts.border_size, 
 	})
 	f.icon.border:SetBackdropBorderColor(unpack(opts.border_color))
@@ -514,11 +514,11 @@ local function UpdateVisual(f)
 	f.icon.bg:SetColorTexture(unpack(opts.color_bg))
 	
 	f.rightText:SetTextColor(unpack(opts.font_color))
-	f.rightText:SetFont(C.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
+	f.rightText:SetFont(ns.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
 	f.rightText:SetAlpha(opts.font_alpha)
 	
 	f.leftText:SetTextColor(unpack(opts.font_color))
-	f.leftText:SetFont(C.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
+	f.leftText:SetFont(ns.LSM:Fetch("font",opts.font), opts.font_size, opts.font_flag)
 	f.leftText:SetAlpha(opts.font_alpha)
 	
 	for i=1, #f.tiks do
@@ -621,7 +621,7 @@ local function CreateCastBar(frame, w, h, drawticks)
 	
 	f.border = CreateFrame("Frame", nil, f, BackdropTemplateMixin and 'BackdropTemplate')
 	f.UpdateIntrerruptState = function(self, state)
-		local opts = C.db.profile.castBars[self.unit]
+		local opts = ns.db.profile.castBars[self.unit]
 		if state then
 			self:SetStatusBarColor(opts.color_notinter[1],opts.color_notinter[2],opts.color_notinter[3],opts.color_notinter[4])
 
@@ -855,7 +855,7 @@ local function _addmover(f, opts)
 		f.mover:SetScript("OnDragStop", function(self) 
 			self:StopMovingOrSizing()
 			local x, y = self:GetCenter()
-			local ux, uy = C.Parent:GetCenter()
+			local ux, uy = ns.Parent:GetCenter()
 
 			self.parent.opts.point = { floor(x - ux + 0.5),floor(y - uy + 0.5) }
 
@@ -876,7 +876,7 @@ local function _addmover(f, opts)
 		f.castBar.mover2 = f.mover
 		
 		f.mover:ClearAllPoints()
-		f.mover:SetPoint("CENTER", C.Parent, "CENTER",opts.point[1] or 0, opts.point[2] or 0)				
+		f.mover:SetPoint("CENTER", ns.Parent, "CENTER",opts.point[1] or 0, opts.point[2] or 0)				
 		f.mover:SetSize( opts.w or 100 , opts.h or 20)
 		
 		f.opts = opts
@@ -885,7 +885,7 @@ local function _addmover(f, opts)
 		f:SetPoint("CENTER", f.mover,"CENTER", 0, 0)
 		f:SetSize(1,1)
 		
-		C.AddMoverButtons(f.mover, opts)
+		ns.AddMoverButtons(f.mover, opts)
 
 		
 end
@@ -898,16 +898,16 @@ local function UpdateCastBarsStyle()
 	end
 end
 
-C.UpdateCastBarsStyle = UpdateCastBarsStyle
+ns.UpdateCastBarsStyle = UpdateCastBarsStyle
 
 
-function C:CastBarInit()
+function ns:CastBarInit()
 
 	for spellid, db in pairs(spelldb) do
 		local id = GetSpellInfo(spellid)
 		--[[
 		if not id then
-			print(id, "error with C:CastBarInit() on", spellid)
+			print(id, "error with ns:CastBarInit() on", spellid)
 		end
 		]]
 		if id then
@@ -928,7 +928,7 @@ function C:CastBarInit()
 	_addmover(castbar_frames.playerCastBar, self.db.profile.castBars.player)
 	
 	
-	if ( not C.isClassic ) then 
+	if ( not ns.isClassic ) then 
 		castbar_frames.targetCastBar = CreateFrame("Frame", nil, self.Parent)
 		castbar_frames.targetCastBar:SetSize(1,1)
 		castbar_frames.targetCastBar:SetPoint("CENTER", 0, -310)
@@ -1000,11 +1000,11 @@ local BlizzCastBars = {
 }
 
 local function ReHide(self)
-	if not C.db.profile.disableBlizzard then return end
+	if not ns.db.profile.disableBlizzard then return end
 	self:Hide()
 end
 
-function C:DisableBlizzCastBars(skip)
+function ns:DisableBlizzCastBars(skip)
 	if self.db.profile.disableBlizzard then
 		for k, v in pairs(BlizzCastBars) do			
 			if _G[k] and v then			
@@ -1017,7 +1017,7 @@ function C:DisableBlizzCastBars(skip)
 	end
 end
 
-function C:TestCastBars()
+function ns:TestCastBars()
 	
 	for name,frame in pairs(castbar_frames) do
 		
@@ -1030,7 +1030,7 @@ function C:TestCastBars()
 	end
 end
 
-function C:UpdateCastBarsVisible()
+function ns:UpdateCastBarsVisible()
 	
 	if self.db.profile.playerCastBar then
 		castbar_frames.playerCastBar:Show()
@@ -1039,7 +1039,7 @@ function C:UpdateCastBarsVisible()
 	end
 
 	
-	if ( not C.isClassic ) then 
+	if ( not ns.isClassic ) then 
 
 		if self.db.profile.targetCastBar then
 			castbar_frames.targetCastBar:Show()
@@ -1067,12 +1067,12 @@ function C:UpdateCastBarsVisible()
 	end
 end
 
-function C:UnlockCastBars()
+function ns:UnlockCastBars()
 	if self.db.profile.locked then
 		castbar_frames.playerCastBar.mover:Hide()
 		castbar_frames.playerCastBar.mover:EnableMouse(false)
 
-		if ( not C.isClassic ) then 
+		if ( not ns.isClassic ) then 
 			castbar_frames.targetCastBar.mover:Hide()
 			castbar_frames.targettargetCastBar.mover:Hide()
 			castbar_frames.focusCastBar.mover:Hide()
@@ -1087,7 +1087,7 @@ function C:UnlockCastBars()
 		castbar_frames.playerCastBar.mover:Show()	
 		castbar_frames.playerCastBar.mover:EnableMouse(true)
 
-		if ( not C.isClassic ) then 
+		if ( not ns.isClassic ) then 
 			castbar_frames.targetCastBar.mover:Show()
 			castbar_frames.targettargetCastBar.mover:Show()
 			castbar_frames.focusCastBar.mover:Show()
@@ -1104,7 +1104,7 @@ end
 
 local myCastBars = { "player" }
 
-if ( not C.isClassic ) then 
+if ( not ns.isClassic ) then 
 	table.insert(myCastBars, "target")
 	table.insert(myCastBars, "targettarget")
 	table.insert(myCastBars, "focus")
@@ -1123,7 +1123,7 @@ local text_flaggs = {
 	["THICKOUTLINE"] = "THICKOUTLINE",
 	["MONOCHROMEOUTLINE"] = "MONOCHROMEOUTLINE",
 }
-function C:GetCastBarGUI()
+function ns:GetCastBarGUI()
 	
 	local gui_option = {
 		order = 4,name = L["Cast Bars"],type = "group", --guiInline = false,
@@ -1277,7 +1277,7 @@ function C:GetCastBarGUI()
 		
 		gui_option.args[v].args.fontGroup.args.font = {
 			order = 32,name = L["Font"],type = 'font',
-			values = C.LSM:HashTable("font"),
+			values = ns.LSM:HashTable("font"),
 			set = function(info,key) self.db.profile.castBars[v].font = key;UpdateCastBarsStyle()  end,
 			get = function(info) return self.db.profile.castBars[v].font end,
 		}
@@ -1388,13 +1388,13 @@ function C:GetCastBarGUI()
 		}
 		gui_option.args[v].args.borderDsk.args.border = {
 			order = 26,type = 'border',name = L["Border Texture"],
-			values = C.LSM:HashTable("border"),
+			values = ns.LSM:HashTable("border"),
 			set = function(info,value) self.db.profile.castBars[v].border = value; UpdateCastBarsStyle() end,
 			get = function(info) return self.db.profile.castBars[v].border end,
 		}
 		gui_option.args[v].args.borderDsk.args.statusbar = {
 			order = 26,type = 'statusbar',name = L["Texture"],
-			values = C.LSM:HashTable("statusbar"),
+			values = ns.LSM:HashTable("statusbar"),
 			set = function(info,value) self.db.profile.castBars[v].startusbar = value; UpdateCastBarsStyle() end,
 			get = function(info) return self.db.profile.castBars[v].startusbar end,
 		}

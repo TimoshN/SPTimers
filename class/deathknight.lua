@@ -1,8 +1,8 @@
-local addon, C = ...
-if C.myCLASS ~= "DEATHKNIGHT" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "DEATHKNIGHT" then return end
 
 local L = AleaUI_GUI.GetLocale("SPTimers")
-local colors = C.CustomColors
+local colors = ns.CustomColors
 local ALL = "ALL"
 
 --[[
@@ -66,7 +66,7 @@ local spells = {
 --	[155159] = { spec = ALL,color = colors.CHILL, duration = 30, tick = 2},
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 	[GetSpell(152280)] = { spellid = 152280, color = colors.WOO },	
@@ -86,18 +86,18 @@ local cooldown = {
 }
 	
 		
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns() return cooldown end
+function ns:SetupClassCooldowns() return cooldown end
 
-function C:SetupClassOptions()
+function ns:SetupClassOptions()
 	local order = 60
 	
 	self.options.args.coolline.args.DKrunes = {
 		type = "group",
-		name = "|c"..RAID_CLASS_COLORS[C.myCLASS].colorStr.. L["Runes"],
+		name = "|c"..RAID_CLASS_COLORS[ns.myCLASS].colorStr.. L["Runes"],
 		order = order+1, embend = false, args = {},
 		}
 	

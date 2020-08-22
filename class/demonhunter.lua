@@ -1,7 +1,7 @@
-local addon, C = ...
-if C.myCLASS ~= "DEMONHUNTER" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "DEMONHUNTER" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 
@@ -35,7 +35,7 @@ local spells = {
 	[196718]= { spec = '1', duration = 8, color = colors.DPURPLE, whitelist_cleu = 5, cleu = true, },
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 	[GetSpell(178740)] = { spellid = 178740, color = colors.PINKIERED },
@@ -54,10 +54,10 @@ local cooldown = {
 	[GetSpell(201467)] = { spellid = 201467, },
 }	
 
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns()
+function ns:SetupClassCooldowns()
 	return cooldown
 end

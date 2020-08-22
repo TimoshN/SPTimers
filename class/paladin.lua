@@ -1,7 +1,7 @@
-local addon, C = ...
-if C.myCLASS ~= "PALADIN" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "PALADIN" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 local ALL = "ALL"
 
 --[[
@@ -48,7 +48,7 @@ local spells = {
 	
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 
@@ -64,5 +64,5 @@ local cooldown = {
 
 
 
-function C:SetupClassSpells() return spells end
-function C:SetupClassCooldowns() return cooldown end
+function ns:SetupClassSpells() return spells end
+function ns:SetupClassCooldowns() return cooldown end

@@ -1,8 +1,8 @@
-local addon, C = ...
+local addon, ns = ...
 
-if C.myCLASS ~= "ROGUE" then return end
+if ns.myCLASS ~= "ROGUE" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 
@@ -51,13 +51,13 @@ local spells = {
 	[1725]	 = { spec = ALL,color = colors.PURPLE, duration = 10, cleu = true, whitelist_cleu = 5 },
 }	
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 local cooldown = {}	
 
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns()
+function ns:SetupClassCooldowns()
 	return cooldown
 end

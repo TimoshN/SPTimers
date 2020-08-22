@@ -1,7 +1,7 @@
-﻿local addon, C = ...
-_G[addon] = C
+﻿local addon, ns = ...
+_G[addon] = ns
 
-C.LSM = LibStub("LibSharedMedia-3.0")
+ns.LSM = LibStub("LibSharedMedia-3.0")
 
 local L = AleaUI_GUI.GetLocale("SPTimers")
 local message
@@ -49,8 +49,8 @@ local MAX_TOTEMS = MAX_TOTEMS
 
 local versionStr, internalVersion, dateofpatch, uiVersion = GetBuildInfo();
 
-C.uibuild	= tonumber(uiVersion)
-C.isClassic = C.uibuild < 20000
+ns.uibuild	= tonumber(uiVersion)
+ns.isClassic = ns.uibuild < 20000
 
 -- EVENTFRAME -----
 
@@ -59,23 +59,23 @@ do
 	__eg:SetScript("OnEvent", function(self, event, ...)	
 		
 		if event == 'COMBAT_LOG_EVENT_UNFILTERED' then
-			C[event](C, event, CombatLogGetCurrentEventInfo())
+			ns[event](ns, event, CombatLogGetCurrentEventInfo())
 		else
-			C[event](C, event, ...)
+			ns[event](ns, event, ...)
 		end
 	end)
-	C.__eh = __eg
+	ns.__eh = __eg
 	
-	C.RegisterEvent = function(self, event)
-		assert(C[event], 'No methode for "'..event..'"')	
+	ns.RegisterEvent = function(self, event)
+		assert(ns[event], 'No methode for "'..event..'"')	
 		__eg:RegisterEvent(event)
 	end
 	
-	C.UnregisterEvent = function(self, event)	
+	ns.UnregisterEvent = function(self, event)	
 		__eg:UnregisterEvent(event)
 	end
 	
-	C.UnregisterAllEvents = function(self)
+	ns.UnregisterAllEvents = function(self)
 		__eg:UnregisterAllEvents()
 	end
 end
@@ -100,23 +100,23 @@ local FADED 				= "FADED"
 local DO_FADE_UNLIMIT 		= "DO_FADE_UNLIMIT"
 local COOLDOWN_SPELL 		= "COOLDOWN_SPELL"
 
-C.NO_FADE 			= NO_FADE
-C.DO_FADE 			= DO_FADE
-C.DO_FADE_RED 		= DO_FADE_RED
-C.FADED 			= FADED
-C.DO_FADE_UNLIMIT 	= DO_FADE_UNLIMIT
-C.UNITAURA 			= UNITAURA
-C.CLEU 				= CLEU
-C.PLAYER_AURA 		= PLAYER_AURA
-C.OTHERS_AURA 		= OTHERS_AURA
-C.CUSTOM_AURA 		= CUSTOM_AURA
-C.CHANNEL_SPELL 	= CHANNEL_SPELL
-C.TOTEM_SPELL 		= TOTEM_SPELL
-C.SPELL_CAST 		= SPELL_CAST
-C.SPELL_SUMMON 		= SPELL_SUMMON
-C.SPELL_ENERGIZE 	= SPELL_ENERGIZE
-C.COOLDOWN_SPELL 	= COOLDOWN_SPELL
-C.NO_GUID			= NO_GUID
+ns.NO_FADE 			= NO_FADE
+ns.DO_FADE 			= DO_FADE
+ns.DO_FADE_RED 		= DO_FADE_RED
+ns.FADED 			= FADED
+ns.DO_FADE_UNLIMIT 	= DO_FADE_UNLIMIT
+ns.UNITAURA 			= UNITAURA
+ns.CLEU 				= CLEU
+ns.PLAYER_AURA 		= PLAYER_AURA
+ns.OTHERS_AURA 		= OTHERS_AURA
+ns.CUSTOM_AURA 		= CUSTOM_AURA
+ns.CHANNEL_SPELL 	= CHANNEL_SPELL
+ns.TOTEM_SPELL 		= TOTEM_SPELL
+ns.SPELL_CAST 		= SPELL_CAST
+ns.SPELL_SUMMON 		= SPELL_SUMMON
+ns.SPELL_ENERGIZE 	= SPELL_ENERGIZE
+ns.COOLDOWN_SPELL 	= COOLDOWN_SPELL
+ns.NO_GUID			= NO_GUID
 
 
 local parent = CreateFrame('Frame', addon..'Parent', UIParent);
@@ -125,23 +125,23 @@ parent:SetPoint('TOPLEFT', UIParent, 'TOPLEFT');
 parent:SetPoint('BOTTOMRIGHT', UIParent, 'BOTTOMRIGHT');
 parent:SetSize(UIParent:GetSize());
 
-C.Parent = parent
+ns.Parent = parent
 
-C.myCLASS = select(2, UnitClass("player")) 
+ns.myCLASS = select(2, UnitClass("player")) 
 
 -- debug print ------------------
---C.dodebugging = true
+--ns.dodebugging = true
 
 local old_print = print
 local print = function(...)
-	if false then --C.dodebugging then	
+	if false then --ns.dodebugging then	
 		old_print(GetTime(),debugprefix, ...)
 	end
 end
 
 local old_assert = assert
 local assert = function(...)
-	if C.dodebugging then	
+	if ns.dodebugging then	
 		old_assert(...)
 	end
 end
@@ -152,7 +152,7 @@ do
 	local LE_PARTY_CATEGORY_INSTANCE = LE_PARTY_CATEGORY_INSTANCE
 	local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
 	
-	function C.ChatMessage(msg, chat)
+	function ns.ChatMessage(msg, chat)
 		
 		if chat == "RAID_WARNING" then
 			SendChatMessage(msg, "RAID_WARNING")
@@ -171,7 +171,7 @@ do
 			end
 			
 			if chatType == "PRINT" then
-				C.message(msg)
+				ns.message(msg)
 			else
 				SendChatMessage(msg, chatType)
 			end
@@ -186,7 +186,7 @@ do
 	local sub = string.sub	
 	local icon = "\124TInterface\\Icons\\spell_shadow_shadowwordpain:10\124t"
 	
-	function C.message(...)
+	function ns.message(...)
 	--	old_print("SPTimers_Options:", ...)
 		local msg = ""
 		for i=1, select("#", ...) do
@@ -200,7 +200,7 @@ do
 
 end
 
-message = C.message
+message = ns.message
 
 ---------------------------------
 
@@ -217,9 +217,9 @@ local function SecondsRoundAllDuration(num, numDecimals)
 	return math_floor(num*(10*numDecimals)+.5)/(10*numDecimals)
 end
 
-C.Round = Round
-C.SecondsRound = SecondsRound
-C.SecondsRoundAllDuration = SecondsRoundAllDuration
+ns.Round = Round
+ns.SecondsRound = SecondsRound
+ns.SecondsRoundAllDuration = SecondsRoundAllDuration
 
 do
 
@@ -250,13 +250,13 @@ do
 	local function PlayerAurasFilter(spellID, filter_type, sUnit)
 		local skip = false
 
-		skip = C:GetWhiteListFilter(spellID, filter_type, skip)
-		skip = C:GetBlackListFilter(spellID, filter_type, skip)
-		skip = C:GetProcsFilter(spellID, filter_type, skip)
-		skip = C:GetOthersFilter(spellID, filter_type, skip)
+		skip = ns:GetWhiteListFilter(spellID, filter_type, skip)
+		skip = ns:GetBlackListFilter(spellID, filter_type, skip)
+		skip = ns:GetProcsFilter(spellID, filter_type, skip)
+		skip = ns:GetOthersFilter(spellID, filter_type, skip)
 		
-		if skip then skip = C:CheckUnitSource(sUnit, C:GetAffiliation(spellID)) end
-		if skip then skip = C:CheckUnitSource('player', C:GetTargetAffiliation(spellID)) end
+		if skip then skip = ns:CheckUnitSource(sUnit, ns:GetAffiliation(spellID)) end
+		if skip then skip = ns:CheckUnitSource('player', ns:GetTargetAffiliation(spellID)) end
 		
 		return skip
 	end
@@ -265,13 +265,13 @@ do
 		local skip = false
 	
 	--	skip = SPTimers:GetOthersFilter(spellID, filter_type, skip)
-		skip = C:GetWhiteListFilter(spellID, filter_type, skip)
-		skip = C:GetBlackListFilter(spellID, filter_type, skip)
-		skip = C:GetProcsFilter(spellID, filter_type, skip)
-		skip = C:GetOthersFilter(spellID, filter_type, skip)
-		if C:IsChanneling(spellID) then skip = false end						
-		if skip then skip = C:CheckUnitSource(sUnit, C:GetAffiliation(spellID)) end
-		if skip then skip = C:CheckUnitSource(unit, C:GetTargetAffiliation(spellID)) end
+		skip = ns:GetWhiteListFilter(spellID, filter_type, skip)
+		skip = ns:GetBlackListFilter(spellID, filter_type, skip)
+		skip = ns:GetProcsFilter(spellID, filter_type, skip)
+		skip = ns:GetOthersFilter(spellID, filter_type, skip)
+		if ns:IsChanneling(spellID) then skip = false end						
+		if skip then skip = ns:CheckUnitSource(sUnit, ns:GetAffiliation(spellID)) end
+		if skip then skip = ns:CheckUnitSource(unit, ns:GetTargetAffiliation(spellID)) end
 
 		return skip
 	end
@@ -341,18 +341,18 @@ do
 				duration, endTime = durationLTP, endTimeLTP
 			end
 			]==]
-			if C:GetInternalCD(spellName, spellID) then
-				local icd = C:GetICD(spellName, spellID)
+			if ns:GetInternalCD(spellName, spellID) then
+				local icd = ns:GetICD(spellName, spellID)
 				if icd > 0 and ( endTime ~= 0 and duration ~= 0 ) then
 					icd = icd + endTime - duration
-					--C.NewCooldown(spellName, icon, icd, "INTERNAL_CD")
-					C.AddCooldown(spellID, spellID, duration, icd, icon, "INTERNAL_CD")
+					--ns.NewCooldown(spellName, icon, icd, "INTERNAL_CD")
+					ns.AddCooldown(spellID, spellID, duration, icd, icon, "INTERNAL_CD")
 				end
 			end
 			
-			if endTime ~= 0 and C:GetAuraCD(spellName, spellID, filter) then
-				--C.NewCooldown(spellName.." buff", icon, endTime, "AURA_CD_BUFF")
-				C.AddCooldown(spellID, spellID, duration, endTime-duration, icon, "AURA_CD_BUFF")
+			if endTime ~= 0 and ns:GetAuraCD(spellName, spellID, filter) then
+				--ns.NewCooldown(spellName.." buff", icon, endTime, "AURA_CD_BUFF")
+				ns.AddCooldown(spellID, spellID, duration, endTime-duration, icon, "AURA_CD_BUFF")
 			end
 			
 			index = index + 1
@@ -360,15 +360,15 @@ do
 			if PlayerAurasFilter(spellID, filter_type, sUnit) then
 				srcGUID = UnitGUID(sUnit or "")
 		
-				if C:IsSeveralAuras(spellID) then
+				if ns:IsSeveralAuras(spellID) then
 					several_auras[spellID] = ( several_auras[spellID] or 0 ) + 1
 				end
 					
-				sourceName = UnitName(sUnit or "") or C.myNAME
+				sourceName = UnitName(sUnit or "") or ns.myNAME
 				
-				C:FillDuration(spellID, true, duration)
+				ns:FillDuration(spellID, true, duration)
 				
-				C.Timer(duration, endTime, dstGUID, srcGUID, spellID, several_auras[spellID] or 1, auraType, PLAYER_AURA, GetRaidTargetIndex(unit), spellName, icon, amount, C.myNAME, sourceName, nil, true, 'UnitAura')
+				ns.Timer(duration, endTime, dstGUID, srcGUID, spellID, several_auras[spellID] or 1, auraType, PLAYER_AURA, GetRaidTargetIndex(unit), spellName, icon, amount, ns.myNAME, sourceName, nil, true, 'UnitAura')
 			end
 		end
 
@@ -378,26 +378,26 @@ do
 			spellName, icon, amount, debuffType, duration, endTime, sUnit, _, _, spellID = UnitAura(unit, index, filter)		
 			if not spellName then break end
 			
-			if endTime ~= 0 and C:GetAuraCD(spellName, spellID, filter) then
-				--C.NewCooldown(spellName.." debuff", icon, endTime,"AURA_CD_DEBUFF")
-				C.AddCooldown(spellID, spellID, duration, endTime-duration, icon, "AURA_CD_DEBUFF")
+			if endTime ~= 0 and ns:GetAuraCD(spellName, spellID, filter) then
+				--ns.NewCooldown(spellName.." debuff", icon, endTime,"AURA_CD_DEBUFF")
+				ns.AddCooldown(spellID, spellID, duration, endTime-duration, icon, "AURA_CD_DEBUFF")
 			end
 			
 			index = index + 1
 			
 			if PlayerAurasFilter(spellID, filter_type, sUnit) then
 				srcGUID = UnitGUID(sUnit or "")
-				sourceName = UnitName(sUnit or "") or C.myNAME
+				sourceName = UnitName(sUnit or "") or ns.myNAME
 				
-				C:FillDuration(spellID, true, duration)
+				ns:FillDuration(spellID, true, duration)
 				
-				C.Timer(duration, endTime, dstGUID, srcGUID, spellID,  1, auraType, PLAYER_AURA, GetRaidTargetIndex(unit), spellName, icon, amount, C.myNAME, sourceName, nil, true, 'UnitAura')
+				ns.Timer(duration, endTime, dstGUID, srcGUID, spellID,  1, auraType, PLAYER_AURA, GetRaidTargetIndex(unit), spellName, icon, amount, ns.myNAME, sourceName, nil, true, 'UnitAura')
 			end
 		end
 		
-	--	C.RemoveGUID_UA(dstGUID, "BUFF", PLAYER_AURA, GetTime())
-	--	C.RemoveGUID_UA(dstGUID, "DEBUFF", PLAYER_AURA, GetTime())
-		C.RemoveGUID_UA(dstGUID, nil, PLAYER_AURA, GetTime())
+	--	ns.RemoveGUID_UA(dstGUID, "BUFF", PLAYER_AURA, GetTime())
+	--	ns.RemoveGUID_UA(dstGUID, "DEBUFF", PLAYER_AURA, GetTime())
+		ns.RemoveGUID_UA(dstGUID, nil, PLAYER_AURA, GetTime())
 	end
 
 	local units = { 
@@ -455,9 +455,9 @@ do
 			if OthersAurasFulter(spellID, filter_type, unit, sUnit) then
 				srcGUID = UnitGUID(sUnit or "")
 				
-				C:FillDuration(spellID, isplayer, duration)
+				ns:FillDuration(spellID, isplayer, duration)
 				
-				C.Timer(duration, endTime, dstGUID, srcGUID, spellID, 1, auraType, OTHERS_AURA, GetRaidTargetIndex(unit), spellName, icon, amount, UnitName(unit), UnitName(sUnit or "") or UnitName(unit), nil, isPlayer, 'UnitAura')
+				ns.Timer(duration, endTime, dstGUID, srcGUID, spellID, 1, auraType, OTHERS_AURA, GetRaidTargetIndex(unit), spellName, icon, amount, UnitName(unit), UnitName(sUnit or "") or UnitName(unit), nil, isPlayer, 'UnitAura')
 			end
 		end
 
@@ -472,15 +472,15 @@ do
 			if OthersAurasFulter(spellID, filter_type, unit, sUnit) then
 				srcGUID = UnitGUID(sUnit or "")
 				
-				C:FillDuration(spellID, isplayer, duration)
+				ns:FillDuration(spellID, isplayer, duration)
 				
-				C.Timer(duration, endTime, dstGUID, srcGUID, spellID, 1, auraType, OTHERS_AURA, GetRaidTargetIndex(unit), spellName, icon, amount,UnitName(unit), UnitName(sUnit or "") or UnitName(unit), nil, isPlayer, 'UnitAura')
+				ns.Timer(duration, endTime, dstGUID, srcGUID, spellID, 1, auraType, OTHERS_AURA, GetRaidTargetIndex(unit), spellName, icon, amount,UnitName(unit), UnitName(sUnit or "") or UnitName(unit), nil, isPlayer, 'UnitAura')
 			end
 		end
 		
-	--	C.RemoveGUID_UA(dstGUID, "DEBUFF", OTHERS_AURA, GetTime())
-	--	C.RemoveGUID_UA(dstGUID, "BUFF", OTHERS_AURA, GetTime())
-		C.RemoveGUID_UA(dstGUID, nil, OTHERS_AURA, GetTime())
+	--	ns.RemoveGUID_UA(dstGUID, "DEBUFF", OTHERS_AURA, GetTime())
+	--	ns.RemoveGUID_UA(dstGUID, "BUFF", OTHERS_AURA, GetTime())
+		ns.RemoveGUID_UA(dstGUID, nil, OTHERS_AURA, GetTime())
 	end
 	
 	local __frf = CreateFrame("Frame")
@@ -499,20 +499,20 @@ do
 	--	PlayerAuras("player")
 	--end)
 	
-	function C:UNIT_AURA(event, unit)
+	function ns:UNIT_AURA(event, unit)
 		if unit == "player" then 
 			PlayerAuras(unit)
-		elseif ( not C.isClassic and units[unit] and not UnitIsUnit(unit, 'player') ) then --( nameplateUnits[unit] and UnitIsEnemy('player', unit) ) )
+		elseif ( not ns.isClassic and units[unit] and not UnitIsUnit(unit, 'player') ) then --( nameplateUnits[unit] and UnitIsEnemy('player', unit) ) )
 			OthersAuras(unit)		
 		end
 	end
 	
 	
-	function C:PLAYER_TARGET_CHANGED(event)
+	function ns:PLAYER_TARGET_CHANGED(event)
 		if UnitExists("target") then
 			self.CurrentTarget = UnitGUID("target")
-			C:UNIT_AURA('UNIT_AURA', 'player')
-			C:UNIT_AURA('UNIT_AURA', "target")
+			ns:UNIT_AURA('UNIT_AURA', 'player')
+			ns:UNIT_AURA('UNIT_AURA', "target")
 		else
 			self.CurrentTarget = nil
 		end
@@ -520,17 +520,17 @@ do
 		self.SortBars('PLAYER_TARGET_CHANGED')
 	end
 
-	function C:UPDATE_MOUSEOVER_UNIT(event)
+	function ns:UPDATE_MOUSEOVER_UNIT(event)
 		if UnitExists("mouseover") then
-			C:UNIT_AURA('UNIT_AURA', 'mouseover')
+			ns:UNIT_AURA('UNIT_AURA', 'mouseover')
 		end
 	end
 	
-	function C:PLAYER_FOCUS_CHANGED()
+	function ns:PLAYER_FOCUS_CHANGED()
 		if UnitExists("focus") then
 			self.FocusTarget = UnitGUID("focus")
-			C:UNIT_AURA('UNIT_AURA', 'player')
-			C:UNIT_AURA('UNIT_AURA', "focus")
+			ns:UNIT_AURA('UNIT_AURA', 'player')
+			ns:UNIT_AURA('UNIT_AURA', "focus")
 		else
 			self.FocusTarget = nil
 			self.SortBars()
@@ -542,7 +542,7 @@ end
 
 do
 	local UnitName = UnitName
-	function C.Erase(name)
+	function ns.Erase(name)
 		return name and UnitName(name) or name
 	end
 end
@@ -580,11 +580,11 @@ do
 
 	local externalHandlers = {}
 	
-	function C:AddToCLEUEvent(func)
+	function ns:AddToCLEUEvent(func)
 		externalHandlers[#externalHandlers+1] = func
 	end
 	
-	function C:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, hideCaster,
+	function ns:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, hideCaster,
 					srcGUID, srcName, srcFlags, srcFlags2,
 					dstGUID, dstName, dstFlags, dstFlags2,
 					spellID, spellName, spellSchool, auraType, amount, extraSchool, extraType, ...)
@@ -594,19 +594,18 @@ do
 		if eventType == "UNIT_DIED" or eventType == "UNIT_DESTROYED" or eventType == "SPELL_INSTAKILL" or eventType == "PARTY_KILL" then
 			self.targetEngaged[dstGUID] = nil
 			self:RemovePandemia(nil, dstGUID)
-			C.Timer_Remove_DEAD(dstGUID)			
+			ns.Timer_Remove_DEAD(dstGUID)			
 			return
 		end
 
 		if not truedEvents[eventType] then return end		
 		if srcGUID ~= self.myGUID and srcGUID ~= self.petGUID then return end
 		
-		if ( C.isClassic ) then 
-			local _, _, _, _, _, _, spellID2 = GetSpellInfo(spellName..'(Уровень 1)')
+		if ( ns.isClassic ) then 
+			spellID = ns.spellNameToID[spellName]
 
-			if ( spellID2 ) then 
-				--print('T', spellName, spellID, spellID2, FindBaseSpellByID(spellID2), FindSpellOverrideByID(spellID2) )
-				spellID = spellID2
+			if not ( spellID ) then 
+				old_print('Not in SPTimersDB ', spellName, 'as', spellID)
 			end
 		end 
 
@@ -650,7 +649,7 @@ do
 		if not self:CLEU_AffilationCheckTarget(dstFlags, spellID) then return end
 
 		
-		local isPlayer = C.IsPlayer(dstFlags)
+		local isPlayer = ns.IsPlayer(dstFlags)
 
 		
 		-- print('T', event, timestamp, eventType, hideCaster,
@@ -661,25 +660,25 @@ do
 		print('T:4', spellID, spellName, auraType)
 
 		if eventType == "SPELL_AURA_REFRESH" then
-			C.Timer(self:GetDuration(spellID, dstGUID, 2, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
+			ns.Timer(self:GetDuration(spellID, dstGUID, 2, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
 		elseif eventType == "SPELL_AURA_APPLIED_DOSE" then			
-			C.Timer_DOSE(dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], amount)
+			ns.Timer_DOSE(dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], amount)
 		elseif eventType == "SPELL_AURA_APPLIED" then
-			C.Timer(self:GetDuration(spellID, dstGUID, 1, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, 0, dstName, srcName, nil, isPlayer, eventType)
+			ns.Timer(self:GetDuration(spellID, dstGUID, 1, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, 0, dstName, srcName, nil, isPlayer, eventType)
 		elseif eventType == "SPELL_AURA_REMOVED" then
 			self:RemovePandemia(spellID, dstGUID)
-			C.Timer_Remove(dstGUID, srcGUID, spellID, 1, auraType)				
+			ns.Timer_Remove(dstGUID, srcGUID, spellID, 1, auraType)				
 		elseif event == "SPELL_AURA_BROKEN" or event == "SPELL_AURA_BROKEN_SPELL" then
 		
 	--		print(eventType, srcName, spellID, spellName, dstName, dstGUID, srcGUID,auraType)
 		elseif eventType == "SPELL_AURA_REMOVED_DOSE" then
-			C.Timer_DOSE(dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], amount)
+			ns.Timer_DOSE(dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], amount)
 		elseif eventType == "SPELL_SUMMON" then
-			C.Timer(self:GetDuration(spellID, dstGUID, 1, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CUSTOM_AURA, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
+			ns.Timer(self:GetDuration(spellID, dstGUID, 1, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CUSTOM_AURA, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
 		elseif eventType == "SPELL_CAST_SUCCESS" then
-			C.Timer(self:GetDuration(spellID, dstGUID, 1, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CUSTOM_AURA, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
+			ns.Timer(self:GetDuration(spellID, dstGUID, 1, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CUSTOM_AURA, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
 		elseif eventType == "SPELL_ENERGIZE" then
-			C.Timer(self:GetDuration(spellID, nil, nil, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CUSTOM_AURA, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
+			ns.Timer(self:GetDuration(spellID, nil, nil, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CUSTOM_AURA, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
 		end
 	end
 end
@@ -720,21 +719,21 @@ do
 		for k,v in pairs(spellname_list) do
 			local startTime, duration, enabled, charges, maxCharges = GetSpellCooldownCharges(v)
 
-			if enabled and duration and duration > 0 and not C.IsGCDCooldown(startTime, duration) then			
+			if enabled and duration and duration > 0 and not ns.IsGCDCooldown(startTime, duration) then			
 				exists_cd[v] = curtime
-				C.Timer(duration, startTime+duration, COOLDOWN_SPELL, COOLDOWN_SPELL, v, 1, COOLDOWN_SPELL, COOLDOWN_SPELL, 0, k, nil, 0, k, k)
+				ns.Timer(duration, startTime+duration, COOLDOWN_SPELL, COOLDOWN_SPELL, v, 1, COOLDOWN_SPELL, COOLDOWN_SPELL, 0, k, nil, 0, k, k)
 			end
 		end
 		
 		for k,v in pairs(exists_cd) do			
 			if v < curtime-1.5 then			
-				C.Timer_Remove(COOLDOWN_SPELL, COOLDOWN_SPELL, k, 1, COOLDOWN_SPELL, nil, true)
+				ns.Timer_Remove(COOLDOWN_SPELL, COOLDOWN_SPELL, k, 1, COOLDOWN_SPELL, nil, true)
 				v = nil
 			end
 		end
 	end)
 	
-	C.UpdateBarsSpellList = function(self)
+	ns.UpdateBarsSpellList = function(self)
 		wipe(spellname_list)
 		
 		for spellid, data in pairs(options.bars_cooldowns[self.myCLASS] or {}) do
@@ -746,7 +745,7 @@ do
 	end
 	
 	
-	C.UpdateBars_CooldownPart = function(self)
+	ns.UpdateBars_CooldownPart = function(self)
 		
 		if options.bar_module_enabled then
 			cd_frame:Show()
@@ -765,7 +764,7 @@ do
 
 	local function CheckGCD()
 		local event;
-		local startTime, duration = GetSpellCooldown(C.isClassic and 29515 or 61304);
+		local startTime, duration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
 		
 		if(duration and duration > 0) then
 			gcdStart, gcdDuration = startTime, duration;
@@ -782,18 +781,18 @@ do
 	end
 	 
 	local function GetGCD()
-		local startTime, duration = GetSpellCooldown(C.isClassic and 29515 or 61304);
+		local startTime, duration = GetSpellCooldown(ns.isClassic and 29515 or 61304);
 		
 		return duration or 0, startTime
 	end
 	
 	local function IsGCDCooldown(start, duration)
-		local startTime, durationTime = GetSpellCooldown(C.isClassic and 29515 or 61304);
+		local startTime, durationTime = GetSpellCooldown(ns.isClassic and 29515 or 61304);
 		return ( startTime == start and durationTime == duration )
 	end
 	
-	C.GetGCD = GetGCD
-	C.IsGCDCooldown = IsGCDCooldown
+	ns.GetGCD = GetGCD
+	ns.IsGCDCooldown = IsGCDCooldown
 end
 
 do
@@ -804,14 +803,14 @@ do
 		local spell, displayName, icon, startTime, endTime, _, _, _ = UnitChannelInfo("player")
 		
 		if spell then
-			local playerName = C.myNAME -- UnitName("player")
+			local playerName = ns.myNAME -- UnitName("player")
 			local targetName = UnitName("target") or playerName
 
-			return C.Timer((endTime-startTime)/1000, endTime/1000, CHANNEL_SPELL, C.myGUID, CHANNEL_SPELL, 1, CHANNEL_SPELL, CHANNEL_SPELL, nil, spell, icon, 0, targetName, playerName, spellID)
+			return ns.Timer((endTime-startTime)/1000, endTime/1000, CHANNEL_SPELL, ns.myGUID, CHANNEL_SPELL, 1, CHANNEL_SPELL, CHANNEL_SPELL, nil, spell, icon, 0, targetName, playerName, spellID)
 		end
 	end
 	
-	function C:ScanForChannelingSpell()
+	function ns:ScanForChannelingSpell()
 		for k,v in pairs(self.db.profile.classSpells[self.myCLASS]) do
 			local spell = GetSpellInfo(k)
 	
@@ -827,7 +826,7 @@ do
 		end
 	end
 	
-	function C:UNIT_SPELLCAST_CHANNEL_START(event,unit,spell,lineID,spellID)	
+	function ns:UNIT_SPELLCAST_CHANNEL_START(event,unit,spell,lineID,spellID)	
 		if unit ~= "player" then return end
 
 		local spellID = channel_spell[spell]		
@@ -835,29 +834,29 @@ do
 		
 		local skip = false 
 		
-		skip = C:GetWhiteListFilter(spellID, "BUFF", skip)
-		skip = C:GetBlackListFilter(spellID, "BUFF", skip)
+		skip = ns:GetWhiteListFilter(spellID, "BUFF", skip)
+		skip = ns:GetBlackListFilter(spellID, "BUFF", skip)
 			
 		if skip then
 			UpdateChannelInfo(true, spellID)
 		end
 	end
 	
-	function C:UNIT_SPELLCAST_CHANNEL_STOP(event,unit, spell, rank, lineID, spellID)
+	function ns:UNIT_SPELLCAST_CHANNEL_STOP(event,unit, spell, rank, lineID, spellID)
 		if unit ~= "player" then return end		
-		if not C:IsChanneling(spellID) then return end
-		C.Timer_Remove(CHANNEL_SPELL, self.myGUID, CHANNEL_SPELL, 1, CHANNEL_SPELL)	
+		if not ns:IsChanneling(spellID) then return end
+		ns.Timer_Remove(CHANNEL_SPELL, self.myGUID, CHANNEL_SPELL, 1, CHANNEL_SPELL)	
 		
 	end
 
-	function C:UNIT_SPELLCAST_CHANNEL_UPDATE(event,unit, spell, rank, lineID, spellID)
+	function ns:UNIT_SPELLCAST_CHANNEL_UPDATE(event,unit, spell, rank, lineID, spellID)
 		if unit ~= "player" then return end
-		if not C:IsChanneling(spellID) then return end
+		if not ns:IsChanneling(spellID) then return end
 	--	local showticks = self:GetCLEUSpellInfo(spellID)
 		local skip = false 
 		
-		skip = C:GetWhiteListFilter(spellID, "BUFF", skip)
-		skip = C:GetBlackListFilter(spellID, "BUFF", skip)
+		skip = ns:GetWhiteListFilter(spellID, "BUFF", skip)
+		skip = ns:GetBlackListFilter(spellID, "BUFF", skip)
 			
 		if skip then
 			UpdateChannelInfo(false, spellID)
@@ -866,27 +865,27 @@ do
 	
 	
 	
-	function C:UNIT_SPELLCAST_SENT(event,unit,spell,rank,target,lineID)
+	function ns:UNIT_SPELLCAST_SENT(event,unit,spell,rank,target,lineID)
 		if unit ~= "player" then return end
 	--	if UnitExists('target') then
 	--		self:UNIT_AURA(nil, "target")
 	--	end
 	end
 	
-	function C:UNIT_SPELLCAST_START(event,unit,spell,rank,lineID,spellID) --"unitID", "spell", "rank", lineID, spellID
+	function ns:UNIT_SPELLCAST_START(event,unit,spell,rank,lineID,spellID) --"unitID", "spell", "rank", lineID, spellID
 		if unit ~= "player" then return end
 	--	if UnitExists('target') then
 	--		self:UNIT_AURA(nil, "target")
 	--	end
 	end
 	
-	function C:UNIT_SPELLCAST_SUCCEEDED(event,unit,spell,rank,lineID,spellID)
+	function ns:UNIT_SPELLCAST_SUCCEEDED(event,unit,spell,rank,lineID,spellID)
 		if unit ~= "player" then return end
 	--[==[	
 		if spellID == 108853 then
-			C.SpreadSpellCast = true
+			ns.SpreadSpellCast = true
 		else
-			C.SpreadSpellCast = false
+			ns.SpreadSpellCast = false
 		end
 	]==]	
 	--	if UnitExists('target') then
@@ -894,20 +893,20 @@ do
 	--	end
 	end
 	
-	function C:UNIT_SPELLCAST_STOP(event,unit,spell,rank,lineID,spellID)
+	function ns:UNIT_SPELLCAST_STOP(event,unit,spell,rank,lineID,spellID)
 		if unit ~= "player" then return end
 	end
 end
 
 
-function C:PLAYER_LOGIN()
+function ns:PLAYER_LOGIN()
 	self.myGUID = UnitGUID("player")
 	local _,class = UnitClass("player")	
 	self.myCLASS = class
 	self.myNAME = UnitName("player")
 end
 
-function C:UNIT_PET(event, unit)
+function ns:UNIT_PET(event, unit)
 	if unit == "player" then
 		if UnitExists("pet") then
 			self.petGUID = UnitGUID("pet")
@@ -951,7 +950,7 @@ do
 		--	print("Complete cache item in "..format("%.1f", self.elapsed).."s.")
 			
 			for i=1, MAX_TOTEMS do
-				C:PLAYER_TOTEM_UPDATE(nil, i)
+				ns:PLAYER_TOTEM_UPDATE(nil, i)
 			end
 			
 			self.elapsed = 0
@@ -962,7 +961,7 @@ do
 	end)
 	
 	
-	function C:UpdateTotems()
+	function ns:UpdateTotems()
 		if ( self.myCLASS == "SHAMAN" or self.myCLASS == "DRUID" ) then
 			if ( self:ShowTotems("totem1") or self:ShowTotems("totem2") or self:ShowTotems("totem3") or self:ShowTotems("totem4") ) then
 				self:RegisterEvent("PLAYER_TOTEM_UPDATE")
@@ -971,22 +970,22 @@ do
 		else	
 			self:UnregisterEvent("PLAYER_TOTEM_UPDATE")
 			for i=1, MAX_TOTEMS do
-				C:PLAYER_TOTEM_UPDATE(nil, i, true)
+				ns:PLAYER_TOTEM_UPDATE(nil, i, true)
 			end
 		end
 	end
 	
 	-- TOTEM_SPELL
 	
-	function C:PLAYER_TOTEM_UPDATE(event, totem, rem)
+	function ns:PLAYER_TOTEM_UPDATE(event, totem, rem)
 --		print("PLAYER_TOTEM_UPDATE", totem)
 		local anchor = self:GetAnchor("totem"..totem)
 		local haveTotem, totemName, startTime, duration, icon = GetTotemInfo(totem)
 
 		if not rem and self:ShowTotems("totem"..totem) and haveTotem and ( GetTotemFilter(totem) ~= totemName )then
-			C.Timer(duration, startTime+duration, self.myGUID, self.myGUID, "totem"..totem, 1, "BUFF", TOTEM_SPELL, nil, totemName, icon, 0,self.myNAME, self.myNAME)
+			ns.Timer(duration, startTime+duration, self.myGUID, self.myGUID, "totem"..totem, 1, "BUFF", TOTEM_SPELL, nil, totemName, icon, 0,self.myNAME, self.myNAME)
 		else
-			C.Timer_Remove(self.myGUID, self.myGUID, "totem"..totem, 1, "BUFF")
+			ns.Timer_Remove(self.myGUID, self.myGUID, "totem"..totem, 1, "BUFF")
 		end
 	end
 end
@@ -1009,18 +1008,18 @@ do
 		self:Hide()
 	end)
 
-	function C:PlayerLoginDelay(func)
+	function ns:PlayerLoginDelay(func)
 		if type(func) == "function" then
 			delayupdate.updates[#delayupdate.updates+1] = func
 		end
 	end
 end
 
-function C:CoreBarsStatusUpdate()
+function ns:CoreBarsStatusUpdate()
 	if options.bar_module_enabled then
 		
 		self:RegisterEvent("PLAYER_TARGET_CHANGED")
-		if ( not C.isClassic ) then 
+		if ( not ns.isClassic ) then 
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 		end 
 
@@ -1035,7 +1034,7 @@ function C:CoreBarsStatusUpdate()
 		self:RegisterEvent("UNIT_SPELLCAST_STOP")
 	else
 		self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-		if ( not C.isClassic ) then 
+		if ( not ns.isClassic ) then 
 			self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
 		end 
 		self:UnregisterEvent("UPDATE_MOUSEOVER_UNIT")
@@ -1054,7 +1053,7 @@ function C:CoreBarsStatusUpdate()
 end
 
 local forced = true
-function C:CheckDebugging()
+function ns:CheckDebugging()
 	
 	local _, battleTag = BNGetInfo()
 	local myBTag = GetAddOnMetadata(addon, "Author")
@@ -1071,15 +1070,15 @@ function C:CheckDebugging()
 	end
 end
 
-C.BN_CONNECTED = C.CheckDebugging
-C.BN_SELF_ONLINE = C.CheckDebugging
-C.BN_INFO_CHANGED = C.CheckDebugging
+ns.BN_CONNECTED = ns.CheckDebugging
+ns.BN_SELF_ONLINE = ns.CheckDebugging
+ns.BN_INFO_CHANGED = ns.CheckDebugging
 
 SLASH_SPTIMERSDEBUG1 = '/sptimersdebugging'
 function SPTIMERSDEBUGHandler(msg, editBox)
-	C.dodebugging = not C.dodebugging
+	ns.dodebugging = not ns.dodebugging
 	
-	message( (C.dodebugging and "DEBUGGING ON" or "DEBUGGING OFF" ) )
+	message( (ns.dodebugging and "DEBUGGING ON" or "DEBUGGING OFF" ) )
 end
 
 SlashCmdList["SPTIMERSDEBUG"] = SPTIMERSDEBUGHandler
@@ -1088,8 +1087,8 @@ do
 	local raid = {}
 	local raidClass = {}
 	
-	C.RaidRoster = raid
-	C.RaidRoster_Class = raidClass
+	ns.RaidRoster = raid
+	ns.RaidRoster_Class = raidClass
 	
 	local inraid = false
 
@@ -1111,11 +1110,11 @@ do
 		raidClass[guid] = class
 	end
 	
-	function C:GetRaidGUID(guid)		
+	function ns:GetRaidGUID(guid)		
 		return raid[guid]
 	end
 	
-	function C:GetGUIDClass(guid)		
+	function ns:GetGUIDClass(guid)		
 		return raidClass[guid] or false
 	end
 	--[==[
@@ -1126,7 +1125,7 @@ do
 		['HELPFUL'] = 'HELPFUL',
 	}
 	
-	function C:GuidAuraInfo(guid, spell, auratype)
+	function ns:GuidAuraInfo(guid, spell, auratype)
 		if not raid[guid] then return end
 
 		local spellname = type(spell) == "number" and GetSpellInfo(spell) or spell
@@ -1140,7 +1139,7 @@ do
 		return nil
 	end
 	
-	function C:NameAuraInfo(name, spell, auratype)
+	function ns:NameAuraInfo(name, spell, auratype)
 		
 		local spellname = type(spell) == "number" and GetSpellInfo(spell) or spell
 		
@@ -1154,7 +1153,7 @@ do
 	end
 	]==]
 	
-	function C:UpdateRaid()
+	function ns:UpdateRaid()
 		wipe(raid)
 		wipe(raidClass)
 		
@@ -1175,18 +1174,18 @@ do
 		CheckUnit("player")
 	end
 	
-	C.GROUP_ROSTER_UPDATE = C.UpdateRaid
-	C.PLAYER_ENTERING_WORLD = C.UpdateRaid
-	C.PLAYER_ENTERING_BATTLEGROUND = C.UpdateRaid
-	C.GROUP_JOINED = C.UpdateRaid
-	C.GROUP_LEFT = C.UpdateRaid
-	C.RAID_INSTANCE_WELCOME = C.UpdateRaid
-	C.ZONE_CHANGED_NEW_AREA = C.UpdateRaid	
+	ns.GROUP_ROSTER_UPDATE = ns.UpdateRaid
+	ns.PLAYER_ENTERING_WORLD = ns.UpdateRaid
+	ns.PLAYER_ENTERING_BATTLEGROUND = ns.UpdateRaid
+	ns.GROUP_JOINED = ns.UpdateRaid
+	ns.GROUP_LEFT = ns.UpdateRaid
+	ns.RAID_INSTANCE_WELCOME = ns.UpdateRaid
+	ns.ZONE_CHANGED_NEW_AREA = ns.UpdateRaid	
 end
 
 do
 	local isInPetBattle = C_PetBattles and C_PetBattles.IsInBattle;
-	function C:PET_BAR_UPDATE()	
+	function ns:PET_BAR_UPDATE()	
 		if ( options.hide_during_petbattle and isInPetBattle() ) then 
 			parent:Hide() 
 		else 
@@ -1194,10 +1193,10 @@ do
 		end
 	end
 	
-	C.PET_BATTLE_OPENING_START = C.PET_BAR_UPDATE
-	C.PET_BATTLE_OPENING_DONE = C.PET_BAR_UPDATE
-	C.PET_BATTLE_CLOSE = C.PET_BAR_UPDATE
-	C.PET_BATTLE_OVER = C.PET_BAR_UPDATE
+	ns.PET_BATTLE_OPENING_START = ns.PET_BAR_UPDATE
+	ns.PET_BATTLE_OPENING_DONE = ns.PET_BAR_UPDATE
+	ns.PET_BATTLE_CLOSE = ns.PET_BAR_UPDATE
+	ns.PET_BATTLE_OVER = ns.PET_BAR_UPDATE
 end
 
 local LSM_Update = CreateFrame("Frame")
@@ -1207,17 +1206,17 @@ LSM_Update:SetScript("OnUpdate", function(self, elapsed)
 	
 	if self.elapsed < 0.1 then return end
 	
-	C:Visibility()
-	if ( C.UpdateSettings ) then 
-		C.UpdateSettings()
+	ns:Visibility()
+	if ( ns.UpdateSettings ) then 
+		ns.UpdateSettings()
 	end
 
-	C.UpdateCastBarsStyle()
+	ns.UpdateCastBarsStyle()
 
 	self:Hide()
 	self.elapsed = 0
 end)
-C.LSM.RegisterCallback(LSM_Update, "LibSharedMedia_Registered", function(mtype, key)
+ns.LSM.RegisterCallback(LSM_Update, "LibSharedMedia_Registered", function(mtype, key)
 	LSM_Update:Show();	
 end)
 
@@ -1229,7 +1228,7 @@ local function ShowHideUI()
 	end
 end
 
-function C:OnInitialize()
+function ns:OnInitialize()
 	
 	self:ImportProfilesFromV2()
 	
@@ -1280,7 +1279,7 @@ function C:OnInitialize()
 	
 	self:RegisterEvent("PLAYER_LOGIN")
 
-	self:PlayerLoginDelay(function() C:UpdateTotems() end)
+	self:PlayerLoginDelay(function() ns:UpdateTotems() end)
 
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -1291,7 +1290,7 @@ function C:OnInitialize()
 	self:RegisterEvent("RAID_INSTANCE_WELCOME")
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	
-	if ( not C.isClassic ) then 
+	if ( not ns.isClassic ) then 
 		self:RegisterEvent("PET_BAR_UPDATE")
 		self:RegisterEvent("PET_BATTLE_OPENING_START")
 		self:RegisterEvent("PET_BATTLE_OPENING_DONE")
@@ -1309,35 +1308,36 @@ function C:OnInitialize()
 	self:CheckDebugging()
 	self:UpdateBars_CooldownPart()
 	self:InitVersionCheck()
-	
+	self:MapDBForCombatLog()
+
 	AleaUI_GUI.SlashCommand(addon, "/sptimers", ShowHideUI)
 	AleaUI_GUI.MinimapButton(addon, { OnClick = ShowHideUI, texture = "Interface\\Icons\\spell_shadow_shadowwordpain" }, self.db.profile.minimap)
 	
 	ALEAUI_OnProfileEvent("SPTimersDB","PROFILE_CHANGED", function()	
-		C:OnProfileChange()
+		ns:OnProfileChange()
 	end)
 	
 	ALEAUI_OnProfileEvent("SPTimersDB","PROFILE_RESET", function()	
-		C:OnProfileChange()
+		ns:OnProfileChange()
 	end)
 	
 	if self.InitStatWeight then
 		self.options.args.preset = self:InitStatWeight()
 	end
 	
-	C:InitTalentCheck()
+	ns:InitTalentCheck()
 end
 
 local loader = CreateFrame("Frame")
 loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, event, unit)
 	if unit ~= addon then return end
-	C:OnInitialize()
+	ns:OnInitialize()
 	self:UnregisterAllEvents()
 	self = nil
 end)
 
-function C:OnProfileChange()
+function ns:OnProfileChange()
 
 	self.onUpdateHandler:SetScript("OnUpdate", nil)
 	
@@ -1374,8 +1374,6 @@ function C:OnProfileChange()
 	self:UpdateCastBarsVisible()
 	self:DisableBlizzCastBars()
 	self.UpdateCastBarsStyle()
-	
-	--self:CoPToggle()
 	self:PreCacheCustomTextCheck()
 	
 	self:RegisterEvent("UNIT_AURA")
@@ -1398,7 +1396,8 @@ function C:OnProfileChange()
 	self:UpdateTotems()
 	self:UpdateBars_CooldownPart()	
 	self:OnAnchorStyleReset()
-	
+	self:MapDBForCombatLog()
+
 	if self.InitStatWeight then
 		self.options.args.preset = self:InitStatWeight()
 	end
@@ -1419,14 +1418,14 @@ do
 	eventframe:SetScript("OnEvent", OnEvent)
 	
 	
-	function C:AddToTalentCheck(handler)
+	function ns:AddToTalentCheck(handler)
 		handlers[#handlers+1] = handler
 	end
 	
 	local init = false
 	
-	function C:InitTalentCheck()
-		if ( not C.isClassic ) then 
+	function ns:InitTalentCheck()
+		if ( not ns.isClassic ) then 
 			eventframe:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player", '')
 		
 			eventframe:RegisterEvent("PLAYER_TALENT_UPDATE")
@@ -1564,7 +1563,7 @@ do
 	local buttons_name = { "LEFT", "UP", "DOWN", "RIGHT" }
 	local buttons_move = { { -1, 0 } , { 0, 1 }, { 0, -1} , { 1, 0} }
 	
-	function C:UpdateMoverPosition()
+	function ns:UpdateMoverPosition()
 		for k,v in pairs(mover_frames) do
 			k:UpdatePoint()
 		end
@@ -1577,7 +1576,7 @@ do
 		return _unnm
 	end
 
-	function C.AddMoverButtons(self, opts, tip, tomover, float)
+	function ns.AddMoverButtons(self, opts, tip, tomover, float)
 		if not self.mover_add_button then			
 			self.mover_add_button = CreateFrame("Frame", (self:GetName() or "SPTimersUnnamedFrame"..CountUnnamesFrames()).."MoverToolTip", self, BackdropTemplateMixin and 'BackdropTemplate')
 			self.mover_add_button.mover = self
@@ -1645,17 +1644,17 @@ do
 						self.owner.mover:SetPoint("CENTER", parent, "CENTER", self.owner.opts.point[1], self.owner.opts.point[2] )
 					elseif self.owner.tip and self.owner.tip == "line" then
 					
-						C.db.profile.cooldownline.x = (tonumber(C.db.profile.cooldownline.x) or 0) + buttons_move[self.i][1]
-						C.db.profile.cooldownline.y = (tonumber(C.db.profile.cooldownline.y) or 0) + buttons_move[self.i][2]
+						ns.db.profile.cooldownline.x = (tonumber(ns.db.profile.cooldownline.x) or 0) + buttons_move[self.i][1]
+						ns.db.profile.cooldownline.y = (tonumber(ns.db.profile.cooldownline.y) or 0) + buttons_move[self.i][2]
 						
 						self.owner.mover:ClearAllPoints()
-						self.owner.mover:SetPoint("CENTER", parent, "CENTER", C.db.profile.cooldownline.x, C.db.profile.cooldownline.y)
+						self.owner.mover:SetPoint("CENTER", parent, "CENTER", ns.db.profile.cooldownline.x, ns.db.profile.cooldownline.y)
 					elseif self.owner.tip and self.owner.tip == "splash" then
-						C.db.profile.cooldownline.slash_x = (tonumber(C.db.profile.cooldownline.slash_x) or 0) + buttons_move[self.i][1]
-						C.db.profile.cooldownline.slash_y = (tonumber(C.db.profile.cooldownline.slash_y) or 0) + buttons_move[self.i][2]
+						ns.db.profile.cooldownline.slash_x = (tonumber(ns.db.profile.cooldownline.slash_x) or 0) + buttons_move[self.i][1]
+						ns.db.profile.cooldownline.slash_y = (tonumber(ns.db.profile.cooldownline.slash_y) or 0) + buttons_move[self.i][2]
 						
 						self.owner.mover:ClearAllPoints()
-						self.owner.mover:SetPoint("CENTER", parent, "CENTER", C.db.profile.cooldownline.slash_x, C.db.profile.cooldownline.slash_y)
+						self.owner.mover:SetPoint("CENTER", parent, "CENTER", ns.db.profile.cooldownline.slash_x, ns.db.profile.cooldownline.slash_y)
 					end
 					for k,v in pairs(self.owner.editboxes) do
 						v:UpdateText()					
@@ -1705,21 +1704,21 @@ do
 						elseif self.editbox.owner.tip and self.editbox.owner.tip == "line" then
 							
 							if self.editbox.i == 1 then
-								C.db.profile.cooldownline.x = num
+								ns.db.profile.cooldownline.x = num
 							else
-								C.db.profile.cooldownline.y = num
+								ns.db.profile.cooldownline.y = num
 							end
 							
 							self.editbox.owner.mover:ClearAllPoints()
-							self.editbox.owner.mover:SetPoint("CENTER", parent, "CENTER", C.db.profile.cooldownline.x, C.db.profile.cooldownline.y)
+							self.editbox.owner.mover:SetPoint("CENTER", parent, "CENTER", ns.db.profile.cooldownline.x, ns.db.profile.cooldownline.y)
 						elseif self.editbox.owner.tip and self.editbox.owner.tip == "splash" then
 							if self.editbox.i == 1 then
-								C.db.profile.cooldownline.slash_x = num
+								ns.db.profile.cooldownline.slash_x = num
 							else
-								C.db.profile.cooldownline.slash_y = num
+								ns.db.profile.cooldownline.slash_y = num
 							end
 							self.editbox.owner.mover:ClearAllPoints()
-							self.editbox.owner.mover:SetPoint("CENTER", parent, "CENTER", C.db.profile.cooldownline.slash_x, C.db.profile.cooldownline.slash_y)
+							self.editbox.owner.mover:SetPoint("CENTER", parent, "CENTER", ns.db.profile.cooldownline.slash_x, ns.db.profile.cooldownline.slash_y)
 						end
 					else
 						self.editbox:UpdateText()
@@ -1736,15 +1735,15 @@ do
 						self:SetText(tonumber(self.owner.opts.point and self.owner.opts.point[self.i]) or 0)
 					elseif self.owner.tip and self.owner.tip == "line" then
 						if self.i == 1 then
-							self:SetText(tonumber(C.db.profile.cooldownline.x) or 0)
+							self:SetText(tonumber(ns.db.profile.cooldownline.x) or 0)
 						else
-							self:SetText(tonumber(C.db.profile.cooldownline.y) or 0)
+							self:SetText(tonumber(ns.db.profile.cooldownline.y) or 0)
 						end
 					elseif self.owner.tip and self.owner.tip == "splash" then
 						if self.i == 1 then
-							self:SetText(tonumber(C.db.profile.cooldownline.slash_x) or 0)
+							self:SetText(tonumber(ns.db.profile.cooldownline.slash_x) or 0)
 						else
-							self:SetText(tonumber(C.db.profile.cooldownline.slash_y) or 0)
+							self:SetText(tonumber(ns.db.profile.cooldownline.slash_y) or 0)
 						end
 					end
 				end
@@ -1856,8 +1855,8 @@ do
 end
 
 do
-	local C = AleaUI_GUI
-	C.SPTimers_CooldownToggleFrames = {}
+	local ns = AleaUI_GUI
+	ns.SPTimers_CooldownToggleFrames = {}
 	
 	local function Update(self, panel, opts)
 		
@@ -1866,13 +1865,13 @@ do
 		self:Show()	
 		
 		
-		local toggleFrame1 = C:GetPrototype('toggle')
+		local toggleFrame1 = ns:GetPrototype('toggle')
 		toggleFrame1:Update(self.main, opts.toggleOpts1)
 				
-		local colorFrame = C:GetPrototype('color')
+		local colorFrame = ns:GetPrototype('color')
 		colorFrame:Update(self.main, opts.colorOpts)
 		
-		local toggleFrame2 = C:GetPrototype('toggle')
+		local toggleFrame2 = ns:GetPrototype('toggle')
 		toggleFrame2:Update(self.main, opts.toggleOpts2)
 				
 		self.main.toggle1 = toggleFrame1
@@ -1923,11 +1922,11 @@ do
 		return f
 	end
 
-	function C:CreateSPTimers_CooldownToggleFrame()
+	function ns:CreateSPTimers_CooldownToggleFrame()
 		
-		for i=1, #C.SPTimers_CooldownToggleFrames do
-			if C.SPTimers_CooldownToggleFrames[i].free then
-				return C.SPTimers_CooldownToggleFrames[i]
+		for i=1, #ns.SPTimers_CooldownToggleFrames do
+			if ns.SPTimers_CooldownToggleFrames[i].free then
+				return ns.SPTimers_CooldownToggleFrames[i]
 			end
 		end
 		
@@ -1948,12 +1947,12 @@ do
 		f.Remove = Remove
 		f.UpdateSize = UpdateSize
 		
-		C.SPTimers_CooldownToggleFrames[#C.SPTimers_CooldownToggleFrames+1] = f
+		ns.SPTimers_CooldownToggleFrames[#ns.SPTimers_CooldownToggleFrames+1] = f
 		
 		return f
 	end
 
-	C.prototypes["SPTimers_CooldownToggleFrame"] = "CreateSPTimers_CooldownToggleFrame"
+	ns.prototypes["SPTimers_CooldownToggleFrame"] = "CreateSPTimers_CooldownToggleFrame"
 end
 
 do
@@ -1964,17 +1963,17 @@ do
 	local frameFadeFrame = CreateFrame('Frame')
 	local FADEFRAMES = {}
 
-	C.frameIsFading = function(frame)
+	ns.frameIsFading = function(frame)
 		for index, value in pairs(FADEFRAMES) do
 			if value == frame then
 				return true
 			end
 		end
 	end
-	C.frameFadeRemoveFrame = function(frame)
+	ns.frameFadeRemoveFrame = function(frame)
 		tDeleteItem(FADEFRAMES, frame)
 	end
-	C.frameFadeOnUpdate = function(self, elapsed)
+	ns.frameFadeOnUpdate = function(self, elapsed)
 		local frame, info
 		for index, value in pairs(FADEFRAMES) do
 			frame, info = value, value.fadeInfo
@@ -2005,7 +2004,7 @@ do
 					if info.fadeHoldTime and info.fadeHoldTime > 0 then
 						info.fadeHoldTime = info.fadeHoldTime - elapsed
 					else
-						C.frameFadeRemoveFrame(frame)
+						ns.frameFadeRemoveFrame(frame)
 
 						if info.finishedFunc then
 							info.finishedFunc(frame)
@@ -2034,13 +2033,13 @@ do
 		If you plan to reuse `info`, it should be passed as a single table,
 		NOT a reference, as the table will be directly edited.
 	]]
-	C.frameFade = function(frame, info)
+	ns.frameFade = function(frame, info)
 		if not frame then return end
-		if C.frameIsFading(frame) then
+		if ns.frameIsFading(frame) then
 			-- cancel the current operation
 			-- the code calling this should make sure not to interrupt a
 			-- necessary finishedFunc. This will entirely skip it.
-			C.frameFadeRemoveFrame(frame)
+			ns.frameFadeRemoveFrame(frame)
 		end
 
 		info        = info or {}
@@ -2058,6 +2057,6 @@ do
 		frame.fadeInfo = info
 
 		tinsert(FADEFRAMES, frame)
-		frameFadeFrame:SetScript('OnUpdate', C.frameFadeOnUpdate)
+		frameFadeFrame:SetScript('OnUpdate', ns.frameFadeOnUpdate)
 	end
 end

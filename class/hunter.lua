@@ -1,12 +1,12 @@
-﻿local addon, C = ...
-if C.myCLASS ~= "HUNTER" then return end
+﻿local addon, ns = ...
+if ns.myCLASS ~= "HUNTER" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 local L = AleaUI_GUI.GetLocale("SPTimers")
 local ALL = "ALL"
 
-local NO_GUID = C.NO_GUID
-local CLEU = C.CLEU
+local NO_GUID = ns.NO_GUID
+local CLEU = ns.CLEU
 
 --[[
 	1 = BM
@@ -46,7 +46,7 @@ local spells = {
 	[120964] = { spec = '1',duration=8, several = true },
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 	[GetSpell(34026)] = { spellid = 34026, color = colors.LRED },	
@@ -61,8 +61,8 @@ local cooldown = {
 
 
 
-function C:SetupClassSpells() return spells end
-function C:SetupClassCooldowns() return cooldown end
+function ns:SetupClassSpells() return spells end
+function ns:SetupClassCooldowns() return cooldown end
 
 local function GetSpellNameGUI(spellID)
 	local name, _, icon = GetSpellInfo(spellID)
@@ -76,12 +76,12 @@ local trapsettins = {
 	{ "fireTrap", "fire", 191433 },
 }
 
-function C:SetupClassOptions()
+function ns:SetupClassOptions()
 	local order = 60
 	
 	self.options.args.bars.args.Traps = {
 		type = "group",
-		name = "|c"..RAID_CLASS_COLORS[C.myCLASS].colorStr..L["Traps"],
+		name = "|c"..RAID_CLASS_COLORS[ns.myCLASS].colorStr..L["Traps"],
 		order = order+1, embend = false, args = {},
 		}
 	
@@ -192,75 +192,75 @@ function C:SetupClassOptions()
 					dstGUID, dstName, dstFlags, dstFlags2,
 					spellID, spellName, spellSchool, auraType, amount, extraSchool, extraType, ...)
 	
-		if C:GetTrapType(spellID) then
-			local trapType = C:GetTrapType(spellID)
-			local active, nonactive = C:GetTrapEnable(spellID)
+		if ns:GetTrapType(spellID) then
+			local trapType = ns:GetTrapType(spellID)
+			local active, nonactive = ns:GetTrapEnable(spellID)
 			
-			local isplayer = C.IsPlayer(dstFlags)
+			local isplayer = ns.IsPlayer(dstFlags)
 			local icon = GetSpellTexture(spellID)
 			
 			if eventType == "SPELL_CAST_SUCCESS" then
 		
 				if nonactive and ( spellID == 60192 or spellID == 1499 ) then		
-					C.Timer_Remove(dstGUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
+					ns.Timer_Remove(dstGUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
 				elseif nonactive and ( spellID == 82939 or spellID == 13813 ) then				
-					C.Timer_Remove(dstGUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
+					ns.Timer_Remove(dstGUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
 				elseif active and spellID == 13812 then				
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)				
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)				
 				elseif nonactive and ( spellID == 82941 or spellID == 13809 ) then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
 				elseif active and spellID == 13810 then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)					
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)					
 				elseif nonactive and ( spellID == 82948 or spellID == 34600 ) then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, spellID, isplayer, eventType)						
 				elseif active and spellID == 45145 then	
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
 				elseif nonactive and ( spellID == 162488 or spellID == 187650 or spellID == 191433 or spellID == 194277 or spellID == 187698 ) then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)			
-					C.Timer(C:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)			
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, false), nil, NO_GUID, srcGUID, trapType, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
 				elseif active and spellID == 162487 then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
 				end
 				
 			--	print("T", eventType, active, nonactive, trapType, srcName, dstName, spellID, spellName)
 			elseif eventType == 'SPELL_MISSED' then		
 				if nonactive then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP")		
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP")		
 				end
 			elseif eventType == "SPELL_AURA_APPLIED" or eventType == "SPELL_AURA_REFRESH" then				
 			--	print("T", eventType, trapType, srcName, dstName, spellID, spellName)				
 				if active and spellID == 3355 then -- контроль на минуту каст 					
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, dstGUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, dstGUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
 				elseif active and spellID == 135299 then -- аое контроль с дужами. один гуид на всех
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
 				elseif active and spellID == 13812 then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, dstGUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, dstGUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
 				elseif active and spellID == 194279 then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)		
-					C.Timer(C:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)		
+					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
 				end	
 			elseif eventType == "SPELL_AURA_REMOVED" then
 			--	print("T", eventType, trapType, srcName, dstName, spellID, spellName)
 				if active and spellID == 3355 then
-					C.Timer_Remove(dstGUID, srcGUID, spellID, 1, "TRAP")							
+					ns.Timer_Remove(dstGUID, srcGUID, spellID, 1, "TRAP")							
 
 				elseif active and spellID == 135299 then
-					C.Timer_Remove(NO_GUID, srcGUID, spellID, 1, "TRAP")
+					ns.Timer_Remove(NO_GUID, srcGUID, spellID, 1, "TRAP")
 				elseif active and spellID == 13812 then
-					C.Timer_Remove(dstGUID, srcGUID, spellID, 1, "TRAP")
+					ns.Timer_Remove(dstGUID, srcGUID, spellID, 1, "TRAP")
 				elseif active and spellID == 194279 then
-					C.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP")
+					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP")
 				end
 			end
 			
@@ -270,5 +270,5 @@ function C:SetupClassOptions()
 		return false
 	end
 	
-	C:AddToCLEUEvent(CLEUTrapHandler)
+	ns:AddToCLEUEvent(CLEUTrapHandler)
 end

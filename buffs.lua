@@ -1,5 +1,5 @@
-﻿local addon, C = ...
-local colors = C.CustomColors
+﻿local addon, ns = ...
+local colors = ns.CustomColors
 local L = AleaUI_GUI.GetLocale("SPTimers")
 
 local find = string.find
@@ -41,7 +41,7 @@ local PATCH_LEG = 'PATCH_LEG'
 
 local old_print = print
 local print = function(...)
-	if C.dodebugging then	
+	if ns.dodebugging then	
 		old_print(GetTime(), "SPTimers_buffs.lua, ", ...)
 	end
 end
@@ -477,7 +477,7 @@ do
 	function IsGroupUpSpell(spellid)
 
 
-		if ( not C.db.profile.spell_list_grouping ) then return end
+		if ( not ns.db.profile.spell_list_grouping ) then return end
 	
 	
 		if groupSpellDB[spellid] then return groupSpellDB[spellid], groupName[groupSpellDB[spellid]] end
@@ -485,20 +485,20 @@ do
 		return nil
 	end
 
-	C.IsGroupUpSpell = IsGroupUpSpell
+	ns.IsGroupUpSpell = IsGroupUpSpell
 end
 
 local function GetSpell(spellid)
 	local name = GetSpellInfo(spellid)
 	
 	if not name or name == "" then
-		print("Spellid is wrong ", C.myCLASS,"#",spellid)
+		print("Spellid is wrong ", ns.myCLASS,"#",spellid)
 	end
 	
 	return name or ""
 end
 
-C.GetSpell = GetSpell
+ns.GetSpell = GetSpell
 
 local internal_cooldowns = {
 	[GetSpell(125487)] = { spellid = 125487, icd = 60, },
@@ -586,11 +586,11 @@ local traptypes = {
 	[187698] = "slow",
 }
 
-function C:GetTrapType(spellID)
+function ns:GetTrapType(spellID)
 	return traptypes[spellID]
 end
 
-function C:GetTrapEnable(spellID)
+function ns:GetTrapEnable(spellID)
 	return self.db.profile.hunterTraps[traptypes[spellID]].active or false , self.db.profile.hunterTraps[traptypes[spellID]].nonactive or false
 end
 
@@ -606,38 +606,38 @@ do
 	
 	
 	local UnitGUID = UnitGUID
-	function C:FindUnitGUID(destGUID)
+	function ns:FindUnitGUID(destGUID)
 		for i=1, #anchor_unit do
 			if UnitGUID(anchor_unit[i]) == destGUID then return anchor_unit[i] end
 		end
 		return nil
 	end
 	
-	function C:FindUnitGUIDAnother(destGUID)
+	function ns:FindUnitGUIDAnother(destGUID)
 		for i=1, #unit_list4 do
 			if UnitGUID(unit_list4[i]) == destGUID then return unit_list4[i] end
 		end
 		return nil
 	end
 	
-	function C:FindUnitGUID_SMO(destGUID)
+	function ns:FindUnitGUID_SMO(destGUID)
 		for i=1, #unit_list do
 			if UnitGUID(unit_list[i]) == destGUID then return unit_list[i] end
 		end
 		return nil
 	end
 	
-	function C:FindUnitUnit(unit)
+	function ns:FindUnitUnit(unit)
 		for i=1, #unit_list2 do
 			if UnitIsUnit(unit_list2[i], unit) and unit ~= unit_list2[i] then return unit_list2[i] end
 		end		
 		return nil
 	end
 	
-	function C:FindUnitByGUID(guid)
+	function ns:FindUnitByGUID(guid)
 	
-		if guid and C.RaidRoster[guid] then			
-			return C.RaidRoster[guid]
+		if guid and ns.RaidRoster[guid] then			
+			return ns.RaidRoster[guid]
 		end
 		
 		for i=1, #unit_list3 do
@@ -649,7 +649,7 @@ do
 end
 
 
-function C:GetUnitAnchor(spellID, destGUID)
+function ns:GetUnitAnchor(spellID, destGUID)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -672,7 +672,7 @@ function C:GetUnitAnchor(spellID, destGUID)
 	return nil
 end
 
-function C:GetAnchorPerUnit1(spellID, unit)
+function ns:GetAnchorPerUnit1(spellID, unit)
 	if unit == "target" and self.db.profile.classSpells[self.myCLASS][spellID].set_anchor then
 		return self.db.profile.bars_anchors[self.db.profile.classSpells[self.myCLASS][spellID].set_anchor] and self.db.profile.classSpells[self.myCLASS][spellID].set_anchor or 1			
 	end
@@ -688,7 +688,7 @@ function C:GetAnchorPerUnit1(spellID, unit)
 	end
 end
 
-function C:GetUnitAlwaysShowAnchor(spellID, destGUID)
+function ns:GetUnitAlwaysShowAnchor(spellID, destGUID)
 		
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -704,7 +704,7 @@ function C:GetUnitAlwaysShowAnchor(spellID, destGUID)
 	return nil
 end
 
-function C:GetAnchor(spellID, destGUID)
+function ns:GetAnchor(spellID, destGUID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -723,7 +723,7 @@ function C:GetAnchor(spellID, destGUID)
 			
 		if not self.db.profile.doswap then
 			
-			local unit_a = C:GetUnitAnchor(spellID, destGUID)
+			local unit_a = ns:GetUnitAnchor(spellID, destGUID)
 			
 			if unit_a then 
 				return unit_a 
@@ -757,7 +757,7 @@ function C:GetAnchor(spellID, destGUID)
 	return 1
 end
 
-function C:DoUnitAnchor(spellID)
+function ns:DoUnitAnchor(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -766,7 +766,7 @@ function C:DoUnitAnchor(spellID)
 	end
 end
 
-function C:GetOffAnchor(spellID, destGUID)
+function ns:GetOffAnchor(spellID, destGUID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -774,7 +774,7 @@ function C:GetOffAnchor(spellID, destGUID)
 
 	if self.db.profile.classSpells[self.myCLASS][spellID] then
 		
-		local unit_a = C:GetUnitAnchor(spellID, destGUID)
+		local unit_a = ns:GetUnitAnchor(spellID, destGUID)
 		
 		if unit_a then
 			return unit_a
@@ -796,7 +796,7 @@ function C:GetOffAnchor(spellID, destGUID)
 	return self:GetAnchor(spellID, destGUID) or 1
 end
 
-function C:GetGroup(spellID)
+function ns:GetGroup(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -830,7 +830,7 @@ function C:GetGroup(spellID)
 end
 
 
-function C:GetCheckStacks(spellID)
+function ns:GetCheckStacks(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -849,7 +849,7 @@ function C:GetCheckStacks(spellID)
 	return nil
 end
 
-function C:GetPriority(spellID)
+function ns:GetPriority(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -888,7 +888,7 @@ function C:GetPriority(spellID)
 	return 0
 end
 
-function C:GetTargetType(spellID)
+function ns:GetTargetType(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -921,7 +921,7 @@ do
 		[157736] = true, -- Aoe Immolate
 	}
 	
-	function C:IsMassiveTargetSpell(spellID)
+	function ns:IsMassiveTargetSpell(spellID)
 
 	--	spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -940,7 +940,7 @@ do
 	end
 end
 
-function C:GetColor(spellID, func)
+function ns:GetColor(spellID, func)
 
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -985,7 +985,7 @@ function C:GetColor(spellID, func)
 	return nil
 end
 
-function C:ShowTotems(totem)
+function ns:ShowTotems(totem)
 	if self.db.profile.totems[totem] then
 		return self.db.profile.totems[totem].show
 	end
@@ -995,11 +995,11 @@ local SingleDest = {
 	[974] = true,
 }
 
-function C:IsSingleDest(spellID)	
+function ns:IsSingleDest(spellID)	
 	return SingleDest[spellID]
 end
 
-function C:IsSeveralAuras(spellID)
+function ns:IsSeveralAuras(spellID)
 
 	if self.db.profile.classSpells[self.myCLASS][spellID] then
 		if self.db.profile.classSpells[self.myCLASS][spellID].several then
@@ -1020,7 +1020,7 @@ function C:IsSeveralAuras(spellID)
 	return false
 end
 
-function C:GetCooldown(spellName)
+function ns:GetCooldown(spellName)
 	if self.db.profile.classCooldowns[self.myCLASS][spellName] then	
 		return self.db.profile.classCooldowns[self.myCLASS][spellName].hide
 	end
@@ -1028,7 +1028,7 @@ function C:GetCooldown(spellName)
 		return self.db.profile.internal_cooldowns[spellName].hide
 	end
 	
-	--local isInBlockList = C:GetCooldownBlockName(spellName)
+	--local isInBlockList = ns:GetCooldownBlockName(spellName)
 	
 	if spellName then 
 		local blocklist = self.db.profile.cooldownline.blockList
@@ -1049,7 +1049,7 @@ function C:GetCooldown(spellName)
 	return nil
 end
 
-function C:DoBigSplashCooldown(spellName)
+function ns:DoBigSplashCooldown(spellName)
 
 	local force = self.db.profile.cooldownline.show_only_force  -- if you show only forced spells if no then hide spell
 	
@@ -1076,7 +1076,7 @@ function C:DoBigSplashCooldown(spellName)
 		end
 	end
 	
-	--local isInBlockList = C:GetCooldownBlockName(spellName)
+	--local isInBlockList = ns:GetCooldownBlockName(spellName)
 	
 	if self.db.profile.cooldownline.blockList[spellName] and 
 		not self.db.profile.cooldownline.blockList[spellName].deleted and 
@@ -1094,7 +1094,7 @@ function C:DoBigSplashCooldown(spellName)
 	
 	return force
 end
-function C:GetCooldownColor(spellName)
+function ns:GetCooldownColor(spellName)
 	if self.db.profile.classCooldowns[self.myCLASS][spellName] and 
 		( self.db.profile.classCooldowns[self.myCLASS][spellName].color_on or self.db.profile.classCooldowns[self.myCLASS][spellName].color_on == nil ) then		
 		return self.db.profile.classCooldowns[self.myCLASS][spellName].color		
@@ -1108,7 +1108,7 @@ function C:GetCooldownColor(spellName)
 	return nil
 end
 
-function C:GetInternalCD(spellName, spellID)
+function ns:GetInternalCD(spellName, spellID)
 	if self.db.profile.hideinternal then return false end
 	if self.db.profile.internal_cooldowns[spellName] and not self.db.profile.internal_cooldowns[spellName].hide then 
 		if self.db.profile.internal_cooldowns[spellName].checkID then		
@@ -1123,7 +1123,7 @@ function C:GetInternalCD(spellName, spellID)
 	return false
 end
 
-function C:GetAuraCD(spellName, spellID, types)
+function ns:GetAuraCD(spellName, spellID, types)
 	if self.db.profile.hideauracd then return false end
 	if self.db.profile.auras_cooldowns[self.myCLASS][spellName] and 
 	not self.db.profile.auras_cooldowns[self.myCLASS][spellName].hide then
@@ -1143,11 +1143,11 @@ function C:GetAuraCD(spellName, spellID, types)
 	return false
 end
 
-function C:GetPlayerCooldownList()
+function ns:GetPlayerCooldownList()
 	return self.db.profile.classCooldowns[self.myCLASS]
 end
 
-function C:GetICD(spellName, spellID)
+function ns:GetICD(spellName, spellID)
 
 	if self.db.profile.internal_cooldowns[spellName].icd then
 		return self.db.profile.internal_cooldowns[spellName].icd
@@ -1179,7 +1179,7 @@ do
 						inter_color = {0, 0.6, 0.85, 1},
 		
 		]]
-	function C:GetCooldownTypeColor(types)
+	function ns:GetCooldownTypeColor(types)
 		if cd_type[types] then
 			return self.db.profile.cooldownline[cd_type[types]]	
 		end
@@ -1211,7 +1211,7 @@ do
 			["AURA_CD_DEBUFF"]	= "aura_cd_debuff_reporting",
 		}
 		
-	function C:GetAnonce(name, tip)
+	function ns:GetAnonce(name, tip)
 
 		if cd_type[tip] then
 			
@@ -1230,7 +1230,7 @@ do
 				if self.db.profile.internal_cooldowns[name].reporting == true then return true end
 			end
 			
-			--local isInBlockList = C:GetCooldownBlockName(name)
+			--local isInBlockList = ns:GetCooldownBlockName(name)
 			
 			if self.db.profile.cooldownline.blockList[name] and 
 				not self.db.profile.cooldownline.blockList[name].deleted and 
@@ -1249,7 +1249,7 @@ do
 	end
 end
 
-function C:RebuildBanCD()
+function ns:RebuildBanCD()
 	for k,v in pairs(self.db.profile.cooldownline.block) do
 	
 		if k and type(v) == "boolean" then
@@ -1260,7 +1260,7 @@ end
 
 ------------------------------------------------------ check only @player auras
 --[[
-function C:GetRaidBuffsFilter(spellID)
+function ns:GetRaidBuffsFilter(spellID)
 	if raidBuffs[spellID] then return raidBuffs[spellID] end
 	return false
 end
@@ -1280,7 +1280,7 @@ local filters = {
 
 -- true пропускает ауру через фильтр false запрещает
 do
-	function C:GetBlackListFilter(spellID, filter, skip)
+	function ns:GetBlackListFilter(spellID, filter, skip)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1301,7 +1301,7 @@ do
 end
 
 do
-	function C:GetWhiteListFilter(spellID, filter, skip)
+	function ns:GetWhiteListFilter(spellID, filter, skip)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1323,12 +1323,12 @@ do
 end
 
 do
-	function C:UnitFilter_UNIT(unit)
+	function ns:UnitFilter_UNIT(unit)
 		local filter_type
 		if self.db.profile.unit_filter_enabled then			
 			if self.db.profile.unit_filters then
 				
-				filter_type = C:FindUnitUnit(unit) or "unknown"
+				filter_type = ns:FindUnitUnit(unit) or "unknown"
 				
 				if filter_type and ( self.db.profile.unit_filters[filter_type] ) then				
 					return true
@@ -1339,7 +1339,7 @@ do
 		return true
 	end
 	--[[
-	function C:UnitFilter_TIMER(timer)
+	function ns:UnitFilter_TIMER(timer)
 		local filter_type
 		if self.db.profile.unit_filter_enabled then			
 			if self.db.profile.unit_filters then
@@ -1361,7 +1361,7 @@ do
 	
 	]]
 	
-	function C:UnitFilter_TIMER(timer)
+	function ns:UnitFilter_TIMER(timer)
 		local filter_type
 		if self.db.profile.unit_filter_enabled then			
 			if self.db.profile.unit_filters then
@@ -1381,7 +1381,7 @@ do
 		return true
 	end
 	
-	function C:UnitFilter_GUID(guid)
+	function ns:UnitFilter_GUID(guid)
 		local filter_type
 		if self.db.profile.unit_filter_enabled then			
 			if guid then 
@@ -1390,20 +1390,20 @@ do
 				
 			if filter_type and self.db.profile.unit_filters[filter_type] then
 				
---				print("C:UnitFilter_GUID", guid, filter_type, "true")
+--				print("ns:UnitFilter_GUID", guid, filter_type, "true")
 				return true
 			end
---			print("C:UnitFilter_GUID", guid, filter_type, "false")
+--			print("ns:UnitFilter_GUID", guid, filter_type, "false")
 			return false
 		end
---		print("C:UnitFilter_GUID", guid, filter_type, "SKIP")
+--		print("ns:UnitFilter_GUID", guid, filter_type, "SKIP")
 		return true
 	end
 end
 
 
 do
-	function C:GetProcsFilter(spellID, types, skip) -- если true то пропустить заклинание
+	function ns:GetProcsFilter(spellID, types, skip) -- если true то пропустить заклинание
 	
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1430,7 +1430,7 @@ do
 	local none = "None"
 	local none1 = "Interface\Quiet.ogg"
 	
-	function C:GetSound(spell, event, func)
+	function ns:GetSound(spell, event, func)
 		
 		spell = IsGroupUpSpell(spell) or spell
 		
@@ -1463,7 +1463,7 @@ do
 			return self.db.profile.internal_cooldowns[spell][event] or none	
 		end
 	
-		--local isInBlockList = C:GetCooldownBlockName(spell)
+		--local isInBlockList = ns:GetCooldownBlockName(spell)
 		
 		if self.db.profile.cooldownline.blockList[spell] and 
 			not self.db.profile.cooldownline.blockList[spell].deleted and 
@@ -1477,7 +1477,7 @@ do
 	
 	--  Either "Master" (this will play the sound also with disabled sounds like before 4.0.1), "SFX", "Ambience", "Music
 	
-	function C:PlaySound(spell, event, func)
+	function ns:PlaySound(spell, event, func)
 		
 		spell = IsGroupUpSpell(spell) or spell
 		
@@ -1493,7 +1493,7 @@ do
 		end
 	end
 	
-	function C:PlaySoundCooldown(spell, event)
+	function ns:PlaySoundCooldown(spell, event)
 	
 		spell = IsGroupUpSpell(spell) or spell
 		
@@ -1512,7 +1512,7 @@ end
 
 
 do
-	function C:GetOthersFilter(spellID, types, skip)
+	function ns:GetOthersFilter(spellID, types, skip)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1552,7 +1552,7 @@ do
 		[115798] = { 115798 },
 	}
 	
-	function C:GetRaidDebuffListFilter(spellID, skip)
+	function ns:GetRaidDebuffListFilter(spellID, skip)
 		
 		if casterAuras[spellID] then skip = self.db.profile.casterTargetAura end
 		if meleeAuras[spellID] then skip = self.db.profile.meleeTargetAura end	
@@ -1561,7 +1561,7 @@ do
 		return skip
 	end
 	
-	function C:GetRaidDebuffList(spellID)
+	function ns:GetRaidDebuffList(spellID)
 
 		if casterAuras[spellID] then return casterAuras[spellID] end
 		if meleeAuras[spellID] then return meleeAuras[spellID] end	
@@ -1584,22 +1584,22 @@ do
 		["SPELL_ENERGIZE"] = 7,
 	}
 	
-	function C:GetCLEUFilter(spellID, types)
+	function ns:GetCLEUFilter(spellID, types)
 		print('GetCLEUFilter')
 
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
 		local skip = false
 
-		--print('   A:0', spellID, types, skip, C.isClassic, self.db.profile.classSpells[self.myCLASS][spellID])
+		--print('   A:0', spellID, types, skip, ns.isClassic, self.db.profile.classSpells[self.myCLASS][spellID])
 
-		if self.db.profile.classSpells[self.myCLASS][spellID] and ( C.isClassic or self.db.profile.classSpells[self.myCLASS][spellID].cleu ) then
+		if self.db.profile.classSpells[self.myCLASS][spellID] and ( ns.isClassic or self.db.profile.classSpells[self.myCLASS][spellID].cleu ) then
 			
-			--print('   A:0:0', spellID, types, skip, C.isClassic)
+			--print('   A:0:0', spellID, types, skip, ns.isClassic)
 
 			if self.db.profile.classlistFiltersoff then return false end
 			
-			--print('   A:0:1', spellID, types, skip, C.isClassic)
+			--print('   A:0:1', spellID, types, skip, ns.isClassic)
 
 			if self.db.profile.classSpells[self.myCLASS][spellID].hide then return false end
 			if self.db.profile.classSpells[self.myCLASS][spellID].deleted then return false end
@@ -1608,7 +1608,7 @@ do
 			--print('   A:1', spellID, types, skip)
 			if types ~= "SPELL_CAST" and not self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu then skip = true end
 			if self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu == 4 then skip = true end
-			if types == C.SPELL_ENERGIZE and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu ~= typesFilter[types] then return false end
+			if types == ns.SPELL_ENERGIZE and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu ~= typesFilter[types] then return false end
 			--print('   A:2', spellID, types, skip)
 			if types and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu == typesFilter[types] then skip = true end
 			
@@ -1619,7 +1619,7 @@ do
 		return skip
 	end
 	
-	function C:GetShowTicks(spellID)
+	function ns:GetShowTicks(spellID)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1633,7 +1633,7 @@ do
 		return false
 	end
 	
-	function C:GetTicksEvery(spellID)
+	function ns:GetTicksEvery(spellID)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1642,7 +1642,7 @@ do
 			if data.tick and 
 				data.tick > 0 then 
 				
-				if data.haste and not C.isClassic then
+				if data.haste and not ns.isClassic then
 					return data.tick/(1+(UnitSpellHaste("player")/100))
 				end
 				
@@ -1653,9 +1653,9 @@ do
 		return 0
 	end
 	
-	function C:IsPandemiaSpell(spellID)
+	function ns:IsPandemiaSpell(spellID)
 		
-		if ( C.isClassic ) then 
+		if ( ns.isClassic ) then 
 			return false 
 		end 
 
@@ -1665,7 +1665,7 @@ do
 	end
 	
 	--[==[
-	function C:GetCLEUSpellInfo(spellID)
+	function ns:GetCLEUSpellInfo(spellID)
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1684,7 +1684,7 @@ do
 	end
 	]==]
 	
-	function C:IsChanneling(spellID)
+	function ns:IsChanneling(spellID)
 	
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1696,7 +1696,7 @@ do
 	end
 	
 	
-	function C:GetCastTime(spellID)
+	function ns:GetCastTime(spellID)
 	
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1717,7 +1717,7 @@ do
 		return 0
 	end
 	
-	function C:TickOverlap(spellID)
+	function ns:TickOverlap(spellID)
 	
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -1784,17 +1784,17 @@ do
 		return false
 	end
 	
-	C.IsPlayer = IsPlayer
+	ns.IsPlayer = IsPlayer
 	
 	local function IsNPC(flag)
 		if flag then return ( bit_band(flag, COMBATLOG_OBJECT_TYPE_NPC) > 0 ) end
 		return false
 	end
 	
-	C.IsNPC = IsNPC
+	ns.IsNPC = IsNPC
 	
 	
-	function C:GetAffiliation(spellid)
+	function ns:GetAffiliation(spellid)
 	
 		
 		spellid = IsGroupUpSpell(spellid) or spellid
@@ -1814,7 +1814,7 @@ do
 		return 2
 	end
 	
-	function C:GetTargetAffiliation(spellid)
+	function ns:GetTargetAffiliation(spellid)
 	
 		
 		spellid = IsGroupUpSpell(spellid) or spellid
@@ -1834,7 +1834,7 @@ do
 		return 1
 	end
 
-	function C:CheckUnitSource(unit1, atype)	
+	function ns:CheckUnitSource(unit1, atype)	
 		if unit1 then
 			if atype == 2 then
 				return UnitIsUnit(unit1, 'player') or false
@@ -1851,7 +1851,7 @@ do
 		return false		
 	end
 	
-	function C:CLEU_AffilationCheck(flags, spellid)
+	function ns:CLEU_AffilationCheck(flags, spellid)
 		if not flags and spellid then return false end
 		
 		local affilation = self:GetAffiliation(spellid)
@@ -1870,7 +1870,7 @@ do
 		return false
 	end
 	
-	function C:CLEU_AffilationCheckTarget(flags, spellid)
+	function ns:CLEU_AffilationCheckTarget(flags, spellid)
 		if not flags and spellid then return false end
 		
 		local affilation = self:GetTargetAffiliation(spellid)
@@ -1890,14 +1890,14 @@ do
 	end
 	
 	--[[
-	function C:CLEU_TEST(flags, name, spellName)
+	function ns:CLEU_TEST(flags, name, spellName)
 		
 		print("T", name, spellName, IsPlayer(flags), IsMyFlags(flags), IsMyPetFlags(flags), IsRaidMember(flags), IsPartyMember(flags))
 	end
 	
 	]]
 	--[==[
-	function C:CLEU_TypeSource(flags, atype)
+	function ns:CLEU_TypeSource(flags, atype)
 		if atype == 2 then
 			return ( unit1 == "player" )
 		elseif atype == 3 then
@@ -1915,27 +1915,27 @@ do
 end
 -------------- aura duration --------------------------------
 do
-	C.pandemia_cache = {}
+	ns.pandemia_cache = {}
 	
-	local pandemia_cache = C.pandemia_cache
+	local pandemia_cache = ns.pandemia_cache
 	
 	local duration, tick, tick_count, tick_every
 	
-	local Round = C.Round
+	local Round = ns.Round
 
 	local function fullDuration(spellID, dstGUID, pandemia_t) -- pandemia_t 1 - refresh 2 - applied
 		
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
-		tick_every 	= C.db.profile.classSpells[C.myCLASS][spellID].tick
-		tick_count 	= Round(C.db.profile.classSpells[C.myCLASS][spellID].duration/tick_every)
+		tick_every 	= ns.db.profile.classSpells[ns.myCLASS][spellID].tick
+		tick_count 	= Round(ns.db.profile.classSpells[ns.myCLASS][spellID].duration/tick_every)
 		duration 	= tick_count * tick_every
 		
-		if C.ignorePandemicForCorruption and spellID == 146739 then			
+		if ns.ignorePandemicForCorruption and spellID == 146739 then			
 			return 0
 		end
 		
-		if C.db.profile.classSpells[C.myCLASS][spellID].pandemia then
+		if ns.db.profile.classSpells[ns.myCLASS][spellID].pandemia then
 			if pandemia_t == 2 then				
 				if pandemia_cache[dstGUID] and pandemia_cache[dstGUID][spellID] and ( pandemia_cache[dstGUID][spellID] - GetTime() > 0 ) then					
 					if (pandemia_cache[dstGUID][spellID] - GetTime()) > duration*0.3 then					
@@ -1953,7 +1953,7 @@ do
 		return duration
 	end
 	
-	function C:RemovePandemia(spellID, dstGUID)	
+	function ns:RemovePandemia(spellID, dstGUID)	
 		if spellID then
 			spellID = IsGroupUpSpell(spellID) or spellID
 
@@ -1963,7 +1963,7 @@ do
 		end
 	end
 	
-	function C:GetDefaultDuraton(spellID)
+	function ns:GetDefaultDuraton(spellID)
 	
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
@@ -2005,7 +2005,7 @@ do
 	local normalTrapDur = 1
 	
 	
-	function C:GetTrapDuration(spellID, isplayer, active)
+	function ns:GetTrapDuration(spellID, isplayer, active)
 		local num = active and normalTrapDur+2 or normalTrapDur
 		
 		if traptypes_duration[spellID] then		
@@ -2015,7 +2015,7 @@ do
 		return 0
 	end
 	
-	function C:GetDuration(spellID, dstGUID, pandemia_t, isplayer)
+	function ns:GetDuration(spellID, dstGUID, pandemia_t, isplayer)
 		
 		--print('spellID:1', spellID)
 
@@ -2024,9 +2024,9 @@ do
 		--print('spellID:2', spellID)
 
 		if self.db.profile.classSpells[self.myCLASS][spellID].haste then
-			if C.db.profile.classSpells[self.myCLASS][spellID].tick and
-				C.db.profile.classSpells[self.myCLASS][spellID].tick > 0 and
-				C.db.profile.classSpells[self.myCLASS][spellID].duration then
+			if ns.db.profile.classSpells[self.myCLASS][spellID].tick and
+				ns.db.profile.classSpells[self.myCLASS][spellID].tick > 0 and
+				ns.db.profile.classSpells[self.myCLASS][spellID].duration then
 				return fullDuration(spellID, dstGUID, pandemia_t)
 			end
 		end
@@ -2038,7 +2038,7 @@ do
 		return self.db.profile.classSpells[self.myCLASS][spellID].duration
 	end
 	
-	function C:FillDuration(spellID, isplayer, duration)
+	function ns:FillDuration(spellID, isplayer, duration)
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
 		if self.db.profile.classSpells[self.myCLASS][spellID] then
@@ -2056,7 +2056,7 @@ do
 end
 ----------------------------------------------------------
 
-function C:GetCustomTextureBars(spellID)
+function ns:GetCustomTextureBars(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -2096,7 +2096,7 @@ function C:GetCustomTextureBars(spellID)
 end
 
 
-function C:GetCustomCooldownTexture(spellName)
+function ns:GetCustomCooldownTexture(spellName)
 
 	local texture = nil
 	
@@ -2128,7 +2128,7 @@ function C:GetCustomCooldownTexture(spellName)
 	return false
 end
 
-function C:GetCustomText(spellID)
+function ns:GetCustomText(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
@@ -2171,7 +2171,7 @@ do
 		return false
 	end
 
-	C.IsTalentKnown = IsTalentKnown
+	ns.IsTalentKnown = IsTalentKnown
 end	
 	
 local SpellsToRemove = {	
@@ -2196,12 +2196,12 @@ local SpellOneTimeRemove = {
 	},
 }
 
-function C:SetupAuras(C)
+function ns:SetupAuras(db)
 	
 	self.myGUID = UnitGUID("player")
 
-	if not C.SpellOneTimeRemove then
-		C.SpellOneTimeRemove = {}
+	if not db.SpellOneTimeRemove then
+		db.SpellOneTimeRemove = {}
 	end
 	
 	for k,v in pairs(procs) do
@@ -2225,26 +2225,26 @@ function C:SetupAuras(C)
 		end
 	end
 	
-	C.procSpells = procs
-	C.othersSpells = others
-	C.internal_cooldowns = internal_cooldowns
+	db.procSpells = procs
+	db.othersSpells = others
+	db.internal_cooldowns = internal_cooldowns
 	
 	
-	for k,v in pairs(C.procSpells) do
+	for k,v in pairs(db.procSpells) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
 			print("Wrong procSpells spellID", k)		
 			v = nil
 		end
 	end
 	
-	for k,v in pairs(C.othersSpells) do
+	for k,v in pairs(db.othersSpells) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
 			print("Wrong othersSpells spellID", k)			
 			v = nil
 		end
 	end
 	
-	for k,v in pairs(C.internal_cooldowns) do
+	for k,v in pairs(db.internal_cooldowns) do
 		if k == "" then
 			print("Wrong internal_cooldowns spellID", v.spellid)			
 			v = nil
@@ -2256,129 +2256,129 @@ function C:SetupAuras(C)
 			if GetSpellInfo(id) == nil or GetSpellInfo(id) == "" then
 				print("Wrong classSpells spellID in default "..self.myCLASS.." DB #", id)
 			else
-				C.classSpells[self.myCLASS][id] = data
+				db.classSpells[self.myCLASS][id] = data
 			end
 		end
 	end
 	
-	for k,v in pairs(C.classSpells[self.myCLASS]) do
+	for k,v in pairs(db.classSpells[self.myCLASS]) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
 			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", k)			
-			C.classSpells[self.myCLASS][k] = nil
+			db.classSpells[self.myCLASS][k] = nil
 		end
 	end
 
 	for i=1, #( SpellsToRemove[self.myCLASS] or {} ) do
-		if C.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] then		
+		if db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] then		
 			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", SpellsToRemove[self.myCLASS][i], "due of removed spells")
-			C.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] = nil			
+			db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] = nil			
 		end
 	end
 
 	for i=1, #GlobalSpellsToRemove do
-		if C.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] then		
+		if db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] then		
 			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", GlobalSpellsToRemove[i], "due of removed spells")
-			C.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] = nil			
+			db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] = nil			
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
-		if C.procSpells[GlobalSpellsToRemove[i]] then		
+		if db.procSpells[GlobalSpellsToRemove[i]] then		
 			print("Wrong procSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
-			C.procSpells[GlobalSpellsToRemove[i]] = nil	
+			db.procSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
-		if C.othersSpells[GlobalSpellsToRemove[i]] then		
+		if db.othersSpells[GlobalSpellsToRemove[i]] then		
 			print("Wrong othersSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
-			C.othersSpells[GlobalSpellsToRemove[i]] = nil	
+			db.othersSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
 	
 	if self.SetupClassCooldowns then
-		C.classCooldowns[self.myCLASS] = self:SetupClassCooldowns()
+		db.classCooldowns[self.myCLASS] = self:SetupClassCooldowns()
 		
 	end
 	
-	for k,v in pairs(C.classCooldowns[self.myCLASS]) do
+	for k,v in pairs(db.classCooldowns[self.myCLASS]) do
 		if k == "" then
 			print("Wrong classCooldowns spellID id DB #", v.spellid)
-			C.classCooldowns[self.myCLASS][k] = nil
+			db.classCooldowns[self.myCLASS][k] = nil
 		end
 	end
 	
 	
-	return C
+	return db
 end
 
-function C:RemoveSpellExists(C)
+function ns:RemoveSpellExists(db)
 	
 	self.myGUID = UnitGUID("player")
 
-	if not C.SpellOneTimeRemove then
-		C.SpellOneTimeRemove = {}
+	if not db.SpellOneTimeRemove then
+		db.SpellOneTimeRemove = {}
 	end
 	
 	for i=1, #( SpellsToRemove[self.myCLASS] or {} ) do
-		if C.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] then		
+		if db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] then		
 			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", SpellsToRemove[self.myCLASS][i], "due of removed spells")
-			C.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] = nil			
+			db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] = nil			
 		end
 	end
 
 	for i=1, #GlobalSpellsToRemove do
-		if C.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] then		
+		if db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] then		
 			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", GlobalSpellsToRemove[i], "due of removed spells")
-			C.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] = nil			
+			db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] = nil			
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
-		if C.procSpells[GlobalSpellsToRemove[i]] then		
+		if db.procSpells[GlobalSpellsToRemove[i]] then		
 			print("Wrong procSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
-			C.procSpells[GlobalSpellsToRemove[i]] = nil	
+			db.procSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
-		if C.othersSpells[GlobalSpellsToRemove[i]] then		
+		if db.othersSpells[GlobalSpellsToRemove[i]] then		
 			print("Wrong othersSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
-			C.othersSpells[GlobalSpellsToRemove[i]] = nil	
+			db.othersSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
 
 	for i=1, #SpellOneTimeRemove do
 		local mark, spells = SpellOneTimeRemove[i].mark, SpellOneTimeRemove[i].spells
 			
-		if not C.SpellOneTimeRemove[mark] then
-			C.SpellOneTimeRemove[mark] = true
+		if not db.SpellOneTimeRemove[mark] then
+			db.SpellOneTimeRemove[mark] = true
 			
 			for class, list in pairs(spells) do		
 				if class == 'ALL' then
 					for index=1, #list do 
 						local spellIDtoRemove = list[index]
-						for class2, classdata in pairs(C.classSpells) do						
-							if C.classSpells[class2][spellIDtoRemove] then
-								C.classSpells[class2][spellIDtoRemove] = nil						
+						for class2, classdata in pairs(ns.classSpells) do						
+							if db.classSpells[class2][spellIDtoRemove] then
+								db.classSpells[class2][spellIDtoRemove] = nil						
 								old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class2)
 							end							
 						end						
-						if C.procSpells[spellIDtoRemove] then	
-							C.procSpells[spellIDtoRemove] = nil
+						if db.procSpells[spellIDtoRemove] then	
+							db.procSpells[spellIDtoRemove] = nil
 							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in procList')
 						end					
-						if C.othersSpells[spellIDtoRemove] then	
-							C.othersSpells[spellIDtoRemove] = nil
+						if db.othersSpells[spellIDtoRemove] then	
+							db.othersSpells[spellIDtoRemove] = nil
 							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in othersSpells')
 						end
 					end
 				elseif class == 'CLASS' then
 					for index=1, #list do 
 						local spellIDtoRemove = list[index]
-						for class2, classdata in pairs(C.classSpells) do						
-							if C.classSpells[class2][spellIDtoRemove] then
-								C.classSpells[class2][spellIDtoRemove] = nil						
+						for class2, classdata in pairs(ns.classSpells) do						
+							if db.classSpells[class2][spellIDtoRemove] then
+								db.classSpells[class2][spellIDtoRemove] = nil						
 								old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class2)
 							end							
 						end	
@@ -2386,29 +2386,46 @@ function C:RemoveSpellExists(C)
 				elseif class == 'PROCS' then
 					for index=1, #list do 
 						local spellIDtoRemove = list[index]				
-						if C.procSpells[spellIDtoRemove] then	
-							C.procSpells[spellIDtoRemove] = nil
+						if db.procSpells[spellIDtoRemove] then	
+							db.procSpells[spellIDtoRemove] = nil
 							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in procList')
 						end					
 					end
 				elseif class == 'OTHERS' then
 					for index=1, #list do 
 						local spellIDtoRemove = list[index]				
-						if C.othersSpells[spellIDtoRemove] then	
-							C.othersSpells[spellIDtoRemove] = nil
+						if db.othersSpells[spellIDtoRemove] then	
+							db.othersSpells[spellIDtoRemove] = nil
 							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in othersSpells')
 						end					
 					end
-				elseif C.classSpells[class] then
+				elseif db.classSpells[class] then
 					for index=1, #list do 
 						local spellIDtoRemove = list[index]					
-						if C.classSpells[class][spellIDtoRemove] then
-							C.classSpells[class][spellIDtoRemove] = nil						
+						if db.classSpells[class][spellIDtoRemove] then
+							db.classSpells[class][spellIDtoRemove] = nil						
 							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class)
 						end							
 					end
 				end
 			end
+		end
+	end
+end
+
+ns.spellNameToID = {}
+ns.MapDBForCombatLog = function()
+	ns.spellNameToID = {}
+
+	if not ns.isClassic then return end 
+
+	old_print('MapDBForCombatLog')
+
+	for k, v in pairs(ns.db.profile.classSpells[ns.myCLASS]) do 
+		if ( k and GetSpellInfo(k)) and not v.delete and not v.fulldel then 
+			ns.spellNameToID[GetSpellInfo(k)] = k 
+
+			old_print('Add ', GetSpellInfo(k), k)
 		end
 	end
 end

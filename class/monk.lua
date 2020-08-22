@@ -1,7 +1,7 @@
-local addon, C = ...
-if C.myCLASS ~= "MONK" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "MONK" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 
@@ -42,7 +42,7 @@ local spells = {
 
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 	[GetSpell(107428)] = { spellid = 107428, color = colors.PURPLE },
@@ -52,10 +52,10 @@ local cooldown = {
 	[GetSpell(121253)] = { spellid = 121253, color = colors.CURSE },
 }	
 
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns()
+function ns:SetupClassCooldowns()
 	return cooldown
 end

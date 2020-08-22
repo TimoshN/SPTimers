@@ -1,10 +1,10 @@
-﻿local addon, C = ...
+﻿local addon, ns = ...
 local L = AleaUI_GUI.GetLocale("SPTimers")
 
 local _
-local parent = C.Parent
+local parent = ns.Parent
 local spelllist = {}
-C.AurasSpellList = spelllist
+ns.AurasSpellList = spelllist
 
 local SortBars
 local enableLoop = true
@@ -13,29 +13,29 @@ local enableGroupedSpells = true
 
 -- NEW GLOBALS ----
 
-local NO_FADE 			= C.NO_FADE
-local DO_FADE 			= C.DO_FADE
-local DO_FADE_RED 		= C.DO_FADE_RED 
+local NO_FADE 			= ns.NO_FADE
+local DO_FADE 			= ns.DO_FADE
+local DO_FADE_RED 		= ns.DO_FADE_RED 
 local DO_FADE_NORMAL	= nil
-local FADED 			= C.FADED
-local DO_FADE_UNLIMIT 	= C.DO_FADE_UNLIMIT
-local UNITAURA 			= C.UNITAURA
-local CLEU				= C.CLEU
-local PLAYER_AURA 		= C.PLAYER_AURA
-local OTHERS_AURA 		= C.OTHERS_AURA
-local CUSTOM_AURA 		= C.CUSTOM_AURA
-local CHANNEL_SPELL 	= C.CHANNEL_SPELL
-local TOTEM_SPELL 		= C.TOTEM_SPELL
-local SPELL_CAST 		= C.SPELL_CAST
-local SPELL_SUMMON 		= C.SPELL_SUMMON
-local SPELL_ENERGIZE 	= C.SPELL_ENERGIZE
-local COOLDOWN_SPELL 	= C.COOLDOWN_SPELL
-local NO_GUID 			= C.NO_GUID
+local FADED 			= ns.FADED
+local DO_FADE_UNLIMIT 	= ns.DO_FADE_UNLIMIT
+local UNITAURA 			= ns.UNITAURA
+local CLEU				= ns.CLEU
+local PLAYER_AURA 		= ns.PLAYER_AURA
+local OTHERS_AURA 		= ns.OTHERS_AURA
+local CUSTOM_AURA 		= ns.CUSTOM_AURA
+local CHANNEL_SPELL 	= ns.CHANNEL_SPELL
+local TOTEM_SPELL 		= ns.TOTEM_SPELL
+local SPELL_CAST 		= ns.SPELL_CAST
+local SPELL_SUMMON 		= ns.SPELL_SUMMON
+local SPELL_ENERGIZE 	= ns.SPELL_ENERGIZE
+local COOLDOWN_SPELL 	= ns.COOLDOWN_SPELL
+local NO_GUID 			= ns.NO_GUID
 
 local SOUND_INDEX = 40
 ------------------
 local anchors = {}
-C.Anchors = anchors
+ns.Anchors = anchors
 
 --Cache global variables
 --Lua functions
@@ -69,19 +69,19 @@ local function GetSpellTag(destGuid, spellID, sourceGuid, auraType, auraID)
 	return ( destGuid or NO_GUID or 'nil')..'-'..( spellID or 'nil' )..'-'..( auraType or 'nil' ) ..'-'..( auraID or 'nil')
 end
 
-C.GetSpellTag = GetSpellTag
+ns.GetSpellTag = GetSpellTag
 
 local function OnTimerEnd(tag, str)
 	
 	if spelllist[tag] then
 		--[==[
 		if spelllist[tag][21] then 
-			C:RemoveDotFromDB(spelllist[tag][3], spelllist[tag][5], "REMOVE FROM OnTimerEND")
+			ns:RemoveDotFromDB(spelllist[tag][3], spelllist[tag][5], "REMOVE FROM OnTimerEND")
 		end
 		]==]
 		if spelllist[tag][SOUND_INDEX] then
 			spelllist[tag][SOUND_INDEX] = false
-			C:PlaySound(spelllist[tag][5], "sound_onhide", spelllist[tag][14])
+			ns:PlaySound(spelllist[tag][5], "sound_onhide", spelllist[tag][14])
 		end
 	end
 end
@@ -91,7 +91,7 @@ local function OnTimerStart(tag)
 	if spelllist[tag] then
 		spelllist[tag][SOUND_INDEX] = true
 		
-		C:PlaySound(spelllist[tag][5], "sound_onshow", spelllist[tag][14])
+		ns:PlaySound(spelllist[tag][5], "sound_onshow", spelllist[tag][14])
 		
 	--	print("START TIMER",spelllist[tag][8])
 	end
@@ -102,21 +102,21 @@ local function RemoveTagFrolList(tag)
 		local guid = spelllist[tag][3]
 		
 		spelllist[tag] = nil
-		C.RemoveGUIDFromList(guid)
+		ns.RemoveGUIDFromList(guid)
 	end
 end
 
 -- debug print ------------------
 local old_print = print
 local print = function(...)
-	if C.dodebugging then	
+	if ns.dodebugging then	
 		old_print("SPT_BARS, ", ...)
 	end
 end
 
 local old_assert = assert
 local assert = function(...)
-	if C.dodebugging then	
+	if ns.dodebugging then	
 	--	old_assert(...)
 	end
 end
@@ -135,7 +135,7 @@ local function deepcopy(t)
 	return res
 end
 
-function C:CheckForMissingBarsData()
+function ns:CheckForMissingBarsData()
 	for i=1, #self.db.profile.bars_anchors do		
 		if not self.db.profile.bars_anchors[i] then
 			tremove(self.db.profile.bars_anchors, i)
@@ -145,15 +145,15 @@ function C:CheckForMissingBarsData()
 	end
 end
 
-function C:InitFrames()
+function ns:InitFrames()
 	self.myGUID = UnitGUID("player")
 	
-	for i=1, #C.db.profile.bars_anchors do	
+	for i=1, #ns.db.profile.bars_anchors do	
 		self:InitBarAnchor(i)
 	end
 end
 
-function C:ProfileSwapBars()
+function ns:ProfileSwapBars()
 
 	local inittest = false
 	if self.testbar_shown then
@@ -163,14 +163,14 @@ function C:ProfileSwapBars()
 	
 	wipe(spelllist)
 	
---	print("InitFrames", #anchors, #C.db.profile.bars_anchors)
+--	print("InitFrames", #anchors, #ns.db.profile.bars_anchors)
 	if #anchors > 0 then
 		for i=1, #anchors do
 			anchors[i]:ResetAnchor()
 		end
 	end
 	
-	for i=1, #C.db.profile.bars_anchors do	
+	for i=1, #ns.db.profile.bars_anchors do	
 		self:InitBarAnchor(i)
 	end
 	
@@ -180,7 +180,7 @@ function C:ProfileSwapBars()
 end
 
 
-function C:DeleteAnchor(index)
+function ns:DeleteAnchor(index)
 
 	if self.db.profile.bars_anchors[index] then
 		tremove(self.db.profile.bars_anchors, index)
@@ -210,12 +210,12 @@ do
 		self:Hide()
 		maxtestbarval = 0
 		
-		C:TestBars()
+		ns:TestBars()
 		
 	--	print("AuraEnd Testbars")
 	end)
 	
-	function C:DisableTestBars()	
+	function ns:DisableTestBars()	
 		self.testbar_shown = nil
 		self.onUpdateHandler.elapsed = 0
 		self.onUpdateHandler:Show()
@@ -228,7 +228,7 @@ do
 		
 	end
 	
-	function C:TestBars(force)
+	function ns:TestBars(force)
 		if testbar or force then
 			self.testbar_shown = nil
 			self.onUpdateHandler.elapsed = 0
@@ -277,7 +277,7 @@ do
 						maxtestbarval = t
 					end
 					
-					C.Timer(t, GetTime()+t, "group"..group_guid, "group"..group_guid, -1, 1, "TEST_BAR"..k, "TEST_BAR", mark, name, "Interface\\Icons\\spell_shadow_shadowwordpain", a, name, name)
+					ns.Timer(t, GetTime()+t, "group"..group_guid, "group"..group_guid, -1, 1, "TEST_BAR"..k, "TEST_BAR", mark, name, "Interface\\Icons\\spell_shadow_shadowwordpain", a, name, name)
 					
 					testbar_onupdate:Show()
 				end
@@ -404,13 +404,13 @@ do
 		},
 	}
 
-	function C:CreateNewAnhors()
-		local anhor_number = #C.db.profile.bars_anchors+1
+	function ns:CreateNewAnhors()
+		local anhor_number = #ns.db.profile.bars_anchors+1
 		
-		C.db.profile.totalanchor = C.db.profile.totalanchor+1
+		ns.db.profile.totalanchor = ns.db.profile.totalanchor+1
 		
-		C.db.profile.bars_anchors[anhor_number] = deepcopy(default_anchor)
-		C.db.profile.bars_anchors[anhor_number].name = C.db.profile.totalanchor
+		ns.db.profile.bars_anchors[anhor_number] = deepcopy(default_anchor)
+		ns.db.profile.bars_anchors[anhor_number].name = ns.db.profile.totalanchor
 		
 		self:InitBarAnchor(anhor_number)
 		self:SetAnchorTable(anhor_number)
@@ -427,7 +427,7 @@ do
 		end
 	end
 	
-	function C.CheckBarOpts(opt)
+	function ns.CheckBarOpts(opt)
 	
 		if #opt.sorting ~= #default_anchor.sorting then
 			opt.sorting = nil
@@ -462,64 +462,64 @@ local function ResetAnchor(self)
 	end
 end
 
-function C:CopySettings(from, to)
-	local a1 = C.db.profile.bars_anchors[to].point
-	local a2 = C.db.profile.bars_anchors[to].name
+function ns:CopySettings(from, to)
+	local a1 = ns.db.profile.bars_anchors[to].point
+	local a2 = ns.db.profile.bars_anchors[to].name
 	
-	C.db.profile.bars_anchors[to] = deepcopy(C.db.profile.bars_anchors[from])
-	C.db.profile.bars_anchors[to].point = deepcopy(a1)
-	C.db.profile.bars_anchors[to].name = a2
+	ns.db.profile.bars_anchors[to] = deepcopy(ns.db.profile.bars_anchors[from])
+	ns.db.profile.bars_anchors[to].point = deepcopy(a1)
+	ns.db.profile.bars_anchors[to].name = a2
 	
---	print(to, C.db.profile.bars_anchors[to], #C.db.profile.bars_anchors)
+--	print(to, ns.db.profile.bars_anchors[to], #ns.db.profile.bars_anchors)
 	self:InitBarAnchor(to)	
 	
 	self:Visibility()
 end
 
-function C:UpdateStatusBars()
+function ns:UpdateStatusBars()
 	wipe(spelllist)
 	SortBars('UpdateStatusBars')
 end
 
-function C:Visibility()
+function ns:Visibility()
 	self:InterateBars("UpdateStyle")
 end
-function C:Update_StackText()
+function ns:Update_StackText()
 	self:InterateBars("UpdateStackText")
 end
-function C:Update_TimeText()
+function ns:Update_TimeText()
 	self:InterateBars("UpdateTimeText")
 end
-function C:Update_SpellText()
+function ns:Update_SpellText()
 	self:InterateBars("UpdateSpellText")
 end
-function C:UpdateAllBorder()
+function ns:UpdateAllBorder()
 	self:InterateBars("UpdateBorder")	
 end
 
-function C:UpdateRaidIcons()
+function ns:UpdateRaidIcons()
 	self:InterateBars("UpdateRaidIcon")	
 end
 
-function C:UpdateBarsSize()
+function ns:UpdateBarsSize()
 	self:InterateBars("UpdateBarSize")		
 	SortBars('UpdateBarsSize')
 end
 
-function C:UpdateBackgroundBarColor()
+function ns:UpdateBackgroundBarColor()
 	self:InterateBars("UpdateBarColor")	
 end
 
-function C:UpdateAllSparks()
+function ns:UpdateAllSparks()
 	self:InterateBars("UpdateSpark_Color")	
 end
 
-function C:UpdateAllTiks()
+function ns:UpdateAllTiks()
 	self:InterateBars("UpdateTick_Color")
 end
 
-function C:UpdateMovers()
-	if C.db.profile.locked then
+function ns:UpdateMovers()
+	if ns.db.profile.locked then
 		for i=1, #anchors do
 			if not anchors[i].disabled then		
 				anchors[i]:Lock()
@@ -534,7 +534,7 @@ function C:UpdateMovers()
 	end
 end
 
-function C:InterateBars(...)
+function ns:InterateBars(...)
 	for i=1, #anchors do
 		if not anchors[i].disabled then
 			for b=1, #anchors[i].bars do		
@@ -551,10 +551,10 @@ local function round(num)
 	return floor(num+0.5)
 end
 
-function C:GetRelativePoint(frame)
+function ns:GetRelativePoint(frame)
 	local x, y = frame:GetCenter()
-	local ux, uy = C.Parent:GetCenter()
-	local screenWidth, screenHeight = C.Parent:GetRight(), C.Parent:GetTop()
+	local ux, uy = ns.Parent:GetCenter()
+	local screenWidth, screenHeight = ns.Parent:GetRight(), ns.Parent:GetTop()
 	
 	
 	local LEFT = screenWidth / 4
@@ -611,30 +611,30 @@ function C:GetRelativePoint(frame)
 	else
 		
 		if point1 == "LEFT" then
-			xpos = frame:GetLeft() - C.Parent:GetLeft()
+			xpos = frame:GetLeft() - ns.Parent:GetLeft()
 		elseif point1 == "RIGHT" then
-			xpos = frame:GetRight() - C.Parent:GetRight()
+			xpos = frame:GetRight() - ns.Parent:GetRight()
 		else
 			xpos = rX
 		end
 		
 		if point2 == "TOP" then
-			ypos = frame:GetTop() - C.Parent:GetTop()
+			ypos = frame:GetTop() - ns.Parent:GetTop()
 		elseif point2 == "BOTTOM" then
-			ypos = frame:GetBottom() - C.Parent:GetBottom()
+			ypos = frame:GetBottom() - ns.Parent:GetBottom()
 		else
 			ypos = rY
 		end
 	end
 	
-	old_print(point2..point1, C.Parent, point4..point3, xpos, ypos)
+	old_print(point2..point1, ns.Parent, point4..point3, xpos, ypos)
 end
 	
-function C:InitBarAnchor(i)
+function ns:InitBarAnchor(i)
 	
-	self.CheckBarOpts(C.db.profile.bars_anchors[i])
+	self.CheckBarOpts(ns.db.profile.bars_anchors[i])
 	
-	local opts = C.db.profile.bars_anchors[i]
+	local opts = ns.db.profile.bars_anchors[i]
 
 	if not anchors[i] then
 		local f = CreateFrame("Frame", nil , parent)
@@ -651,7 +651,7 @@ function C:InitBarAnchor(i)
 		f.guidsort = {}
 		
 		f.GetOpts = function(self)
-			return C.db.profile.bars_anchors[self.id]
+			return ns.db.profile.bars_anchors[self.id]
 		end
 		
 		f.ResetAnchor = ResetAnchor
@@ -694,7 +694,7 @@ function C:InitBarAnchor(i)
 			self:ClearAllPoints()
 			self:SetPoint("CENTER", parent, "CENTER", self.parent.opts.point[1] or 0,self.parent.opts.point[2] or 0)	
 			
-		--	print('T', C:GetRelativePoint(self.parent))
+		--	print('T', ns:GetRelativePoint(self.parent))
 		end)
 
 		f.mover:SetClampedToScreen(true)		
@@ -711,8 +711,8 @@ function C:InitBarAnchor(i)
 
 	anchors[i].disabled = false
 	anchors[i].id = i
-	anchors[i].opts = C.db.profile.bars_anchors[i]
-	anchors[i].sorting = C.db.profile.bars_anchors[i].sorting
+	anchors[i].opts = ns.db.profile.bars_anchors[i]
+	anchors[i].sorting = ns.db.profile.bars_anchors[i].sorting
 
 	anchors[i].index = 0
 	
@@ -736,11 +736,11 @@ function C:InitBarAnchor(i)
 	anchors[i]:SetPoint("CENTER", anchors[i].mover,"CENTER", (_left/2) - (_right/2) , 0)
 	anchors[i]:SetSize(1,opts.h+5)
 	
-	C.AddMoverButtons(anchors[i].mover, opts)
+	ns.AddMoverButtons(anchors[i].mover, opts)
 
 	for s=1, opts.bar_number do
 		
-		local bar = anchors[i].bars[s] or C.GetBar(anchors[i])
+		local bar = anchors[i].bars[s] or ns.GetBar(anchors[i])
 		
 		
 		bar:UpdateStyle()
@@ -758,7 +758,7 @@ function C:InitBarAnchor(i)
 		anchors[i].bars[s]:Hide()
 	end
 	
-	C:UpdateMovers()
+	ns:UpdateMovers()
 end
 
 
@@ -842,7 +842,7 @@ do
 		end,
 	}
 	
-    function C.FormatTime(t, s, dur)
+    function ns.FormatTime(t, s, dur)
 		return formats[t]( ( s <= 0 and 0.00 or s), dur)
     end
 end
@@ -874,7 +874,7 @@ do
 	
 	local function GetGUIDClassColor(guid, name, isShort, isPlayer)
 		if not cachedNameColors[name] then
-			local class = C:GetGUIDClass(guid)
+			local class = ns:GetGUIDClass(guid)
 			
 			local color = unknownClass
 			if class then
@@ -896,7 +896,7 @@ do
 		return cachedNameColors[name]
 	end
 	
-	function C:ResetColoredNameCache()	
+	function ns:ResetColoredNameCache()	
 		numCachedNameColors = 0
 		wipe(cachedNameColors)
 	end
@@ -935,14 +935,14 @@ do
 				-- [3] destGGUID
 				-- [4] sourceGUID
 				
-				return gsub(text,"%%sN", data[29] and GetGUIDClassColor(data[4], C:getShort(data[29]), true) or UNKNOWN)
+				return gsub(text,"%%sN", data[29] and GetGUIDClassColor(data[4], ns:getShort(data[29]), true) or UNKNOWN)
 			else
 				return gsub(text,"%%sN", data[29] and GetGUIDClassColor(data[4], data[29], nil, data[43]) or UNKNOWN)
 			end		
 		end,
 		['%spell'] = function(text, data, opt)
 			if opt.short then		
-				return gsub(text,"%%spell", C:getShort(data[8]))
+				return gsub(text,"%%spell", ns:getShort(data[8]))
 			else
 				return gsub(text,"%%spell", data[8])
 			end		
@@ -953,23 +953,23 @@ do
 				-- [3] destGGUID
 				-- [4] sourceGUID
 				
-				return gsub(text,"%%tN", data[28] and GetGUIDClassColor(data[3], C:getShort(data[28]), true) or UNKNOWN)
+				return gsub(text,"%%tN", data[28] and GetGUIDClassColor(data[3], ns:getShort(data[28]), true) or UNKNOWN)
 			else
 				return gsub(text,"%%tN", data[28] and GetGUIDClassColor(data[3], data[28], nil, data[43]) or UNKNOWN)
 			end	
 		end,
 		['%immolate'] = function(text, data, opt)
-			return gsub(text, '%%immolate', C:GetImmolateBuffsStacks(data[3]))
+			return gsub(text, '%%immolate', ns:GetImmolateBuffsStacks(data[3]))
 		end,
 	}
 	
-	function C:AddCustomTextHandler(tag, func)
+	function ns:AddCustomTextHandler(tag, func)
 		supportedTags[tag] = func
 	end
 	
-	function C:PreCacheCustomTextCheck()
+	function ns:PreCacheCustomTextCheck()
 		for k in pairs(self.db.profile.procSpells) do
-			local spellID = C.IsGroupUpSpell(k) or k
+			local spellID = ns.IsGroupUpSpell(k) or k
 			local v = self.db.profile.procSpells[spellID]
 			
 			if v and v.custom_text_on and v.custom_text and v.custom_text ~= '' then
@@ -990,7 +990,7 @@ do
 			end
 		end
 		for k in pairs(self.db.profile.othersSpells) do
-			local spellID = C.IsGroupUpSpell(k) or k
+			local spellID = ns.IsGroupUpSpell(k) or k
 			local v = self.db.profile.othersSpells[spellID]
 			
 			if v and v.custom_text_on and v.custom_text and v.custom_text ~= '' then
@@ -1011,7 +1011,7 @@ do
 			end
 		end
 		for k in pairs(self.db.profile.classSpells[self.myCLASS]) do
-			local spellID = C.IsGroupUpSpell(k) or k
+			local spellID = ns.IsGroupUpSpell(k) or k
 			local v = self.db.profile.classSpells[self.myCLASS][spellID]
 			
 			if v and v.custom_text_on and v.custom_text and v.custom_text ~= '' then
@@ -1073,7 +1073,7 @@ do
 		
 		gametooltip:ClearLines()
 		
-		local unit = C:FindUnitByGUID(data[3])
+		local unit = ns:FindUnitByGUID(data[3])
 
 		if unit and not value then
 			
@@ -1097,7 +1097,7 @@ do
 			return ""
 		end
 
-		local unit = C:FindUnitByGUID(data[3])
+		local unit = ns:FindUnitByGUID(data[3])
 		local value1, value2, value3, _, spellID, sUnit, name
 		local val1, val2, val3
 		
@@ -1111,11 +1111,11 @@ do
 		-- [8] localized spellname
 		-- [9] icon texture path
 		
-		if data[3] == C.myGUID then unit = 'player' end
+		if data[3] == ns.myGUID then unit = 'player' end
 		
 		if unit then
 			
-			name, _, _, _, _, _, sUnit, _, _, spellID, _, _, value1, value2, value3 = AuraUtil.FindAuraByName(data[8], unit, ( auratypes[data[11]] or "HARMFUL" ) .. ( data[4] == C.myGUID and "|PLAYER" or "" ))
+			name, _, _, _, _, _, sUnit, _, _, spellID, _, _, value1, value2, value3 = AuraUtil.FindAuraByName(data[8], unit, ( auratypes[data[11]] or "HARMFUL" ) .. ( data[4] == ns.myGUID and "|PLAYER" or "" ))
 			-- 13 + 1  13 + 2 13 + 3
 			
 			if name and spellID == data[5] and UnitGUID(sUnit or '') == data[4] then
@@ -1134,13 +1134,13 @@ do
 		return ""
 	end
 	
-	function C.CustomTextCreate(self)
+	function ns.CustomTextCreate(self)
 		local data = self.data
 
 		local text = data[23]
 		local opt = self.opts
 		
-		local spellID = C.IsGroupUpSpell(data[5]) or data[5]
+		local spellID = ns.IsGroupUpSpell(data[5]) or data[5]
 	--	print('T', text, data[5], preCahceCheckCustomText[data[5]])
 		
 		if text and preCahceCheckCustomText[spellID] then		
@@ -1155,42 +1155,42 @@ do
 end
 
 do
-	C.targetEngaged = {}
-	C.onUpdateHandler  = CreateFrame("Frame")
+	ns.targetEngaged = {}
+	ns.onUpdateHandler  = CreateFrame("Frame")
 	
-	local onUpdateHandler = C.onUpdateHandler	
+	local onUpdateHandler = ns.onUpdateHandler	
 	onUpdateHandler.elapsed = 0
 	onUpdateHandler.active = false
 
 	local function onUpdateCombat(self, elapsed)
 	
 		self.elapsed = self.elapsed + elapsed
-		if self.elapsed < C.db.profile.throttleOutCombat then return end		
+		if self.elapsed < ns.db.profile.throttleOutCombat then return end		
 		self.elapsed = 0
 
 		if not IsEncounterInProgress() and not InCombatLockdown() then
 			self.active = false
-			wipe(C.targetEngaged)
-			wipe(C.pandemia_cache)
-			C:OnCombatEndReset()
+			wipe(ns.targetEngaged)
+			wipe(ns.pandemia_cache)
+			ns:OnCombatEndReset()
 			self:SetScript("OnUpdate", nil)
 		else
 			local current = GetTime()
 			
-			for guid, last in pairs(C.targetEngaged) do		
+			for guid, last in pairs(ns.targetEngaged) do		
 
 			--	print('Target check', guid, last <= current)
 				if last <= current then
 
-					C.targetEngaged[guid] = nil
+					ns.targetEngaged[guid] = nil
 
-					C.Timer_Remove_DEAD(guid, true)
-					C:RemovePandemia(nil, guid)	
+					ns.Timer_Remove_DEAD(guid, true)
+					ns:RemovePandemia(nil, guid)	
 			--		print("Clear DestGUID by noActive", guid)
 				end	
 			end
 			
-			C:OnCustomUpdateAuras()
+			ns:OnCustomUpdateAuras()
 		end	
 	end
 	
@@ -1208,15 +1208,15 @@ do
 			for tag, data in pairs(spelllist) do				
 				RemoveTagFrolList(tag)
 			end
-			C:OnCustomUpdateAuras()
+			ns:OnCustomUpdateAuras()
 		elseif event == 'PLAYER_REGEN_ENABLED' then
 			onUpdateHandler.elapsed = 0
 			
 		elseif event == 'PLAYER_REGEN_DISABLED' then
-			if C.db.profile.bar_module_enabled then
+			if ns.db.profile.bar_module_enabled then
 				onUpdateHandler:SetScript("OnUpdate", onUpdateCombat)
-				if C.testbar_shown then 
-					C:TestBars(true) 
+				if ns.testbar_shown then 
+					ns:TestBars(true) 
 				end
 			end
 			onUpdateHandler.active = true	
@@ -1225,36 +1225,36 @@ do
 	end)
 end
 
-function C:OnCustomUpdateAuras()
-	C:UNIT_AURA('UNIT_AURA', 'player')
-	C:UNIT_AURA('UNIT_AURA', 'pet')
+function ns:OnCustomUpdateAuras()
+	ns:UNIT_AURA('UNIT_AURA', 'player')
+	ns:UNIT_AURA('UNIT_AURA', 'pet')
 	
-	C:UNIT_AURA('UNIT_AURA', 'focus')
+	ns:UNIT_AURA('UNIT_AURA', 'focus')
 	
-	C:UNIT_AURA('UNIT_AURA', 'boss1')
-	C:UNIT_AURA('UNIT_AURA', 'boss2')
-	C:UNIT_AURA('UNIT_AURA', 'boss3')
-	C:UNIT_AURA('UNIT_AURA', 'boss4')
-	C:UNIT_AURA('UNIT_AURA', 'boss5')
+	ns:UNIT_AURA('UNIT_AURA', 'boss1')
+	ns:UNIT_AURA('UNIT_AURA', 'boss2')
+	ns:UNIT_AURA('UNIT_AURA', 'boss3')
+	ns:UNIT_AURA('UNIT_AURA', 'boss4')
+	ns:UNIT_AURA('UNIT_AURA', 'boss5')
 	
-	C:UNIT_AURA('UNIT_AURA', 'arena1')
-	C:UNIT_AURA('UNIT_AURA', 'arena2')
-	C:UNIT_AURA('UNIT_AURA', 'arena3')
-	C:UNIT_AURA('UNIT_AURA', 'arena4')
-	C:UNIT_AURA('UNIT_AURA', 'arena5')
+	ns:UNIT_AURA('UNIT_AURA', 'arena1')
+	ns:UNIT_AURA('UNIT_AURA', 'arena2')
+	ns:UNIT_AURA('UNIT_AURA', 'arena3')
+	ns:UNIT_AURA('UNIT_AURA', 'arena4')
+	ns:UNIT_AURA('UNIT_AURA', 'arena5')
 end
 
-function C:OnCombatEndReset()
+function ns:OnCombatEndReset()
 	
 	for tag, data in pairs(spelllist) do	
 		if data[11] == "DEBUFF" then
 		--	spelllist[tag] = nil			
 			print('OnCombatEndReset', tag)
-			C.Timer_Remove_By_Tag(tag)
+			ns.Timer_Remove_By_Tag(tag)
 		end	
 	end
 	
-	C:OnCustomUpdateAuras()
+	ns:OnCustomUpdateAuras()
 	
 	SortBars('OnCombatEndReset')
 end
@@ -1310,7 +1310,7 @@ do
 
 
 	local shortCache = {}
-	function C:getShort(text)
+	function ns:getShort(text)
 		
 		if not shortCache[text] then
 			local msg = ""
@@ -1354,7 +1354,7 @@ local function UpdateBarColor(self)
 
 	local opt = self.opts
 	
-	local cColor = data and C:GetColor(data[5], data[14]) or opt.bar.color
+	local cColor = data and ns:GetColor(data[5], data[14]) or opt.bar.color
 	
 	local r,g,b,a = cColor[1], cColor[2], cColor[3], cColor[4] or 1
 	
@@ -1368,7 +1368,7 @@ local function UpdateBarColor(self)
 	
 	self.fade_in_out_bg:SetColorTexture(r,g,b,0.7)
 		
-	if ( C.db.profile.back_bar_color ) then
+	if ( ns.db.profile.back_bar_color ) then
 		self.bar.bg2:SetVertexColor(r*0.8,g*0.8,b*0.8,opt.bar.bgcolor[4])
 	else
 		self.bar.bg2:SetVertexColor(opt.bar.bgcolor[1], opt.bar.bgcolor[2], opt.bar.bgcolor[3], opt.bar.bgcolor[4])
@@ -1378,20 +1378,20 @@ local function UpdateBarColor(self)
 	self.bar.pandemi:SetColorTexture(opt.pandemia_color[1], opt.pandemia_color[2],opt.pandemia_color[3],opt.pandemia_color[4])	
 end
 
-function C.BarTextUpdate(self)
+function ns.BarTextUpdate(self)
 	local data = self.tag and spelllist[self.tag] or nil
 	if not data then return end
 	local opt = self.opts
 	
 --	print(data[23])
 	if data[23] then
-		self.spellText:SetText(C.CustomTextCreate(self))
+		self.spellText:SetText(ns.CustomTextCreate(self))
 	elseif opt.target_name and data[11] ~= "BUFF" then
 		if opt.short then	
 			if opt.debug_info then
-				self.spellText:SetText(C:getShort(data[28]).." "..tostring(data[5] or "").." "..tostring(data[13] or "").." ".. data[14])
+				self.spellText:SetText(ns:getShort(data[28]).." "..tostring(data[5] or "").." "..tostring(data[13] or "").." ".. data[14])
 			else
-				self.spellText:SetText(C:getShort(data[28]))
+				self.spellText:SetText(ns:getShort(data[28]))
 			end
 		else
 			if opt.debug_info then
@@ -1403,9 +1403,9 @@ function C.BarTextUpdate(self)
 	else
 		if opt.short then
 			if opt.debug_info then
-				self.spellText:SetText(C:getShort(data[8]).." "..tostring(data[5] or "").." "..tostring(data[13] or "").." ".. data[14])
+				self.spellText:SetText(ns:getShort(data[8]).." "..tostring(data[5] or "").." "..tostring(data[13] or "").." ".. data[14])
 			else
-				self.spellText:SetText(C:getShort(data[8]))
+				self.spellText:SetText(ns:getShort(data[8]))
 			end
 		else
 			if opt.debug_info then
@@ -1432,7 +1432,7 @@ local function AddGUIDToList(guid)
 	end
 end
 
-function C.RemoveGUIDFromList(guid)	
+function ns.RemoveGUIDFromList(guid)	
 	if GUID_TimeInit[guid] then
 		local delete = true
 		for tag, data in pairs(spelllist) do
@@ -1455,20 +1455,20 @@ function C.RemoveGUIDFromList(guid)
 	end
 end
 	
-function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraType, func, raidIndex, spellName, icon, count, destName, sourceName, specialID, isPlayer, eventType)
-	if not C.db.profile.bar_module_enabled or not duration then return end
+function ns.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraType, func, raidIndex, spellName, icon, count, destName, sourceName, specialID, isPlayer, eventType)
+	if not ns.db.profile.bar_module_enabled or not duration then return end
 	if endTime and ( endTime ~= 0 and duration ~= 0 ) and (endTime < GetTime()) then 
 	--	print("T2", endTime-GetTime(), duration, spellName)	
 		return
 	end
 	
-	if C:GetTargetType(spellID) == 1 and destGuid ~= C.CurrentTarget then
+	if ns:GetTargetType(spellID) == 1 and destGuid ~= ns.CurrentTarget then
 		return false 
 	end
 
-	if destGuid == C.COOLDOWN_SPELL then
+	if destGuid == ns.COOLDOWN_SPELL then
 		return true
-	elseif not C:UnitFilter_GUID(destGuid) then
+	elseif not ns:UnitFilter_GUID(destGuid) then
 		return false 
 	end
 
@@ -1574,7 +1574,7 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 	-- [43] isPlayer
 	
 	if sorting and start then
-		if C:IsSingleDest(spellID) then
+		if ns:IsSingleDest(spellID) then
 			for tagst, datast in pairs(spelllist) do
 				if datast[4] == sourceGuid and datast[5] == spellID and datast[3] ~= destGuid then
 					spelllist[tagst] = nil
@@ -1595,16 +1595,16 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 --	data[6] = sourceUnit																
 	data[7] = auraID																	
 	data[8] = spellName																	
-	data[9] = C:GetCustomTextureBars(spellID) or icon																		
+	data[9] = ns:GetCustomTextureBars(spellID) or icon																		
 --	data[10] = destUnit																	
 	data[11] = auraType																	
 	data[12] = tag			
 	data[13] = NO_FADE																	
 	data[14] = func																		
---	data[15] = endTime + C.db.profile.delayfading_wait										
---	data[16] = data[15] + C.db.profile.delayfading_outanim									
+--	data[15] = endTime + ns.db.profile.delayfading_wait										
+--	data[16] = data[15] + ns.db.profile.delayfading_outanim									
 	data[17] = raidIndex																
-	data[18] = C:GetPriority(data[5])		
+	data[18] = ns:GetPriority(data[5])		
 	
 	if count and count < 200 then
 		data[19] = count																
@@ -1617,21 +1617,21 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 	
 	--[==[
 	if data[21] then
-		C:RegisterDotApply(destGuid, data[5])
+		ns:RegisterDotApply(destGuid, data[5])
 	end
 	]==]
 	--[==[
 	if data[21] and sorting then		
-		tick_every, amount_def, anount_ext = C:GetDotInfo(data[5], destGuid)
+		tick_every, amount_def, anount_ext = ns:GetDotInfo(data[5], destGuid)
 	end
 	]==]
 	
-	data[23] = C:GetCustomText(data[5])											
+	data[23] = ns:GetCustomText(data[5])											
 	
---	data[24], data[25], data[26] = C:GetCLEUSpellInfo(data[5])
+--	data[24], data[25], data[26] = ns:GetCLEUSpellInfo(data[5])
 
 
---	data[27] = C:GetDotTickEvery(data[3], data[5]) or tick_every	
+--	data[27] = ns:GetDotTickEvery(data[3], data[5]) or tick_every	
 		
 	data[28] = destName																	
 	data[29] = sourceName																
@@ -1640,7 +1640,7 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 		data[30] = nil
 	end
 	
-	data[31] = C:IsChanneling(data[5])											
+	data[31] = ns:IsChanneling(data[5])											
 	
 --	if data[21] and sorting then data[32] = amount_def end
 
@@ -1652,9 +1652,9 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 	
 	data[35] = GetTime()+0.5
 	
---	print('T1',  C.onUpdateHandler.active, destGuid, sourceGuid, spellName)
-	if C.onUpdateHandler.active and destGuid and ( destGuid ~= C.myGUID ) then
-		C.targetEngaged[destGuid] = GetTime()+C.db.profile.engageThrottle											
+--	print('T1',  ns.onUpdateHandler.active, destGuid, sourceGuid, spellName)
+	if ns.onUpdateHandler.active and destGuid and ( destGuid ~= ns.myGUID ) then
+		ns.targetEngaged[destGuid] = GetTime()+ns.db.profile.engageThrottle											
 	end
 	
 	data[36] = DO_FADE_NORMAL
@@ -1663,10 +1663,10 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 		data[37] = data[1]
 	end
 	
-	data[21] = C:GetShowTicks(data[5])	
+	data[21] = ns:GetShowTicks(data[5])	
 	
 	if init then
-		data[38], data[39] = C:GetDefaultDuraton(spellID)
+		data[38], data[39] = ns:GetDefaultDuraton(spellID)
 	
 		-- [1] duration
 		-- [2] endTime
@@ -1682,7 +1682,7 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 		--	data[24] = nil
 		--	data[25] = nil
 			data[32] = nil
-			C.UpdateTickEvery(data)
+			ns.UpdateTickEvery(data)
 		else
 		--	data[22] = nil
 		--	data[24] = nil
@@ -1694,15 +1694,15 @@ function C.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraT
 	end
 	
 	if start then
-		data[41] = C.db.profile.shine_on_apply
+		data[41] = ns.db.profile.shine_on_apply
 	end
 	
-	if sorting then SortBars('C.Timer:sorting:') end
+	if sorting then SortBars('ns.Timer:sorting:') end
 	
 	if start and not data[SOUND_INDEX] then OnTimerStart(tag) end
 end
 
-function C.Timer_DOSE(destGuid, sourceGuid, spellID, auraID, auraType, func, raidIndex, count)
+function ns.Timer_DOSE(destGuid, sourceGuid, spellID, auraID, auraType, func, raidIndex, count)
 	
 	local tag = GetSpellTag(destGuid,spellID,sourceGuid,auraType,auraID)--( destGuid or NO_GUID )..tostring(spellID)..( sourceGuid or NO_GUID )..auraType.."-"..auraID
 
@@ -1713,12 +1713,12 @@ function C.Timer_DOSE(destGuid, sourceGuid, spellID, auraID, auraType, func, rai
 	end
 end
 
-function C.Timer_Remove(destGuid, sourceGuid, spellID, auraID, auraType, instant, nored)
+function ns.Timer_Remove(destGuid, sourceGuid, spellID, auraID, auraType, instant, nored)
 	
 	local tag = GetSpellTag(destGuid,spellID,sourceGuid,auraType,auraID) --( destGuid or NO_GUID )..tostring(spellID)..( sourceGuid or NO_GUID )..auraType.."-"..auraID
 	local sorting = false
 	if spelllist[tag] then	
-		if C.db.profile.delayfading and not instant then
+		if ns.db.profile.delayfading and not instant then
 			local curtime = GetTime()
 			if spelllist[tag][13] == NO_FADE then
 				OnTimerEnd(tag)
@@ -1730,8 +1730,8 @@ function C.Timer_Remove(destGuid, sourceGuid, spellID, auraID, auraType, instant
 				
 				spelllist[tag][13] = DO_FADE
 	
-				spelllist[tag][15] = curtime + C.db.profile.delayfading_wait
-				spelllist[tag][16] = spelllist[tag][15]+ C.db.profile.delayfading_outanim
+				spelllist[tag][15] = curtime + ns.db.profile.delayfading_wait
+				spelllist[tag][16] = spelllist[tag][15]+ ns.db.profile.delayfading_outanim
 
 			end
 		else
@@ -1744,11 +1744,11 @@ function C.Timer_Remove(destGuid, sourceGuid, spellID, auraID, auraType, instant
 	if sorting then SortBars('Timer_Remove') end
 end
 
-function C.Timer_Remove_By_Tag(tag, instant)
+function ns.Timer_Remove_By_Tag(tag, instant)
 	
 	local sorting = false
 	if spelllist[tag] then	
-		if C.db.profile.delayfading and not instant then
+		if ns.db.profile.delayfading and not instant then
 			local curtime = GetTime()
 			if spelllist[tag][13] == NO_FADE then
 				OnTimerEnd(tag)
@@ -1760,8 +1760,8 @@ function C.Timer_Remove_By_Tag(tag, instant)
 				
 				spelllist[tag][13] = DO_FADE
 				
-				spelllist[tag][15] = curtime + C.db.profile.delayfading_wait
-				spelllist[tag][16] = spelllist[tag][15]+ C.db.profile.delayfading_outanim
+				spelllist[tag][15] = curtime + ns.db.profile.delayfading_wait
+				spelllist[tag][16] = spelllist[tag][15]+ ns.db.profile.delayfading_outanim
 			end
 		else
 			OnTimerEnd(tag)
@@ -1773,13 +1773,13 @@ function C.Timer_Remove_By_Tag(tag, instant)
 	if sorting then SortBars('Timer_Remove_By_Tag') end
 end
 
-function C.Timer_Remove_DEAD(destGUID, dored)
+function ns.Timer_Remove_DEAD(destGUID, dored)
 	local sorting = false
 	
 	for tag, data in pairs(spelllist) do
 		if data[3] == destGUID then
 			if data then	
-				if C.db.profile.delayfading then			
+				if ns.db.profile.delayfading then			
 					if data[13] == NO_FADE then
 						OnTimerEnd(tag)
 						if data[2] > GetTime()+0.2 and not dored then
@@ -1790,8 +1790,8 @@ function C.Timer_Remove_DEAD(destGUID, dored)
 						
 						data[13] = DO_FADE
 				
-						data[15] = GetTime() + C.db.profile.delayfading_wait
-						data[16] = data[15]+ C.db.profile.delayfading_outanim
+						data[15] = GetTime() + ns.db.profile.delayfading_wait
+						data[16] = data[15]+ ns.db.profile.delayfading_outanim
 					end
 				else
 					OnTimerEnd(tag)
@@ -1805,7 +1805,7 @@ function C.Timer_Remove_DEAD(destGUID, dored)
 	if sorting then SortBars('Timer_Remove_DEAD') end
 end
 
-function C.RemoveGUID_UA(guid, auraType, func, curtime)
+function ns.RemoveGUID_UA(guid, auraType, func, curtime)
 	local sorting = false
 	
 	
@@ -1814,7 +1814,7 @@ function C.RemoveGUID_UA(guid, auraType, func, curtime)
 	--	print("Remove UA", data[8], data[13], NO_FADE)
 	
 		if data[3] == guid and ( data[11] == 'DEBUFF' or data[11] == 'BUFF' ) and data[14] == func and data[35] < curtime then --and data[11] == auraType
-			if C.db.profile.delayfading then
+			if ns.db.profile.delayfading then
 				if data[13] == NO_FADE then
 					if data[1] == 0 and data[2] == 0 then
 						data[13] = DO_FADE_UNLIMIT
@@ -1827,8 +1827,8 @@ function C.RemoveGUID_UA(guid, auraType, func, curtime)
 					end
 	
 					
-					data[15] = curtime + C.db.profile.delayfading_wait
-					data[16] = data[15]+ C.db.profile.delayfading_outanim
+					data[15] = curtime + ns.db.profile.delayfading_wait
+					data[16] = data[15]+ ns.db.profile.delayfading_outanim
 					
 					
 					OnTimerEnd(tag) 
@@ -1847,7 +1847,7 @@ function C.RemoveGUID_UA(guid, auraType, func, curtime)
 end
 
 
-function C.SetCount(self, count, source)
+function ns.SetCount(self, count, source)
 	local data = self.tag and spelllist[self.tag] or nil
 	if not data then 
 		self.icon.stacktext:SetText('')
@@ -1856,7 +1856,7 @@ function C.SetCount(self, count, source)
 	end
 		
 	if count then
-		data[19] = C:GetCheckStacks(data[5]) or count or 0
+		data[19] = ns:GetCheckStacks(data[5]) or count or 0
 		
 	--	old_print('SetCount:0', 'data[19]=', data[19], 'count=', count)
 	--	self.lastCount = count
@@ -1865,7 +1865,7 @@ function C.SetCount(self, count, source)
 	
 	--old_print('SetCount:1', 'count=',count, 'source=', source, 'data[21]=',data[21], 'data[22]=', data[22], 'data[19]=', data[19])
 
-	if data[21] and C.db.profile.tick_count_on_stacks then
+	if data[21] and ns.db.profile.tick_count_on_stacks then
 		if data[22] then
 			self.icon.stacktext:SetText(data[22])
 			self.icon2.stacktext:SetText(data[22])
@@ -1879,15 +1879,15 @@ function C.SetCount(self, count, source)
 	end
 end
 
-function C.UpdateTickEvery(data)
+function ns.UpdateTickEvery(data)
 	if not data[32] or data[32] < GetTime() then
 	
 		local prev27 = data[27]
 		
-		data[27] = C:GetTicksEvery(data[5])
+		data[27] = ns:GetTicksEvery(data[5])
 				
 		if data[27] and data[27] > 0 then
-			data[22] = C.Round(data[1]/data[27])
+			data[22] = ns.Round(data[1]/data[27])
 		end
 		
 		data[32] = GetTime()+data[27]
@@ -1920,9 +1920,9 @@ do
 	
 	]]
 
-	function C.SetMark(self, mark)
+	function ns.SetMark(self, mark)
 	
-		if ( mark and mark > 0 and mark < 9 ) and C.db.profile.show_mark then
+		if ( mark and mark > 0 and mark < 9 ) and ns.db.profile.show_mark then
 			if self.raidMark:IsShown() then
 				self.raidMark:SetTexCoord(raidIndexCoord[mark][1],raidIndexCoord[mark][2],raidIndexCoord[mark][3],raidIndexCoord[mark][4])
 			else
@@ -1937,7 +1937,7 @@ end
 		
 do
 	
-	function C:updateSortings()
+	function ns:updateSortings()
 		SortBars('updateSortings')
 	end
 	
@@ -1953,7 +1953,7 @@ do
 		end
 	end
 	
-	function C:UpdateLabelStyle()
+	function ns:UpdateLabelStyle()
 		
 		for i=1, #labels do
 			
@@ -1961,11 +1961,11 @@ do
 			
 			if opt then
 				labels[i].text:SetJustifyH(opt.group_font_style.justify)
-				labels[i].text:SetFont(C.LSM:Fetch("font",opt.group_font_style.font), opt.group_font_style.size, opt.group_font_style.flags)	
+				labels[i].text:SetFont(ns.LSM:Fetch("font",opt.group_font_style.font), opt.group_font_style.size, opt.group_font_style.flags)	
 				labels[i].text:SetShadowColor(opt.group_font_style.shadow[1],opt.group_font_style.shadow[2],opt.group_font_style.shadow[3],opt.group_font_style.shadow[4])
 				labels[i].text:SetShadowOffset(opt.group_font_style.offset[1],opt.group_font_style.offset[2])
 				
-				C.UpdateIconTextPostition(labels[i]:GetParent())
+				ns.UpdateIconTextPostition(labels[i]:GetParent())
 				
 			end
 		end
@@ -2044,7 +2044,7 @@ do
 	
 
 		
-	function C:NewUpdateLabels()
+	function ns:NewUpdateLabels()
 	
 		for i=1, #labels do	
 			if not labels[i].free and #labels[i]._bars > 0 then
@@ -2080,7 +2080,7 @@ do
 		ft:SetJustifyV("CENTER")
 		
 		ft:SetJustifyH(opt.group_font_style.justify)
-		ft:SetFont( C.LSM:Fetch("font",opt.group_font_style.font), opt.group_font_style.size, opt.group_font_style.flags)	
+		ft:SetFont( ns.LSM:Fetch("font",opt.group_font_style.font), opt.group_font_style.size, opt.group_font_style.flags)	
 		ft:SetShadowColor(opt.group_font_style.shadow[1],opt.group_font_style.shadow[2],opt.group_font_style.shadow[3],opt.group_font_style.shadow[4])
 		ft:SetShadowOffset(opt.group_font_style.offset[1],opt.group_font_style.offset[2])
 	
@@ -2124,11 +2124,11 @@ do
 		if curparent then
 
 			f.text:SetJustifyH(opt.group_font_style.justify)
-			f.text:SetFont(C.LSM:Fetch("font",opt.group_font_style.font), opt.group_font_style.size, opt.group_font_style.flags)	
+			f.text:SetFont(ns.LSM:Fetch("font",opt.group_font_style.font), opt.group_font_style.size, opt.group_font_style.flags)	
 			f.text:SetShadowColor(opt.group_font_style.shadow[1],opt.group_font_style.shadow[2],opt.group_font_style.shadow[3],opt.group_font_style.shadow[4])
 			f.text:SetShadowOffset(opt.group_font_style.offset[1],opt.group_font_style.offset[2])
 			
-			C.UpdateIconTextPostition(parent)
+			ns.UpdateIconTextPostition(parent)
 		end
 		
 		f:SetSize(f.w, 1)
@@ -2251,7 +2251,7 @@ do
 		end,
 	}
 
-	function C:UpdateFormatTexts(anchor)
+	function ns:UpdateFormatTexts(anchor)
 		for k,v in pairs(anchors) do
 			
 			if v.id == anchor then
@@ -2277,13 +2277,13 @@ do
 			return false
 		end
 
-		if C:GetTargetType(spelllist[tag][5]) == 1 and spelllist[tag][3] ~= C.CurrentTarget then
+		if ns:GetTargetType(spelllist[tag][5]) == 1 and spelllist[tag][3] ~= ns.CurrentTarget then
 			return false 
 		end
 	
-		if spelllist[tag][3] == C.COOLDOWN_SPELL then
+		if spelllist[tag][3] == ns.COOLDOWN_SPELL then
 			return true
-		elseif not C:UnitFilter_GUID(spelllist[tag][3]) then
+		elseif not ns:UnitFilter_GUID(spelllist[tag][3]) then
 			return false 
 		end
 	
@@ -2307,7 +2307,7 @@ do
 	end)
 
 	local function GetAnchor(spellid, destGUID, auraType, func)
-		local group = C:GetGroup(spellid)
+		local group = ns:GetGroup(spellid)
 		
 		if func == "TEST_BAR" then
 			local anchor = tonumber(match(auraType, "TEST_BAR(%d+)")) or 1
@@ -2320,32 +2320,32 @@ do
 				return anchor, "offtargets"
 			end			
 		elseif group then
-			return C:GetAnchor(spellid, destGUID), group
+			return ns:GetAnchor(spellid, destGUID), group
 		elseif func == COOLDOWN_SPELL then
-			return C:GetAnchor(spellid, COOLDOWN_SPELL), "cooldowns"
-		elseif destGUID == C.myGUID then
-			return C:GetAnchor(spellid, destGUID), "player"
-		elseif C.db.profile.doswap then
-			if destGUID == C.CurrentTarget or func == CHANNEL_SPELL or destGUID == UnitGUID("target") then
-				return C:GetAnchor(spellid, destGUID), "target", C:GetUnitAlwaysShowAnchor(spellid, destGUID)
+			return ns:GetAnchor(spellid, COOLDOWN_SPELL), "cooldowns"
+		elseif destGUID == ns.myGUID then
+			return ns:GetAnchor(spellid, destGUID), "player"
+		elseif ns.db.profile.doswap then
+			if destGUID == ns.CurrentTarget or func == CHANNEL_SPELL or destGUID == UnitGUID("target") then
+				return ns:GetAnchor(spellid, destGUID), "target", ns:GetUnitAlwaysShowAnchor(spellid, destGUID)
 			else
-				return C:GetOffAnchor(spellid, destGUID), "offtargets", C:GetUnitAlwaysShowAnchor(spellid, destGUID)
+				return ns:GetOffAnchor(spellid, destGUID), "offtargets", ns:GetUnitAlwaysShowAnchor(spellid, destGUID)
 			end
 		elseif destGUID == nil then
 			if auraType == "BUFF" then
-				return C:GetOffAnchor(spellid, destGUID), "player"
+				return ns:GetOffAnchor(spellid, destGUID), "player"
 			else
-				return C:GetOffAnchor(spellid, destGUID), "target"
+				return ns:GetOffAnchor(spellid, destGUID), "target"
 			end
 		end
 		
-		if destGUID == C.CurrentTarget or func == CHANNEL_SPELL or destGUID == UnitGUID("target") then
-			return C:GetAnchor(spellid, destGUID), "offtargets", C:GetUnitAlwaysShowAnchor(spellid, destGUID)
+		if destGUID == ns.CurrentTarget or func == CHANNEL_SPELL or destGUID == UnitGUID("target") then
+			return ns:GetAnchor(spellid, destGUID), "offtargets", ns:GetUnitAlwaysShowAnchor(spellid, destGUID)
 		else
-			return C:GetOffAnchor(spellid, destGUID), "offtargets", C:GetUnitAlwaysShowAnchor(spellid, destGUID)
+			return ns:GetOffAnchor(spellid, destGUID), "offtargets", ns:GetUnitAlwaysShowAnchor(spellid, destGUID)
 		end
 			
-	--	return C:GetOffAnchor(spellid, destGUID), "offtargets", C:GetUnitAlwaysShowAnchor(spellid, destGUID)
+	--	return ns:GetOffAnchor(spellid, destGUID), "offtargets", ns:GetUnitAlwaysShowAnchor(spellid, destGUID)
 	end
 	
 	local raidIdToString = {
@@ -2359,7 +2359,7 @@ do
 		"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:11:11:0:-5|t",
 	}
 
-	function C.UpdateIconTextPostition(parent)
+	function ns.UpdateIconTextPostition(parent)
 		local opts = parent.opts
 		local size = opts.group_font_style.size
 
@@ -2401,7 +2401,7 @@ do
 			
 			text = gsub(text,"%%target", datas[28] or datas[29])
 			text = gsub(text,"%%id", indexs or 1)
-			text = gsub(text,"%%player", C.myNAME)
+			text = gsub(text,"%%player", ns.myNAME)
 			text = gsub(text,"%%mark",  datas[17] and raidIdToString[datas[17]] or "")
 			
 			return text
@@ -2536,10 +2536,10 @@ do
 							
 							if not prev or not label then
 								indexes = indexes + 1
-								label = GetGUIDBarBG(anchor, ( label or anchor ), GetGroupHeaderName(anchor,datas[1], group_name, indexes), group_gap, ( guid == C.CurrentTarget and "target" ) or ( guid == C.FocusTarget and "focus" ))						
+								label = GetGUIDBarBG(anchor, ( label or anchor ), GetGroupHeaderName(anchor,datas[1], group_name, indexes), group_gap, ( guid == ns.CurrentTarget and "target" ) or ( guid == ns.FocusTarget and "focus" ))						
 							elseif prev ~= guid then
 								indexes = indexes + 1
-								label = GetGUIDBarBG(anchor, ( label or anchor ), GetGroupHeaderName(anchor,datas[1], group_name, indexes), group_gap, ( guid == C.CurrentTarget and "target" ) or ( guid == C.FocusTarget and "focus" ))
+								label = GetGUIDBarBG(anchor, ( label or anchor ), GetGroupHeaderName(anchor,datas[1], group_name, indexes), group_gap, ( guid == ns.CurrentTarget and "target" ) or ( guid == ns.FocusTarget and "focus" ))
 							end
 					
 							for f=1, #datas do
@@ -2547,7 +2547,7 @@ do
 								
 								anchor.index = anchor.index + 1
 								
-								UpdateBar(anchor, label, f, datas[f], ( ( not C.db.profile.doswap and ( datas[f][3] == C.CurrentTarget or datas[f][3] == UnitGUID("target")) and 1 or group_alpha) ))
+								UpdateBar(anchor, label, f, datas[f], ( ( not ns.db.profile.doswap and ( datas[f][3] == ns.CurrentTarget or datas[f][3] == UnitGUID("target")) and 1 or group_alpha) ))
 
 								prev = guid
 							end
@@ -2616,8 +2616,8 @@ do
 		end
 		]==]
 
-		if not C.newOnUpdate:IsShown() then
-			C.newOnUpdate:Show()
+		if not ns.newOnUpdate:IsShown() then
+			ns.newOnUpdate:Show()
 		end
 	end
 	--[==[
@@ -2678,14 +2678,14 @@ do
 			UpdateAnchor(i)
 		end
 	
-		C:NewUpdateLabels()
+		ns:NewUpdateLabels()
 	end
 
-	C.SortBars = SortBars
+	ns.SortBars = SortBars
 end
 
-function C.UpdateBarSize(self)	
-	local opt = C.db.profile.bars_anchors[self.parent.id]
+function ns.UpdateBarSize(self)	
+	local opt = ns.db.profile.bars_anchors[self.parent.id]
 	self.opts = opt
 	
 --	print("T", opt.w, self.parent.id)
@@ -2694,7 +2694,7 @@ function C.UpdateBarSize(self)
 	self.bar.overlay2:SetHeight(opt.h)
 	
 	self.bar:SetReverseFill(opt.reverse_fill)
-	self.bar:SetStatusBarTexture(C.LSM:Fetch("statusbar", opt.bar.texture))
+	self.bar:SetStatusBarTexture(ns.LSM:Fetch("statusbar", opt.bar.texture))
 	self.bar:SetStatusBarColor(unpack(opt.bar.color))
 
 	self.bar:ClearAllPoints()
@@ -2731,8 +2731,8 @@ function C.UpdateBarSize(self)
 	self.parent.mover:SetSize(opt.w, opt.h)
 end
 
-function C.UpdateIcons(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateIcons(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 	
 	if opt.left_icon then f.icon:Show()
@@ -2767,12 +2767,12 @@ function C.UpdateIcons(f)
 	
 	f.parent.mover:SetSize(opt.w, opt.h)
 end
-function C.UpdateStackText(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateStackText(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 
 	f.icon.stacktext:SetTextColor(unpack(opt.stack.textcolor))
-	f.icon.stacktext:SetFont(C.LSM:Fetch("font",opt.stack.font),opt.stack.size,opt.stack.flags)
+	f.icon.stacktext:SetFont(ns.LSM:Fetch("font",opt.stack.font),opt.stack.size,opt.stack.flags)
 	f.icon.stacktext:SetJustifyH(opt.stack.justify)
 	f.icon.stacktext:SetAlpha(opt.stack.alpha or 1)
 	f.icon.stacktext:SetShadowColor(unpack(opt.stack.shadow or { 0, 0, 0, 1 }))
@@ -2780,7 +2780,7 @@ function C.UpdateStackText(f)
 	
 
 	f.icon2.stacktext:SetTextColor(unpack(opt.stack.textcolor))
-	f.icon2.stacktext:SetFont(C.LSM:Fetch("font",opt.stack.font),opt.stack.size,opt.stack.flags)
+	f.icon2.stacktext:SetFont(ns.LSM:Fetch("font",opt.stack.font),opt.stack.size,opt.stack.flags)
 	f.icon2.stacktext:SetJustifyH(opt.stack.justify)
 	f.icon2.stacktext:SetAlpha(opt.stack.alpha or 1)
 	f.icon2.stacktext:SetShadowColor(unpack(opt.stack.shadow or { 0, 0, 0, 1 }))
@@ -2801,12 +2801,12 @@ function C.UpdateStackText(f)
 	end
 end
 
-function C.UpdateTimeText(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateTimeText(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 
 	f.timeText:SetTextColor(unpack(opt.timer.textcolor))
-    f.timeText:SetFont(C.LSM:Fetch("font",opt.timer.font), opt.timer.size, opt.timer.flags)
+    f.timeText:SetFont(ns.LSM:Fetch("font",opt.timer.font), opt.timer.size, opt.timer.flags)
     f.timeText:SetJustifyH(opt.timer.justify)
     f.timeText:SetAlpha(opt.timer.alpha or 1)
 	
@@ -2829,14 +2829,14 @@ function C.UpdateTimeText(f)
 	
   --  f.timeText:SetVertexColor(unpack(opt.timer.vertexcolor))
 end
-function C.UpdateSpellText(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateSpellText(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 
 	f.spellText:SetDrawLayer("ARTWORK")
 
 	f.spellText:SetTextColor(unpack(opt.spell.textcolor))
-    f.spellText:SetFont(C.LSM:Fetch("font",opt.spell.font),opt.spell.size,opt.spell.flags)
+    f.spellText:SetFont(ns.LSM:Fetch("font",opt.spell.font),opt.spell.size,opt.spell.flags)
 --    f.spellText:SetWidth(f.bar:GetWidth()*0.8)
  --   f.spellText:SetHeight(opt.h/2+1)
 	f.spellText:SetWordWrap(false)
@@ -2880,8 +2880,8 @@ function C.UpdateSpellText(f)
 	
 	
 end
-function C.UpdateTick_Color(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateTick_Color(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 	
 	if opt.dotticks and opt.dotticks.color and f.tiks then
@@ -2899,8 +2899,8 @@ function C.UpdateTick_Color(f)
 	end
 	
 end
-function C.UpdateSpark_Color(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateSpark_Color(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 	
 	f.bar.spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
@@ -2931,8 +2931,8 @@ function C.UpdateSpark_Color(f)
 	
 -- 	f.bar.shine:SetVertexColor(opt.castspark.color[1],opt.castspark.color[2],opt.castspark.color[3],opt.castspark.color[4])
 end
-function C.UpdateRaidIcon(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateRaidIcon(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 	
 	local _left, _right = 0, 0
@@ -2950,8 +2950,8 @@ function C.UpdateRaidIcon(f)
 	f.raidMark:SetAlpha(opt.raidicon_alpha or 1)
 
 end
-function C.UpdateBorder(f)
-	local opt = C.db.profile.bars_anchors[f.parent.id]
+function ns.UpdateBorder(f)
+	local opt = ns.db.profile.bars_anchors[f.parent.id]
 	f.opts = opt
 
 	f.icon:SetPoint("TOPRIGHT",f.bar,"TOPLEFT",-opt.icon_gap, 0)
@@ -2961,7 +2961,7 @@ function C.UpdateBorder(f)
 	f.icon.bg:SetPoint("BOTTOMRIGHT", opt.borderinset, -opt.borderinset)
 	
 	f.icon.bg:SetBackdrop({
-		edgeFile = C.LSM:Fetch("border", opt.border),
+		edgeFile = ns.LSM:Fetch("border", opt.border),
 		edgeSize = opt.bordersize,
 	})
 	f.icon.bg:SetBackdropBorderColor(opt.bordercolor[1], opt.bordercolor[2], opt.bordercolor[3], opt.bordercolor[4])
@@ -2972,7 +2972,7 @@ function C.UpdateBorder(f)
 	f.icon2.bg:SetPoint("BOTTOMRIGHT", opt.borderinset, -opt.borderinset)
 
 	f.icon2.bg:SetBackdrop({
-		edgeFile = C.LSM:Fetch("border", opt.border),
+		edgeFile = ns.LSM:Fetch("border", opt.border),
 		edgeSize = opt.bordersize,
 	})
 	f.icon2.bg:SetBackdropBorderColor(opt.bordercolor[1], opt.bordercolor[2], opt.bordercolor[3], opt.bordercolor[4])
@@ -2981,12 +2981,12 @@ function C.UpdateBorder(f)
 	f.bar.bg:SetPoint("TOPLEFT", f.bar, -opt.borderinset, opt.borderinset)
 	f.bar.bg:SetPoint("BOTTOMRIGHT", f.bar, opt.borderinset, -opt.borderinset)
 	f.bar.bg:SetBackdrop({
-			edgeFile = C.LSM:Fetch("border", opt.border),
+			edgeFile = ns.LSM:Fetch("border", opt.border),
 			edgeSize = opt.bordersize,
 		})
 	f.bar.bg:SetBackdropBorderColor(opt.bordercolor[1], opt.bordercolor[2], opt.bordercolor[3], opt.bordercolor[4])
 	
-	f.bar.bg2:SetTexture(C.LSM:Fetch("statusbar", opt.bar.bgtexture))
+	f.bar.bg2:SetTexture(ns.LSM:Fetch("statusbar", opt.bar.bgtexture))
 	f.bar.bg2:SetVertexColor(unpack(opt.bar.bgcolor))
 end
 
@@ -3058,7 +3058,7 @@ do
 		return f
 	end
 
-	function C.OnValueChanged(self, value)
+	function ns.OnValueChanged(self, value)
 		local data 				= self.data --self.tag and spelllist[self.tag] or nil
 		local opt 				= self.opts
 		
@@ -3079,8 +3079,8 @@ do
 		self.prevValue = value
 		
 		local current_position 	= getbarcurrentpos(self.bar, value)	
-		local tickOverlap 		= C:TickOverlap(data[5]) 
-		local castTime 			= C:GetCastTime(data[5]) or 0
+		local tickOverlap 		= ns:TickOverlap(data[5]) 
+		local castTime 			= ns:GetCastTime(data[5]) or 0
 		local overlaytime 		= castTime or 0
 		
 		local min1, max1 		= self.bar:GetMinMaxValues()
@@ -3101,13 +3101,13 @@ do
 			self.bar.spark:Show()
 		end
 
-		if C:IsPandemiaSpell(data[5]) and C.db.profile.show_pandemia_bp then
+		if ns:IsPandemiaSpell(data[5]) and ns.db.profile.show_pandemia_bp then
 			
 			local pandemiapoint = getbarpos(self.bar, ( max1 < data[38]*0.3 and max1 or data[38]*0.3 ))
 		
 			self.bar.pandemi:ClearAllPoints()
 			
-			if C.db.profile.pandemia_bp_style == 1 then
+			if ns.db.profile.pandemia_bp_style == 1 then
 				self.bar.pandemi:SetWidth(2)
 				if opt.reverse_fill then
 					self.bar.pandemi:SetPoint("TOPLEFT",self.bar,"TOPLEFT", -pandemiapoint+width, 0)
@@ -3116,7 +3116,7 @@ do
 					self.bar.pandemi:SetPoint("TOPLEFT",self.bar,"TOPLEFT", pandemiapoint, 0)
 					self.bar.pandemi:SetPoint("BOTTOMLEFT",self.bar,"BOTTOMLEFT", pandemiapoint, 0)
 				end		
-			elseif C.db.profile.pandemia_bp_style == 2 then
+			elseif ns.db.profile.pandemia_bp_style == 2 then
 			
 				if opt.reverse_fill then
 				
@@ -3191,13 +3191,13 @@ do
 			
 			-- 21 show ticks
 	
-		C.UpdateTickEvery(data)
+		ns.UpdateTickEvery(data)
 		
 		if data[27] and data[27] > 0 then
 			data[22] = floor(value/data[27])+1
 		end
 			
-		if not C.db.profile.hide_dot_ticks and data[27] and data[27] > 0 then
+		if not ns.db.profile.hide_dot_ticks and data[27] and data[27] > 0 then
 			local numTicks = Round( ( ( data[1] < max1 ) and data[1] or max1 )/data[27]) -- first and last shoud be skipped
 			local lowertick = -1
 			
@@ -3229,7 +3229,7 @@ do
 						self.tiks[i]:Hide()
 					end
 					
-					if C.db.profile.showonlynext then
+					if ns.db.profile.showonlynext then
 						if current_position <= self.tiks[i].tickPosition then
 							if lowertick < i then lowertick = i	end
 							--[==[
@@ -3245,7 +3245,7 @@ do
 								self.tiks[i]:Hide()
 							end
 						end
-					elseif C.db.profile.ticksfade then
+					elseif ns.db.profile.ticksfade then
 						if current_position <= self.tiks[i].tickPosition then		
 							--[==[
 							if self.tiks[i].shine and not ignoreValue then
@@ -3288,7 +3288,7 @@ do
 						end
 					end
 					
-					if C.db.profile.showonlynext and lowertick > 0 and self.tiks[lowertick+1] then
+					if ns.db.profile.showonlynext and lowertick > 0 and self.tiks[lowertick+1] then
 						if not self.tiks[lowertick+1]:IsShown() then
 							self.tiks[lowertick+1]:Show()
 						end
@@ -3308,7 +3308,7 @@ do
 end
 
 
-function C.UpdateStyle(self)	
+function ns.UpdateStyle(self)	
 	self:UpdateBorder()
 	self:UpdateRaidIcon()
 	self:UpdateTick_Color()
@@ -3343,7 +3343,7 @@ end
 local function FadeOut(self, gettime)
 	local data = self.data --self.tag and spelllist[self.tag] or nil
 	
-	local a = (data[16]-gettime)/C.db.profile.delayfading_outanim
+	local a = (data[16]-gettime)/ns.db.profile.delayfading_outanim
 	
 	if a > 1 then
 		a = 1
@@ -3427,12 +3427,12 @@ local function Update(self, gettime, maxTime)
 	
 --	if not self._maxvalue then self._maxvalue = data[1] end
 	
-	if C.db.profile.adapttoonemax then
-		if C.db.profile.bar_smooth then		
-			if C.db.profile.maximumtime then	
+	if ns.db.profile.adapttoonemax then
+		if ns.db.profile.bar_smooth then		
+			if ns.db.profile.maximumtime then	
 
-				if data[25][self.parent.id] ~= ( C.db.profile.maximumtime_value or  data[1] ) then
-					data[25][self.parent.id] = ( C.db.profile.maximumtime_value or  data[1] ) 
+				if data[25][self.parent.id] ~= ( ns.db.profile.maximumtime_value or  data[1] ) then
+					data[25][self.parent.id] = ( ns.db.profile.maximumtime_value or  data[1] ) 
 				end
 			else
 				if data[25][self.parent.id] ~= self.parent._maxmax then
@@ -3440,31 +3440,31 @@ local function Update(self, gettime, maxTime)
 				end
 			end
 			
-			data[37] = data[37] + (val-data[37])/C.db.profile.bar_smooth_value_v2*0.5
+			data[37] = data[37] + (val-data[37])/ns.db.profile.bar_smooth_value_v2*0.5
 			
-			data[26][self.parent.id] = data[26][self.parent.id] + (data[25][self.parent.id]-data[26][self.parent.id])/C.db.profile.bar_smooth_value_v2		
-		--	data[26][self.parent.id] = GetNextValue(data[26][self.parent.id], data[25][self.parent.id]-data[26][self.parent.id])/C.db.profile.bar_smooth_value_v2
+			data[26][self.parent.id] = data[26][self.parent.id] + (data[25][self.parent.id]-data[26][self.parent.id])/ns.db.profile.bar_smooth_value_v2		
+		--	data[26][self.parent.id] = GetNextValue(data[26][self.parent.id], data[25][self.parent.id]-data[26][self.parent.id])/ns.db.profile.bar_smooth_value_v2
 		else
 			data[37] = val		
-			data[26][self.parent.id] = C.db.profile.maximumtime and C.db.profile.maximumtime_value or data[1]
+			data[26][self.parent.id] = ns.db.profile.maximumtime and ns.db.profile.maximumtime_value or data[1]
 		end
 	else
-		if C.db.profile.bar_smooth then
-			data[37] = data[37] + (val-data[37])/C.db.profile.bar_smooth_value_v2*0.5
+		if ns.db.profile.bar_smooth then
+			data[37] = data[37] + (val-data[37])/ns.db.profile.bar_smooth_value_v2*0.5
 			
-			if C.db.profile.maximumtime then
-				if data[25][self.parent.id] ~= ( C.db.profile.maximumtime_value or  data[1] ) then
-					data[25][self.parent.id] = ( C.db.profile.maximumtime_value or  data[1] ) 
+			if ns.db.profile.maximumtime then
+				if data[25][self.parent.id] ~= ( ns.db.profile.maximumtime_value or  data[1] ) then
+					data[25][self.parent.id] = ( ns.db.profile.maximumtime_value or  data[1] ) 
 				end
 			end
 			
-			data[26][self.parent.id] = data[26][self.parent.id] + (data[25][self.parent.id]-data[26][self.parent.id])/C.db.profile.bar_smooth_value_v2
-		--	data[26][self.parent.id] = GetNextValue(data[26][self.parent.id], data[25][self.parent.id]-data[26][self.parent.id])/C.db.profile.bar_smooth_value_v2
+			data[26][self.parent.id] = data[26][self.parent.id] + (data[25][self.parent.id]-data[26][self.parent.id])/ns.db.profile.bar_smooth_value_v2
+		--	data[26][self.parent.id] = GetNextValue(data[26][self.parent.id], data[25][self.parent.id]-data[26][self.parent.id])/ns.db.profile.bar_smooth_value_v2
 			
-		--	data[25][self.parent.id] = C.db.profile.maximumtime and C.db.profile.maximumtime_value or data[1]
+		--	data[25][self.parent.id] = ns.db.profile.maximumtime and ns.db.profile.maximumtime_value or data[1]
 		else
 			data[37] = val
-			data[26][self.parent.id] = C.db.profile.maximumtime and C.db.profile.maximumtime_value or data[1]
+			data[26][self.parent.id] = ns.db.profile.maximumtime and ns.db.profile.maximumtime_value or data[1]
 		end
 	end
 	
@@ -3485,11 +3485,11 @@ local function Update(self, gettime, maxTime)
 	--	print('T2', val, data[37], data[1])
 		
 		self.bar:SetValue(data[37])
-		self.timeText:SetFormattedText(C.FormatTime((self.opts.fortam_s or 1), data[37], data[1]))
+		self.timeText:SetFormattedText(ns.FormatTime((self.opts.fortam_s or 1), data[37], data[1]))
 		self:UpdateBarOverlays(data[37])
 	else
 		self.bar:SetValue(data[37])
-		self.timeText:SetFormattedText(C.FormatTime((self.opts.fortam_s or 1), 0.00, data[1]))
+		self.timeText:SetFormattedText(ns.FormatTime((self.opts.fortam_s or 1), 0.00, data[1]))
 		self:UpdateBarOverlays(0.00)
 	end
 
@@ -3502,16 +3502,16 @@ local function Update(self, gettime, maxTime)
 	end
 	
 	if data[1] ~= 0 and data[2] ~= 0 and data[2] < gettime then			
-		if C.db.profile.delayfading then
+		if ns.db.profile.delayfading then
 			if data[13] == NO_FADE then
 				data[13] = DO_FADE
-				data[15] = gettime + C.db.profile.delayfading_wait										
-				data[16] = data[15] + C.db.profile.delayfading_outanim	
+				data[15] = gettime + ns.db.profile.delayfading_wait										
+				data[16] = data[15] + ns.db.profile.delayfading_outanim	
 				
 				if spelllist[self.tag] then
 					spelllist[self.tag][13] = DO_FADE
-					spelllist[self.tag][15] = gettime + C.db.profile.delayfading_wait	
-					spelllist[self.tag][16]	= spelllist[self.tag][16] + C.db.profile.delayfading_outanim	
+					spelllist[self.tag][15] = gettime + ns.db.profile.delayfading_wait	
+					spelllist[self.tag][16]	= spelllist[self.tag][16] + ns.db.profile.delayfading_outanim	
 				end
 				
 				OnTimerEnd(self.tag)
@@ -3528,7 +3528,7 @@ local function Update(self, gettime, maxTime)
 end
 
 local function Fading(self, gettime)
-	if not C.db.profile.delayfading then 
+	if not ns.db.profile.delayfading then 
 		self:Restore()
 		return 
 	end
@@ -3539,7 +3539,7 @@ local function Fading(self, gettime)
 	if data[36] == DO_FADE_RED then
 		self.bar:SetStatusBarColor(1, 0, 64/255, 1)
 	else
-		local cColor = C:GetColor(data[5], data[14]) or self.opts.bar.color
+		local cColor = ns:GetColor(data[5], data[14]) or self.opts.bar.color
 		
 		self.bar:SetStatusBarColor(cColor[1],cColor[2],cColor[3],cColor[4] or 1)
 	end
@@ -3563,7 +3563,7 @@ local function Fading(self, gettime)
 end
 
 local function bgFade(self, gettime)	
-	if not C.db.profile.background_fading then return end
+	if not ns.db.profile.background_fading then return end
 	local data = self.data --self.tag and spelllist[self.tag] or nil	
 --	if not data then return end
 	
@@ -3599,10 +3599,10 @@ local function OnUpdateText(self, elapsed, gettime)
 
 	if self.__elapsed > 0.1 then
 		self.__elapsed = 0
-		self:SetCount(nil, 'C')
+		self:SetCount(nil, 'ns')
 		
 		if data[23] then
-			self.spellText:SetText(C.CustomTextCreate(self))
+			self.spellText:SetText(ns.CustomTextCreate(self))
 		end
 	end
 end
@@ -3653,16 +3653,16 @@ do
 			return
 		end
 		
-		if updlbl then C:NewUpdateLabels() end
+		if updlbl then ns:NewUpdateLabels() end
 	end
 
 	newOnUpdate:SetScript("OnUpdate", newOnUpdateHandler)
 
-	C.newOnUpdate = newOnUpdate
-	C.newOnUpdate.handler = newOnUpdateHandler
+	ns.newOnUpdate = newOnUpdate
+	ns.newOnUpdate.handler = newOnUpdateHandler
 end
 
-function C.GetBar(anchor)
+function ns.GetBar(anchor)
 
 	local f =  CreateFrame("Frame", nil, anchor)
 	f.parent = anchor
@@ -3870,20 +3870,20 @@ function C.GetBar(anchor)
 	f.OnApplyShine			= OnApplyShine
 	f.ShineTick				= ShineTick
 	
-	f.UpdateStackText 		= C.UpdateStackText
-	f.UpdateTimeText 		= C.UpdateTimeText
-	f.UpdateSpellText 		= C.UpdateSpellText
-	f.UpdateBorder 			= C.UpdateBorder
-	f.UpdateTick_Color 		= C.UpdateTick_Color
-	f.UpdateSpark_Color 	= C.UpdateSpark_Color
-	f.UpdateBarSize			= C.UpdateBarSize
-	f.UpdateRaidIcon		= C.UpdateRaidIcon
-	f.UpdateIcons			= C.UpdateIcons	
-	f.UpdateBarOverlays		= C.OnValueChanged	
-	f.UpdateStyle 			= C.UpdateStyle
-	f.SetMark				= C.SetMark
-	f.SetCount				= C.SetCount
-	f.BarTextUpdate 		= C.BarTextUpdate
+	f.UpdateStackText 		= ns.UpdateStackText
+	f.UpdateTimeText 		= ns.UpdateTimeText
+	f.UpdateSpellText 		= ns.UpdateSpellText
+	f.UpdateBorder 			= ns.UpdateBorder
+	f.UpdateTick_Color 		= ns.UpdateTick_Color
+	f.UpdateSpark_Color 	= ns.UpdateSpark_Color
+	f.UpdateBarSize			= ns.UpdateBarSize
+	f.UpdateRaidIcon		= ns.UpdateRaidIcon
+	f.UpdateIcons			= ns.UpdateIcons	
+	f.UpdateBarOverlays		= ns.OnValueChanged	
+	f.UpdateStyle 			= ns.UpdateStyle
+	f.SetMark				= ns.SetMark
+	f.SetCount				= ns.SetCount
+	f.BarTextUpdate 		= ns.BarTextUpdate
 
 	return f
 end

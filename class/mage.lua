@@ -1,7 +1,7 @@
-local addon, C = ...
-if C.myCLASS ~= "MAGE" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "MAGE" then return end
 
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 
@@ -63,18 +63,18 @@ local spells = {
 }
 
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 
 --	[GetSpell(159916)]  = { spellid = 159916, color = colors.CURSE },
 }	
 
-function C:SetupClassSpells()
+function ns:SetupClassSpells()
 	return spells
 end
 
-function C:SetupClassCooldowns()
+function ns:SetupClassCooldowns()
 	return cooldown
 end
 
@@ -99,9 +99,9 @@ events:RegisterEvent("PLAYER_TALENT_UPDATE")
 events:RegisterEvent("PLAYER_LEVEL_UP")
 events:RegisterEvent("PLAYER_LOGIN")
 
-function C.GetFireMageDotSource(destGUID, spellID)
-	if C.SpreadSpellCast and C.SpreadSpellDestGUID ~= destGUID and spellToSpread[spellID] then
-		return true, C.SpreadSpellDestGUID
+function ns.GetFireMageDotSource(destGUID, spellID)
+	if ns.SpreadSpellCast and ns.SpreadSpellDestGUID ~= destGUID and spellToSpread[spellID] then
+		return true, ns.SpreadSpellDestGUID
 	else
 		return false
 	end
@@ -111,9 +111,9 @@ events:SetScript('OnEvent', function(self, event, ...)
 	currentSpec = GetSpecialization()	
 --	print('T', FireMageSpecID, currentSpec)
 	if currentSpec and currentSpec == FireMageSpecID then
-		C.IsFireMage = true
+		ns.IsFireMage = true
 	else
-		C.IsFireMage = false
+		ns.IsFireMage = false
 	end
 end)
 ]==]

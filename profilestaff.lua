@@ -1,4 +1,4 @@
-﻿local addon, C = ...
+﻿local addon, ns = ...
 
 local libS = LibStub:GetLibrary("AceSerializer-3.0")
 
@@ -26,7 +26,7 @@ local bytetoB64 = {
     [0]="a","b","c","d","e","f","g","h",
     "i","j","k","l","m","n","o","p",
     "q","r","s","t","u","v","w","x",
-    "y","z","A","B","C","D","E","F",
+    "y","z","A","B","ns","D","E","F",
     "G","H","I","J","K","L","M","N",
     "O","P","Q","R","S","T","U","V",
     "W","X","Y","Z","0","1","2","3",
@@ -37,7 +37,7 @@ local B64tobyte = {
       a =  0,  b =  1,  c =  2,  d =  3,  e =  4,  f =  5,  g =  6,  h =  7,
       i =  8,  j =  9,  k = 10,  l = 11,  m = 12,  n = 13,  o = 14,  p = 15,
       q = 16,  r = 17,  s = 18,  t = 19,  u = 20,  v = 21,  w = 22,  x = 23,
-      y = 24,  z = 25,  A = 26,  B = 27,  C = 28,  D = 29,  E = 30,  F = 31,
+      y = 24,  z = 25,  A = 26,  B = 27,  ns = 28,  D = 29,  E = 30,  F = 31,
       G = 32,  H = 33,  I = 34,  J = 35,  K = 36,  L = 37,  M = 38,  N = 39,
       O = 40,  P = 41,  Q = 42,  R = 43,  S = 44,  T = 45,  U = 46,  V = 47,
       W = 48,  X = 49,  Y = 50,  Z = 51,["0"]=52,["1"]=53,["2"]=54,["3"]=55,
@@ -158,7 +158,7 @@ end
 	
 	copyframe.button:SetNormalTexture("Interface\\Buttons\\WHITE8x8")
 	copyframe.button:GetNormalTexture():SetVertexColor(0,0,0,1)
-	copyframe.button:SetScript("OnClick", function(self) copyframe:Hide(); copyframe.editBox:ClearFocus(); C:DeserializeImport() end)
+	copyframe.button:SetScript("OnClick", function(self) copyframe:Hide(); copyframe.editBox:ClearFocus(); ns:DeserializeImport() end)
 	copyframe.button:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8", insets = {top = -2, left = -2, bottom = -2, right = -2}})
 	copyframe.button:SetBackdropColor(0, 0, 0, 1)
 	copyframe.button:SetHighlightTexture("Interface\\Tooltips\\UI-Tooltip-Background")
@@ -202,7 +202,7 @@ end
 	copyframe.button3:Show()
 
 	
-function C:ExportProfile()
+function ns:ExportProfile()
 	local data1
 	
 	if docompress then
@@ -248,7 +248,7 @@ local function deepcopy(t)
 	return res
 end
 	
-function C:DeserializeImport()
+function ns:DeserializeImport()
 	
 	local final_d = nil
 	local done1, version = nil, nil
@@ -403,7 +403,7 @@ function C:DeserializeImport()
 	AleaUI_GUI:Open(addon)
 end
 
-function C:ImportProfile(str)
+function ns:ImportProfile(str)
 	
 	copyframe.editBox:SetText("")
 	copyframe:Show()
@@ -446,7 +446,7 @@ local function CopyProfile2()
 	ReloadUI()
 end
 
-function C:ImportProfilesFromV1()
+function ns:ImportProfilesFromV1()
 	if not false then return end
 	
 	if SPTimersDB2 == nil then SPTimersDB2 = {} end
@@ -474,7 +474,7 @@ function C:ImportProfilesFromV1()
 end
 
 
-function C:ImportProfilesFromV2()
+function ns:ImportProfilesFromV2()
 	if not true then return end
 	if SPTimersDB2 == nil then return end
 

@@ -1,4 +1,4 @@
-﻿local addon, C = ...
+﻿local addon, ns = ...
 local L = AleaUI_GUI.GetLocale("SPTimers")
 local addonChannel = "SPTimV"
 local remindMeagain = true
@@ -17,13 +17,13 @@ end
 
 local old_print = print
 local print = function(...)
-	if C.dodebugging then	
+	if ns.dodebugging then	
 		--GetTime(), "SPTimers_Version, ", 
 		old_print(...)
 	end
 end
 
-function C:AddonMessage(msg, channel)
+function ns:AddonMessage(msg, channel)
 
 	if channel == "GUILD" and IsInGuild() then
 		SendAddonMessage(addonChannel, msg, "GUILD")
@@ -83,11 +83,11 @@ function events:CHAT_MSG_ADDON(event, prefix, message, channel, sender)
 	
 	if version and source then
 		local cntrV = constructVersion(version)
-		local cntrmV = constructVersion(C.myVersionT)
+		local cntrmV = constructVersion(ns.myVersionT)
 	
 		if cntrV > cntrmV then
 			remindMeagain = false
-			C.message(L["New version"].." "..version.." "..L["availible on"].." "..("https://wow.curseforge.com/projects/sp-timers"))
+			ns.message(L["New version"].." "..version.." "..L["availible on"].." "..("https://wow.curseforge.com/projects/sp-timers"))
 		end
 	end
 end
@@ -97,14 +97,14 @@ local versioncheck = 0
 function events:SendAddonIndo()
 	if GetTime() < versioncheck then return end
 	versioncheck = GetTime() + sendmessagethottle
-	C:AddonMessage(format("%s:%s", C.myVersionT, C.VersionSource))
+	ns:AddonMessage(format("%s:%s", ns.myVersionT, ns.VersionSource))
 end
 
 function events:SendAddonIndo2()
 	if GetTime() < versioncheck then return end
 	versioncheck = GetTime() + sendmessagethottle
 
-	C:AddonMessage(format("%s:%s", C.myVersionT, C.VersionSource) , "GUILD")
+	ns:AddonMessage(format("%s:%s", ns.myVersionT, ns.VersionSource) , "GUILD")
 end
 
 events.GROUP_ROSTER_UPDATE = events.SendAddonIndo
@@ -120,7 +120,7 @@ events.GUILD_ROSTER_UPDATE = events.SendAddonIndo2
 
 
 
-function C:InitVersionCheck()
+function ns:InitVersionCheck()
 	local version = GetAddOnMetadata(addon, "Version") or "0"
 	local version_c = version:gsub("%.", "")
 	
@@ -138,7 +138,7 @@ function C:InitVersionCheck()
 	events:RegisterEvent("RAID_INSTANCE_WELCOME")
 	events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	events:RegisterEvent("GUILD_MOTD")
-	if ( not C.isClassic ) then 
+	if ( not ns.isClassic ) then 
 	events:RegisterEvent("GUILD_NEWS_UPDATE")
 	end
 	events:RegisterEvent("GUILD_ROSTER_UPDATE")

@@ -1,8 +1,8 @@
-local addon, C = ...
-if C.myCLASS ~= "DRUID" then return end
+local addon, ns = ...
+if ns.myCLASS ~= "DRUID" then return end
 
 local L = AleaUI_GUI.GetLocale("SPTimers")
-local colors = C.CustomColors
+local colors = ns.CustomColors
 
 local ALL = "ALL"
 
@@ -109,7 +109,7 @@ local spells = {
 	[164545]	= { spec = "1",duration = 40, color = colors.GOLD	  },
 }
 
-local GetSpell = C.GetSpell
+local GetSpell = ns.GetSpell
 
 local cooldown = {
 	[GetSpell(78674)] = { spellid = 78674, color = colors.CURSE },
@@ -120,14 +120,14 @@ local cooldown = {
 }
 
 
-function C:SetupClassSpells() return spells end
-function C:SetupClassCooldowns() return cooldown end
+function ns:SetupClassSpells() return spells end
+function ns:SetupClassCooldowns() return cooldown end
 
 
-function C:SetupClassOptions()
+function ns:SetupClassOptions()
 	local order = 41
 	--[==[
-	self.options.args.bars.args[C.myCLASS] = {
+	self.options.args.bars.args[ns.myCLASS] = {
 		type = "group",
 		name = L["DRUID totem1"],
 		order = order,
@@ -139,24 +139,24 @@ function C:SetupClassOptions()
 		
 		order = order+ 3 + (6*(i-1))
 		
-		self.options.args.bars.args[C.myCLASS].args["headertotem"..i] = {
+		self.options.args.bars.args[ns.myCLASS].args["headertotem"..i] = {
 			type = "group",
-			name = L[C.myCLASS.." totem1"],
+			name = L[ns.myCLASS.." totem1"],
 			order = order+1*i, args = {}, embend = true,
 			}
 			
-		self.options.args.bars.args[C.myCLASS].args["headertotem"..i].args["showtotem"..i] = {
+		self.options.args.bars.args[ns.myCLASS].args["headertotem"..i].args["showtotem"..i] = {
 			order = order+(2*i),name = L["Show"],type = "toggle",
 			set = function(info,val) self.db.profile.totems["totem"..i].show = not self.db.profile.totems["totem"..i].show; self:UpdateTotems() end,
 			get = function(info) return self.db.profile.totems["totem"..i].show end
 			}
-		self.options.args.bars.args[C.myCLASS].args["headertotem"..i].args["colortotem"..i] = {
+		self.options.args.bars.args[ns.myCLASS].args["headertotem"..i].args["colortotem"..i] = {
 			order = order+(3*i),name = L["Color"], type = "color", hasAlpha = false,
 			set = function(info,r,g,b) self.db.profile.totems["totem"..i].color ={r,g,b,1} end,
 			get = function(info) return self.db.profile.totems["totem"..i].color[1],self.db.profile.totems["totem"..i].color[2],self.db.profile.totems["totem"..i].color[3],1 end
 		}
 		
-		self.options.args.bars.args[C.myCLASS].args["headertotem"..i].args["prioritytotem"..i] = {
+		self.options.args.bars.args[ns.myCLASS].args["headertotem"..i].args["prioritytotem"..i] = {
 				name = L["Priority"],
 				type = "slider",
 				order	= order+(4*i),
@@ -170,7 +170,7 @@ function C:SetupClassOptions()
 					return self.db.profile.totems["totem"..i].priority
 				end,
 			}
-		self.options.args.bars.args[C.myCLASS].args["headertotem"..i].args["anchortotem"..i] = {
+		self.options.args.bars.args[ns.myCLASS].args["headertotem"..i].args["anchortotem"..i] = {
 				name = L["Select Anchor"],
 				order = order+(5*i),
 				desc = L["Select Anchor Desc"],
@@ -189,7 +189,7 @@ function C:SetupClassOptions()
 					return self.db.profile.totems["totem"..i].anchor or 1
 				end
 			}
-		self.options.args.bars.args[C.myCLASS].args["headertotem"..i].args["grouptotem"..i] = {
+		self.options.args.bars.args[ns.myCLASS].args["headertotem"..i].args["grouptotem"..i] = {
 				name = L["Select group"],
 				order = order+(6*i),
 				desc = L["Select group Desc"],

@@ -1,4 +1,4 @@
-local addon, C = ...
+local addon, ns = ...
 local L = AleaUI_GUI.GetLocale("SPTimers")
 
 --GLOBALS: AleaUI_GUI, NO, STANDARD_TEXT_FONT, APPLY, ALEAUI_NewDB, ALEAUI_GetProfileOptions
@@ -24,7 +24,7 @@ local setmetatable = setmetatable
 local getmetatable = getmetatable
 local tsort = table.sort
 
-local LSM = C.LSM
+local LSM = ns.LSM
 local o
 local anchor_value = nil
 local class_select = nil
@@ -40,12 +40,12 @@ local AuraCD_select = nil
 
 local old_print = print
 local print = function(...)
-	if C.dodebugging then	
+	if ns.dodebugging then	
 		old_print(GetTime(), "SPTimers_Options, ", ...)
 	end
 end
 
-local message = C.message
+local message = ns.message
 
 local justifu = {
 	["RIGHT"] = "RIGHT",
@@ -261,7 +261,7 @@ local RoleSelect = {
 }
 
 local function GetRole()
-	if( C.isClassic ) then 
+	if( ns.isClassic ) then 
 		return ALL
 	end 
 
@@ -279,7 +279,7 @@ local function GetRole()
 end
 
 local function GetClassSpec(spec)
-	if( C.isClassic ) then 
+	if( ns.isClassic ) then 
 		return true
 	end 
 
@@ -291,13 +291,13 @@ local function GetClassSpec(spec)
 end
 
 local function SpecSelect()
-	if( C.isClassic ) then 
+	if( ns.isClassic ) then 
 		return  { [ALL] = L['ALL'] }
 	end 
 
 	local max_specs = 3
-	if C.myCLASS == "DRUID" then max_specs = 4 end
-	if C.myCLASS == 'DEMONHUNTER' then max_specs = 2 end
+	if ns.myCLASS == "DRUID" then max_specs = 4 end
+	if ns.myCLASS == 'DEMONHUNTER' then max_specs = 2 end
 	
 	local t = { [ALL] = L['ALL'] }
 	
@@ -384,7 +384,7 @@ do
 	local spaces = "  "
 	local name, _, icon, spacess
 	
-	function C.ShortSpellSting(spellID, size, hideid, cooldown)
+	function ns.ShortSpellSting(spellID, size, hideid, cooldown)
 		
 		if not size then size = 12 end
 		
@@ -398,10 +398,10 @@ do
 			
 			name = name or "Invalid"
 			
-			icon = ( cooldown and C:GetCustomCooldownTexture(name) ) or C:GetCustomTextureBars(spellID) or icon or "Interface\\ICONS\\Inv_misc_questionmark"
+			icon = ( cooldown and ns:GetCustomCooldownTexture(name) ) or ns:GetCustomTextureBars(spellID) or icon or "Interface\\ICONS\\Inv_misc_questionmark"
 		end
 
-		local color = C:GetColor(spellID, cooldown and "COOLDOWN_SPELL" or nil)
+		local color = ns:GetColor(spellID, cooldown and "COOLDOWN_SPELL" or nil)
 		local color2 = ""
 		
 		if color then
@@ -412,7 +412,7 @@ do
 
 	end
 	
-	function C.SpellString(spellID,size, hideid, cooldown)
+	function ns.SpellString(spellID,size, hideid, cooldown)
 		if not size then size = 12 end
 		
 		if spellID then
@@ -425,7 +425,7 @@ do
 			
 			name = name or "Invalid"
 			
-			icon = ( cooldown and C:GetCustomCooldownTexture(name) ) or C:GetCustomTextureBars(spellID) or icon or "Interface\\ICONS\\Inv_misc_questionmark"
+			icon = ( cooldown and ns:GetCustomCooldownTexture(name) ) or ns:GetCustomTextureBars(spellID) or icon or "Interface\\ICONS\\Inv_misc_questionmark"
 			
 			spacess = ""
 			
@@ -455,7 +455,7 @@ do
 
 		end
 
-		local color = C:GetColor(spellID, cooldown and "COOLDOWN_SPELL" or nil)
+		local color = ns:GetColor(spellID, cooldown and "COOLDOWN_SPELL" or nil)
 		local color2 = ""
 		
 		if color then
@@ -477,14 +477,12 @@ local placeholder = {
 	[157708] = 53351,
 }
 
-function C:SearchDBSpell(spellid, dbtype)
+function ns:SearchDBSpell(spellid, dbtype)
 	
 	local spellid = placeholder[spellid] or spellid
 	
---	print("Do searth")
-	
-	if C.myCLASS == "HUNTER" and C:GetTrapType(spellid) then
-		message(C.ShortSpellSting(spellid)..L[" already exists in "]..L["Traps"]..L[". Redirect..."])
+	if ns.myCLASS == "HUNTER" and ns:GetTrapType(spellid) then
+		message(ns.ShortSpellSting(spellid)..L[" already exists in "]..L["Traps"]..L[". Redirect..."])
 		
 		AleaUI_GUI:SelectGroup(addon, "bars", "Traps")
 		
@@ -492,20 +490,20 @@ function C:SearchDBSpell(spellid, dbtype)
 	end
 	
 	if dbtype == "bar_cooldowns" then
-		if not self.db.profile.bars_cooldowns[C.myCLASS] then self.db.profile.bars_cooldowns[C.myCLASS] = {} end
-		if self.db.profile.bars_cooldowns[C.myCLASS][spellid] and not self.db.profile.bars_cooldowns[C.myCLASS][spellid].fulldel then
-			self.db.profile.bars_cooldowns[C.myCLASS][spellid].deleted = nil
+		if not self.db.profile.bars_cooldowns[ns.myCLASS] then self.db.profile.bars_cooldowns[ns.myCLASS] = {} end
+		if self.db.profile.bars_cooldowns[ns.myCLASS][spellid] and not self.db.profile.bars_cooldowns[ns.myCLASS][spellid].fulldel then
+			self.db.profile.bars_cooldowns[ns.myCLASS][spellid].deleted = nil
 			
 			AleaUI_GUI:SelectGroup(addon, "bars", "spellList4")
 			self:BarCooldownSpell(spellid)
 			
-			C:UpdateBars_CooldownPart()
+			ns:UpdateBars_CooldownPart()
 			return
 		else
-			self.db.profile.bars_cooldowns[C.myCLASS][spellid] = {}
+			self.db.profile.bars_cooldowns[ns.myCLASS][spellid] = {}
 			self:BarCooldownSpell(spellid)
 			
-			C:UpdateBars_CooldownPart()
+			ns:UpdateBars_CooldownPart()
 			return
 		end
 	else
@@ -513,48 +511,54 @@ function C:SearchDBSpell(spellid, dbtype)
 			
 			self.db.profile.classSpells[self.myCLASS][spellid].deleted = nil
 			
-			message(C.ShortSpellSting(spellid)..L[" already exists in "]..L["Class Spells"]..L[". Redirect..."])
+			message(ns.ShortSpellSting(spellid)..L[" already exists in "]..L["Class Spells"]..L[". Redirect..."])
 			
 			CHOSEN_CLASS_SPEC = self.db.profile.classSpells[self.myCLASS][spellid].spec or ALL
 			
 			AleaUI_GUI:SelectGroup(addon, "bars", "ClassSpells")
 			self:ClassSpell(spellid)
+			self:MapDBForCombatLog()
 			return
 		end
 		
 		if self.db.profile.procSpells[spellid] and not self.db.profile.procSpells[spellid].fulldel then
 			self.db.profile.procSpells[spellid].deleted = nil
 			
-			message(C.ShortSpellSting(spellid)..L[" already exists in "]..L["Procs"]..L[". Redirect..."])
+			message(ns.ShortSpellSting(spellid)..L[" already exists in "]..L["Procs"]..L[". Redirect..."])
 			
 			CHOSEN_ROLE = self.db.profile.procSpells[spellid].role or ALL
 			
 			AleaUI_GUI:SelectGroup(addon, "bars", "spellList2")
 			self:ProcsSpell(spellid)
+			self:MapDBForCombatLog()
 			return
 		end
 		
 		if self.db.profile.othersSpells[spellid] and not self.db.profile.othersSpells[spellid].fulldel then
 			self.db.profile.othersSpells[spellid].deleted = nil
 			
-			message(C.ShortSpellSting(spellid)..L[" already exists in "]..L["Other"]..L[". Redirect..."])
+			message(ns.ShortSpellSting(spellid)..L[" already exists in "]..L["Other"]..L[". Redirect..."])
 			
 			AleaUI_GUI:SelectGroup(addon, "bars", "spellList3")
 			self:OthersSpell(spellid)
+			self:MapDBForCombatLog()
 			return
 		end
 		
 		if dbtype == "class" then
 			self.db.profile.classSpells[self.myCLASS][spellid] = {}
 			self:ClassSpell(spellid)
+			self:MapDBForCombatLog()
 			return
 		elseif dbtype == "procs" then
 			self.db.profile.procSpells[spellid] = {}
 			self:ProcsSpell(spellid)
+			self:MapDBForCombatLog()
 			return
 		elseif dbtype == "others" then
 			self.db.profile.othersSpells[spellid] = {}
 			self:OthersSpell(spellid)
+			self:MapDBForCombatLog()
 			return
 		end
 		
@@ -562,11 +566,11 @@ function C:SearchDBSpell(spellid, dbtype)
 	end
 end
 
-function C:SearchSpell(spellid, showmore)
+function ns:SearchSpell(spellid, showmore)
 	
 	local spellid = placeholder[spellid] or spellid
 	
---	print("Do searth")
+
 	if showmore then
 
 		if self.db.profile.classSpells[self.myCLASS][spellid] then
@@ -581,7 +585,7 @@ function C:SearchSpell(spellid, showmore)
 			return true, "Others"
 		end
 		
-		if self.db.profile.bars_cooldowns[C.myCLASS][spellid] then
+		if self.db.profile.bars_cooldowns[ns.myCLASS][spellid] then
 			return true, "Cooldown"
 		end
 		
@@ -601,7 +605,7 @@ function C:SearchSpell(spellid, showmore)
 			return true
 		end
 		
-		if self.db.profile.bars_cooldowns[C.myCLASS][spellid] then
+		if self.db.profile.bars_cooldowns[ns.myCLASS][spellid] then
 			return true
 		end
 	
@@ -609,7 +613,7 @@ function C:SearchSpell(spellid, showmore)
 	
 	return false
 end
-local IsGroupUpSpell = C.IsGroupUpSpell
+local IsGroupUpSpell = ns.IsGroupUpSpell
 
 local function deepcopy(t)
 	if type(t) ~= 'table' then return t end
@@ -625,7 +629,7 @@ local function deepcopy(t)
 	return res
 end
 	
-function C:GlobalStyleUpdate()
+function ns:GlobalStyleUpdate()
 	
 	--statusbar
 	local global_statusbar			= self.db.profile.global_statusbar
@@ -772,9 +776,9 @@ function C:GlobalStyleUpdate()
 	end
 end
 
-SpellString = C.SpellString
+SpellString = ns.SpellString
 
-function C:DefaultOptions()
+function ns:DefaultOptions()
 
 	local default = {
 		locked = false,
@@ -1382,7 +1386,7 @@ function C:DefaultOptions()
 	self.db.profile = ALEAUI_NewDB("SPTimersDB", default, true)
 end
 
-function C:OptionsTable()
+function ns:OptionsTable()
 	o = {
 		title = L["SPTimers (drag here to move options frame)"],
 		args = {
@@ -1665,303 +1669,303 @@ function C:OptionsTable()
 			bars={
 				order = 2,name = L["Bars"],type = "group", expand = true,
 				args={
-							bar_module_enabled = {
-								order = 1,name = L["Enabled"],type = "toggle", width = "full",
-								set = function(info,val) self.db.profile.bar_module_enabled = not self.db.profile.bar_module_enabled; self:UpdateStatusBars(); self:CoreBarsStatusUpdate() end,
-								get = function(info) return self.db.profile.bar_module_enabled end
-							},
-							show_marks = {
-								order = 1.1,name = L["Show raid marks"],type = "toggle",
-								set = function(info,val) self.db.profile.show_mark = not self.db.profile.show_mark; end,
-								get = function(info) return self.db.profile.show_mark end
-							},
-							doswap = {
-								order = 1.2,name = L["Swap bars when change target"],type = "toggle", width = "full",
-								set = function(info,val) 
-									self.db.profile.doswap = not self.db.profile.doswap; 
-									
-									if self.options.args.bars.args.ClassSpells.args.offtargetanchor then
-								--		self.options.args.bars.args.ClassSpells.args.offtargetanchor.disabled = not self.db.profile.doswap
-									end
-								end,
-								get = function(info) return self.db.profile.doswap end
-							},
-							procsFilters = {
-								order = 1.3,name = L["Hide auras from"].." '"..L["Procs"].."'",type = "toggle", width = "full",
-								set = function(info,val) self.db.profile.procsFiltersoff = not self.db.profile.procsFiltersoff; end,
-								get = function(info) return self.db.profile.procsFiltersoff end
-							},
-							othersFilters = {
-								order = 1.4,name = L["Hide auras from"].." '"..L["Other List"].."'",type = "toggle", width = "full",
-								set = function(info,val) self.db.profile.othersFiltersoff = not self.db.profile.othersFiltersoff; end,
-								get = function(info) return self.db.profile.othersFiltersoff end
-							},
-							classlistFiltersoff = {
-								order = 1.5,name = L["Hide auras from"].." '"..L["Class Spells"].."'",type = "toggle", width = "full",
-								set = function(info,val) self.db.profile.classlistFiltersoff = not self.db.profile.classlistFiltersoff; end,
-								get = function(info) return self.db.profile.classlistFiltersoff end
-							},
+					bar_module_enabled = {
+						order = 1,name = L["Enabled"],type = "toggle", width = "full",
+						set = function(info,val) self.db.profile.bar_module_enabled = not self.db.profile.bar_module_enabled; self:UpdateStatusBars(); self:CoreBarsStatusUpdate() end,
+						get = function(info) return self.db.profile.bar_module_enabled end
+					},
+					show_marks = {
+						order = 1.1,name = L["Show raid marks"],type = "toggle",
+						set = function(info,val) self.db.profile.show_mark = not self.db.profile.show_mark; end,
+						get = function(info) return self.db.profile.show_mark end
+					},
+					doswap = {
+						order = 1.2,name = L["Swap bars when change target"],type = "toggle", width = "full",
+						set = function(info,val) 
+							self.db.profile.doswap = not self.db.profile.doswap; 
 							
-							background_fading = {
-								order = 1.6,name = L["Background fading"],type = "toggle",
-								set = function(info,val) self.db.profile.background_fading = not self.db.profile.background_fading; end,
-								get = function(info) return self.db.profile.background_fading end
-							},
-							back_bar_color = {
-								order = 1.7,name = L["Bar color for background"],type = "toggle",
-								set = function(info,val) self.db.profile.back_bar_color = not self.db.profile.back_bar_color; self:UpdateBackgroundBarColor(); end,
-								get = function(info) return self.db.profile.back_bar_color end
-							},
-							
-							ignore_custom_colors = {
-								order = 1.8,type = 'toggle',name = L["Ignore custom colors"],
-								set = function(info,val) self.db.profile.ignore_custom_color = not self.db.profile.ignore_custom_color; self:UpdateBackgroundBarColor(); end,
-								get = function(info) return self.db.profile.ignore_custom_color end
-							},
-							
-							shine_on_apply = {
-								order = 1.8,type = 'toggle',name = L["Shine on apply"],
-								set = function(info,val) self.db.profile.shine_on_apply = not self.db.profile.shine_on_apply; end,
-								get = function(info) return self.db.profile.shine_on_apply end
-							},
+							if self.options.args.bars.args.ClassSpells.args.offtargetanchor then
+						--		self.options.args.bars.args.ClassSpells.args.offtargetanchor.disabled = not self.db.profile.doswap
+							end
+						end,
+						get = function(info) return self.db.profile.doswap end
+					},
+					procsFilters = {
+						order = 1.3,name = L["Hide auras from"].." '"..L["Procs"].."'",type = "toggle", width = "full",
+						set = function(info,val) self.db.profile.procsFiltersoff = not self.db.profile.procsFiltersoff; end,
+						get = function(info) return self.db.profile.procsFiltersoff end
+					},
+					othersFilters = {
+						order = 1.4,name = L["Hide auras from"].." '"..L["Other List"].."'",type = "toggle", width = "full",
+						set = function(info,val) self.db.profile.othersFiltersoff = not self.db.profile.othersFiltersoff; end,
+						get = function(info) return self.db.profile.othersFiltersoff end
+					},
+					classlistFiltersoff = {
+						order = 1.5,name = L["Hide auras from"].." '"..L["Class Spells"].."'",type = "toggle", width = "full",
+						set = function(info,val) self.db.profile.classlistFiltersoff = not self.db.profile.classlistFiltersoff; end,
+						get = function(info) return self.db.profile.classlistFiltersoff end
+					},
+					
+					background_fading = {
+						order = 1.6,name = L["Background fading"],type = "toggle",
+						set = function(info,val) self.db.profile.background_fading = not self.db.profile.background_fading; end,
+						get = function(info) return self.db.profile.background_fading end
+					},
+					back_bar_color = {
+						order = 1.7,name = L["Bar color for background"],type = "toggle",
+						set = function(info,val) self.db.profile.back_bar_color = not self.db.profile.back_bar_color; self:UpdateBackgroundBarColor(); end,
+						get = function(info) return self.db.profile.back_bar_color end
+					},
+					
+					ignore_custom_colors = {
+						order = 1.8,type = 'toggle',name = L["Ignore custom colors"],
+						set = function(info,val) self.db.profile.ignore_custom_color = not self.db.profile.ignore_custom_color; self:UpdateBackgroundBarColor(); end,
+						get = function(info) return self.db.profile.ignore_custom_color end
+					},
+					
+					shine_on_apply = {
+						order = 1.8,type = 'toggle',name = L["Shine on apply"],
+						set = function(info,val) self.db.profile.shine_on_apply = not self.db.profile.shine_on_apply; end,
+						get = function(info) return self.db.profile.shine_on_apply end
+					},
+					
+					bar_smooth = {
+						order = 2,
+						type = "group",
+						embend = true,
+						name	= L["Smooth bar"],
+						args = {
 							
 							bar_smooth = {
-								order = 2,
-								type = "group",
-								embend = true,
-								name	= L["Smooth bar"],
-								args = {
-									
-									bar_smooth = {
-										order = 2,name = L["Enabled"],type = "toggle", disabled = false,
-										set = function(info,val) self.db.profile.bar_smooth = not self.db.profile.bar_smooth; end,
-										get = function(info) return self.db.profile.bar_smooth end
-									},
-									bar_smooth_value = {
-										name = L["Smooth bar speed"], disabled = false,
-										type = "slider",
-										width = "halp",
-										order	= 3,
-										min		= 1,
-										max		= 20,
-										step	= 1,
-										set = function(info,val) 
-											self.db.profile.bar_smooth_value_v2 = val
-										end,
-										get =function(info)
-											return self.db.profile.bar_smooth_value_v2
-										end,
-									},
-								},
+								order = 2,name = L["Enabled"],type = "toggle", disabled = false,
+								set = function(info,val) self.db.profile.bar_smooth = not self.db.profile.bar_smooth; end,
+								get = function(info) return self.db.profile.bar_smooth end
 							},
-
-							
-							pandemias = {
-								order = 3.2 ,name = L["Pandemia"],type = "group", embend = true,
-								args={
-							
-									show_pandemia_bp = {
-										order = 1,name = L["Show pandemia breakpoint"],type = "toggle",
-										set = function(info,val) self.db.profile.show_pandemia_bp = not self.db.profile.show_pandemia_bp; end,
-										get = function(info) return self.db.profile.show_pandemia_bp end
-									},
-
-									pandemia_bp_style = {
-										order = 2,type = "dropdown",name = L["Pandemia breakpoint style"],
-										values = {
-											L["Tick"],
-											L["Overlay"],
-										},
-										set = function(info,value) self.db.profile.pandemia_bp_style = value; end,
-										get = function(info) 
-											return self.db.profile.pandemia_bp_style or 2						
-										end,
-									},
-								},
-							},
-							
-							ticks_opts = {
-								order = 3.3,
-								type = "group",
-								embend = true,
-								name	= L["Ticks1"],
-								args = {
-									
-									showonlynext = {
-										order = 3.4,name = L["Show only next tick"],type = "toggle", width = "full",
-										set = function(info,val) self.db.profile.showonlynext = not self.db.profile.showonlynext; end,
-										get = function(info) return self.db.profile.showonlynext end
-									},
-									hide_dot_ticks = {
-										order = 3.5,name = L["Hide dot ticks"],type = "toggle",
-										set = function(info,val) self.db.profile.hide_dot_ticks = not self.db.profile.hide_dot_ticks; end,
-										get = function(info) return self.db.profile.hide_dot_ticks end						
-									},
-									ticksfade = {
-										order = 3.6,name = L["Hide passed tick"],type = "toggle",
-										set = function(info,val) self.db.profile.ticksfade = not self.db.profile.ticksfade; end,
-										get = function(info) return self.db.profile.ticksfade end
-									},
-									tick_count_on_stacks = {
-										order = 3.7,name = L["Tick count as stack text"],type = "toggle", width = "full",
-										set = function(info,val) self.db.profile.tick_count_on_stacks = not self.db.profile.tick_count_on_stacks; end,
-										get = function(info) return self.db.profile.tick_count_on_stacks end
-									},
-								},
-							},
-							engageThrottle = {
-								name = L["Engage Throttle"],
-								desc = L["Engage Throttle Desc"],
+							bar_smooth_value = {
+								name = L["Smooth bar speed"], disabled = false,
 								type = "slider",
-								order	= 3.7,
+								width = "halp",
+								order	= 3,
 								min		= 1,
-								max		= 60,
+								max		= 20,
 								step	= 1,
 								set = function(info,val) 
-									self.db.profile.engageThrottle = val
+									self.db.profile.bar_smooth_value_v2 = val
 								end,
 								get =function(info)
-									return self.db.profile.engageThrottle
+									return self.db.profile.bar_smooth_value_v2
 								end,
 							},
-				
-							throttleOutCombat = {
-								name = L["Out Of Combat Throttle"],
-								desc = L["Out Of Combat Throttle Desc"],
-								type = "slider",
-								order	= 3.8,
-								min		= 5,
-								max		= 30,
-								step	= 1,
-								set = function(info,val) 
-									self.db.profile.throttleOutCombat = val
-								end,
-								get =function(info)
-									return self.db.profile.throttleOutCombat
-								end,
-							},
-							
-							adapttoonemax = {
-								type = "group",	order	= 10,
-								embend = true,
-								name	= L["Adapt to one maximum"],
-								args = {
-	
-									adapttoonemax = {
-										order = 10,name = L["Enabled"],type = "toggle", width = "full",
-										set = function(info,val) self.db.profile.adapttoonemax = not self.db.profile.adapttoonemax; end,
-										get = function(info) return self.db.profile.adapttoonemax end
-									},
-									maximumtime = {
-										order = 11,name = L["Maximum time"],type = "toggle",
-										set = function(info,val) self.db.profile.maximumtime = not self.db.profile.maximumtime; end,
-										get = function(info) return self.db.profile.maximumtime end
-									},
-									maximumtime_value = {
-										type = "editbox",	order	= 12,
-										name = L["Maximum time"],
-										set = function(info,val)
-											local num = tonumber(val)
-											if num then
-												self.db.profile.maximumtime_value = num
-											end	
-										end,
-										get = function(info) return self.db.profile.maximumtime_value and tostring(self.db.profile.maximumtime_value) or "30" end
-									},
-								},
-							},
-	
-							delayfading = {
-							
-								type = "group",	order	= 16,
-								embend = true,
-								name	= L["Delay timer fading"],
-								args = {
-									delayfading = {
-										order = 1,name = L["Enabled"],type = "toggle", width = "full",
-										set = function(info,val) self.db.profile.delayfading = not self.db.profile.delayfading; end,
-										get = function(info) return self.db.profile.delayfading end
-									},
+						},
+					},
 
-									delayfading_wait = {
-										name = L["Delay start fading"],
-										type = "slider",
-										order	= 16.1,
-										min		= 0.2,
-										max		= 1.5,
-										step	= 0.1,
-										set = function(info,val) 
-											self.db.profile.delayfading_wait = val
-											self:updateSortings()
-										end,
-										get =function(info)
-											return self.db.profile.delayfading_wait or 0.5
-										end,
-									},
-								
-									delayfading_outanim = {
-										name = L["Timer fading duration"],
-										type = "slider",
-										order	= 16.2,
-										min		= 0.1,
-										max		= 1,
-										step	= 0.1,
-										set = function(info,val) 
-											self.db.profile.delayfading_outanim = val
-											self:updateSortings()
-										end,
-										get =function(info)
-											return self.db.profile.delayfading_outanim or 0.3
-										end,
-									},
+						
+					pandemias = {
+						order = 3.2 ,name = L["Pandemia"],type = "group", embend = true,
+						args={
+					
+							show_pandemia_bp = {
+								order = 1,name = L["Show pandemia breakpoint"],type = "toggle",
+								set = function(info,val) self.db.profile.show_pandemia_bp = not self.db.profile.show_pandemia_bp; end,
+								get = function(info) return self.db.profile.show_pandemia_bp end
+							},
+
+							pandemia_bp_style = {
+								order = 2,type = "dropdown",name = L["Pandemia breakpoint style"],
+								values = {
+									L["Tick"],
+									L["Overlay"],
+								},
+								set = function(info,value) self.db.profile.pandemia_bp_style = value; end,
+								get = function(info) 
+									return self.db.profile.pandemia_bp_style or 2						
+								end,
+							},
+						},
+					},
+						
+					ticks_opts = {
+						order = 3.3,
+						type = "group",
+						embend = true,
+						name	= L["Ticks1"],
+						args = {
+							
+							showonlynext = {
+								order = 3.4,name = L["Show only next tick"],type = "toggle", width = "full",
+								set = function(info,val) self.db.profile.showonlynext = not self.db.profile.showonlynext; end,
+								get = function(info) return self.db.profile.showonlynext end
+							},
+							hide_dot_ticks = {
+								order = 3.5,name = L["Hide dot ticks"],type = "toggle",
+								set = function(info,val) self.db.profile.hide_dot_ticks = not self.db.profile.hide_dot_ticks; end,
+								get = function(info) return self.db.profile.hide_dot_ticks end						
+							},
+							ticksfade = {
+								order = 3.6,name = L["Hide passed tick"],type = "toggle",
+								set = function(info,val) self.db.profile.ticksfade = not self.db.profile.ticksfade; end,
+								get = function(info) return self.db.profile.ticksfade end
+							},
+							tick_count_on_stacks = {
+								order = 3.7,name = L["Tick count as stack text"],type = "toggle", width = "full",
+								set = function(info,val) self.db.profile.tick_count_on_stacks = not self.db.profile.tick_count_on_stacks; end,
+								get = function(info) return self.db.profile.tick_count_on_stacks end
+							},
+						},
+					},
+						engageThrottle = {
+							name = L["Engage Throttle"],
+							desc = L["Engage Throttle Desc"],
+							type = "slider",
+							order	= 3.7,
+							min		= 1,
+							max		= 60,
+							step	= 1,
+							set = function(info,val) 
+								self.db.profile.engageThrottle = val
+							end,
+							get =function(info)
+								return self.db.profile.engageThrottle
+							end,
+						},
+			
+						throttleOutCombat = {
+							name = L["Out Of Combat Throttle"],
+							desc = L["Out Of Combat Throttle Desc"],
+							type = "slider",
+							order	= 3.8,
+							min		= 5,
+							max		= 30,
+							step	= 1,
+							set = function(info,val) 
+								self.db.profile.throttleOutCombat = val
+							end,
+							get =function(info)
+								return self.db.profile.throttleOutCombat
+							end,
+						},
+						
+						adapttoonemax = {
+							type = "group",	order	= 10,
+							embend = true,
+							name	= L["Adapt to one maximum"],
+							args = {
+
+								adapttoonemax = {
+									order = 10,name = L["Enabled"],type = "toggle", width = "full",
+									set = function(info,val) self.db.profile.adapttoonemax = not self.db.profile.adapttoonemax; end,
+									get = function(info) return self.db.profile.adapttoonemax end
+								},
+								maximumtime = {
+									order = 11,name = L["Maximum time"],type = "toggle",
+									set = function(info,val) self.db.profile.maximumtime = not self.db.profile.maximumtime; end,
+									get = function(info) return self.db.profile.maximumtime end
+								},
+								maximumtime_value = {
+									type = "editbox",	order	= 12,
+									name = L["Maximum time"],
+									set = function(info,val)
+										local num = tonumber(val)
+										if num then
+											self.db.profile.maximumtime_value = num
+										end	
+									end,
+									get = function(info) return self.db.profile.maximumtime_value and tostring(self.db.profile.maximumtime_value) or "30" end
 								},
 							},
-							UnitFilter = {		
-								type = "group",	order	= 1.9,
-								embend = true,
-								name	= L["Unit Filter"],
-								args = {
-									enabled = {
-										order = 1,name = L["Enabled"],type = "toggle", width = "full", desc = L["Target Type"].." "..L["should be "]..L["multi"].." "..L["or"].." "..L["auto"],
-										set = function(info,val) self.db.profile.unit_filter_enabled = not self.db.profile.unit_filter_enabled; end,
-										get = function(info) return self.db.profile.unit_filter_enabled end
-									},
-									unit = {
-										name = L["Unit"],
-										order = 2,
-									--	desc = L["Select Anchor offtarget Desc"].." ->'"..L["General"].."'->'"..L["Swap bars when change target"].."'",
-										type = "dropdown",
-										values = function()
-											local t = {}
-											for k,v in pairs(self.db.profile.unit_filters) do						
-												if v then
-													t[k] = "|cFF0eed28"..k.."|r"
-												else
-													t[k] = "|cFFff5c5c"..k.."|r"
-												end									
-											end				
-											return t
-										end,
-										set = function(info,val)
-											unit_filter_set = val
-										end,
-										get = function(info, val)
-											return unit_filter_set
-										end
-									},					
-									enabled_unit = { -- unit_filter_set
-										order = 3,name = L["Show"],type = "toggle",
-										set = function(info,val) 
-											if unit_filter_set then 
-												self.db.profile.unit_filters[unit_filter_set] = not self.db.profile.unit_filters[unit_filter_set]; 
-											end
-										end,
-										get = function(info)
-											return self.db.profile.unit_filters[unit_filter_set]
-										end
-									},
-								}
+						},
+
+						delayfading = {
+						
+							type = "group",	order	= 16,
+							embend = true,
+							name	= L["Delay timer fading"],
+							args = {
+								delayfading = {
+									order = 1,name = L["Enabled"],type = "toggle", width = "full",
+									set = function(info,val) self.db.profile.delayfading = not self.db.profile.delayfading; end,
+									get = function(info) return self.db.profile.delayfading end
+								},
+
+								delayfading_wait = {
+									name = L["Delay start fading"],
+									type = "slider",
+									order	= 16.1,
+									min		= 0.2,
+									max		= 1.5,
+									step	= 0.1,
+									set = function(info,val) 
+										self.db.profile.delayfading_wait = val
+										self:updateSortings()
+									end,
+									get =function(info)
+										return self.db.profile.delayfading_wait or 0.5
+									end,
+								},
+							
+								delayfading_outanim = {
+									name = L["Timer fading duration"],
+									type = "slider",
+									order	= 16.2,
+									min		= 0.1,
+									max		= 1,
+									step	= 0.1,
+									set = function(info,val) 
+										self.db.profile.delayfading_outanim = val
+										self:updateSortings()
+									end,
+									get =function(info)
+										return self.db.profile.delayfading_outanim or 0.3
+									end,
+								},
 							},
+						},
+						UnitFilter = {		
+							type = "group",	order	= 1.9,
+							embend = true,
+							name	= L["Unit Filter"],
+							args = {
+								enabled = {
+									order = 1,name = L["Enabled"],type = "toggle", width = "full", desc = L["Target Type"].." "..L["should be "]..L["multi"].." "..L["or"].." "..L["auto"],
+									set = function(info,val) self.db.profile.unit_filter_enabled = not self.db.profile.unit_filter_enabled; end,
+									get = function(info) return self.db.profile.unit_filter_enabled end
+								},
+								unit = {
+									name = L["Unit"],
+									order = 2,
+								--	desc = L["Select Anchor offtarget Desc"].." ->'"..L["General"].."'->'"..L["Swap bars when change target"].."'",
+									type = "dropdown",
+									values = function()
+										local t = {}
+										for k,v in pairs(self.db.profile.unit_filters) do						
+											if v then
+												t[k] = "|cFF0eed28"..k.."|r"
+											else
+												t[k] = "|cFFff5c5c"..k.."|r"
+											end									
+										end				
+										return t
+									end,
+									set = function(info,val)
+										unit_filter_set = val
+									end,
+									get = function(info, val)
+										return unit_filter_set
+									end
+								},					
+								enabled_unit = { -- unit_filter_set
+									order = 3,name = L["Show"],type = "toggle",
+									set = function(info,val) 
+										if unit_filter_set then 
+											self.db.profile.unit_filters[unit_filter_set] = not self.db.profile.unit_filters[unit_filter_set]; 
+										end
+									end,
+									get = function(info)
+										return self.db.profile.unit_filters[unit_filter_set]
+									end
+								},
+							}
+						},
 					style = {
 						type = "group",	order	= 1,
 						name	= L["Style"],						
@@ -1972,7 +1976,7 @@ function C:OptionsTable()
 								order = 1,
 								name = L['Add New Anchor'],
 								func = function(info, value) 
-									C:CreateNewAnhors()					
+									ns:CreateNewAnhors()					
 								end,
 								},
 							Anchor = {
@@ -2022,7 +2026,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:ClassSpell(val)
+									ns:ClassSpell(val)
 								end,
 								get = function(info, val)
 									return class_select
@@ -2039,7 +2043,7 @@ function C:OptionsTable()
 									if num then
 										local spellname = GetSpellInfo(num)										
 										if spellname then										
-											C:SearchDBSpell(num, "class")
+											ns:SearchDBSpell(num, "class")
 										end
 									end	
 								end,
@@ -2055,7 +2059,7 @@ function C:OptionsTable()
 									CHOSEN_CLASS_SPEC = val
 								end,
 								get = function(info, val)
-									if ( C.isClassic ) then 
+									if ( ns.isClassic ) then 
 										return ALL 
 									end
 
@@ -2091,7 +2095,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:ProcsSpell(val)
+									ns:ProcsSpell(val)
 								end,
 								get = function(info, val)
 									return proc_select
@@ -2136,7 +2140,7 @@ function C:OptionsTable()
 										local spellname = GetSpellInfo(num)										
 										if spellname then
 											
-											C:SearchDBSpell(num, "procs")
+											ns:SearchDBSpell(num, "procs")
 										end
 									end	
 								end,
@@ -2168,7 +2172,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:OthersSpell(val)
+									ns:OthersSpell(val)
 								end,
 								get = function(info, val)
 									return others_select
@@ -2186,7 +2190,7 @@ function C:OptionsTable()
 									if num then
 										local spellname = GetSpellInfo(num)										
 										if spellname then										
-											C:SearchDBSpell(num, "others")
+											ns:SearchDBSpell(num, "others")
 										end
 									end	
 								end,
@@ -2208,7 +2212,7 @@ function C:OptionsTable()
 								type = "dropdown",
 								values = function()
 									local t = {}												
-									for k,v in pairs(self.db.profile.bars_cooldowns[C.myCLASS] or {}) do
+									for k,v in pairs(self.db.profile.bars_cooldowns[ns.myCLASS] or {}) do
 										if not v.deleted and not v.fulldel then
 											t[k] = SpellString(k, 10, nil, true)
 										end
@@ -2216,7 +2220,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:BarCooldownSpell(val)
+									ns:BarCooldownSpell(val)
 								end,
 								get = function(info, val)
 									return bar_cooldown_select
@@ -2233,7 +2237,7 @@ function C:OptionsTable()
 									if num then
 										local spellname = GetSpellInfo(num)										
 										if spellname then										
-											C:SearchDBSpell(num, "bar_cooldowns")
+											ns:SearchDBSpell(num, "bar_cooldowns")
 										end
 									end	
 								end,
@@ -2266,7 +2270,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:ICooldown(val)
+									ns:ICooldown(val)
 								end,
 								get = function(info, val)
 									return ICD_select
@@ -2287,7 +2291,7 @@ function C:OptionsTable()
 											if not self.db.profile.internal_cooldowns[spellname] then self.db.profile.internal_cooldowns[spellname] = {} end
 											
 											self.db.profile.internal_cooldowns[spellname].spellid = num
-											C:ICooldown(spellname)
+											ns:ICooldown(spellname)
 										end
 									end	
 								end,
@@ -2316,7 +2320,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:AuraCooldown(val)
+									ns:AuraCooldown(val)
 								end,
 								get = function(info, val)
 									return AuraCD_select
@@ -2337,7 +2341,7 @@ function C:OptionsTable()
 											if not self.db.profile.auras_cooldowns[self.myCLASS][spellname] then self.db.profile.auras_cooldowns[self.myCLASS][spellname] = {} end
 											
 											self.db.profile.auras_cooldowns[self.myCLASS][spellname].spellid = num
-											C:AuraCooldown(spellname)
+											ns:AuraCooldown(spellname)
 										end
 									end	
 								end,
@@ -2367,7 +2371,7 @@ function C:OptionsTable()
 									return t
 								end,
 								set = function(info,val)
-									C:Cooldown(val)
+									ns:Cooldown(val)
 								end,
 								get = function(info, val)
 									return cooldown_select
@@ -2384,12 +2388,12 @@ function C:OptionsTable()
 									if num then
 										local spellname = GetSpellInfo(num)										
 										if spellname then
-											if not self.db.profile.classCooldowns[C.myCLASS] then self.db.profile.classCooldowns[C.myCLASS] = {} end											
-											if not self.db.profile.classCooldowns[C.myCLASS][spellname] then self.db.profile.classCooldowns[C.myCLASS][spellname] = {} end
+											if not self.db.profile.classCooldowns[ns.myCLASS] then self.db.profile.classCooldowns[ns.myCLASS] = {} end											
+											if not self.db.profile.classCooldowns[ns.myCLASS][spellname] then self.db.profile.classCooldowns[ns.myCLASS][spellname] = {} end
 											
 											self.db.profile.classCooldowns[self.myCLASS][spellname].spellid = num
 											
-											C:Cooldown(spellname)
+											ns:Cooldown(spellname)
 										end
 									end	
 								end,
@@ -2446,7 +2450,7 @@ function C:OptionsTable()
 										if spellname then											
 											self.db.profile.cooldownline.blockList['spell:'..num] = { spellid = num, hide = true }
 											
-											C:BuildCooldownBlockList()
+											ns:BuildCooldownBlockList()
 											blocklist_select = 'spell:'..num
 										end
 									end	
@@ -2468,7 +2472,7 @@ function C:OptionsTable()
 										if itemname then											
 											self.db.profile.cooldownline.blockList['item:'..num] = { itemid = num, hide = true }
 											
-											C:BuildCooldownBlockList()
+											ns:BuildCooldownBlockList()
 											blocklist_select = 'item:'..num
 										end
 									end	
@@ -3692,8 +3696,8 @@ function C:OptionsTable()
 				},
 			},
 			
-			castbars = C:GetCastBarGUI(),
-			--copui = C:GetCoPGUI(),
+			castbars = ns:GetCastBarGUI(),
+			--copui = ns:GetCoPGUI(),
 			
 		--	profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db),
 			
@@ -3732,10 +3736,9 @@ do
 	
 	local sites = {
 		["curse_com"] = { "curseforge.com", "https://wow.curseforge.com/projects/sp-timers", false, "full" },
-		--["h2p"]		  = { "HowToPriest.com", "http://howtopriest.com/viewtopic.php?f=26&t=5480", false, "full" },
 	}
 		
-	function C:InitSupports()
+	function ns:InitSupports()
 		local order_1 = 1
 		for k,v in pairs(sites) do
 		
@@ -3754,7 +3757,7 @@ end
 	
 	local classGUIChangeHandlers = {}
 	
-	function C:AddOnClassGUIChangeHandler(handler)	
+	function ns:AddOnClassGUIChangeHandler(handler)	
 		classGUIChangeHandlers[#classGUIChangeHandlers+1] = handler
 	end
 	
@@ -4043,7 +4046,7 @@ end
 					values = function()
 						local t = {}
 						t[0] = NO
-						for k,v in ipairs(C.db.profile.bars_anchors) do						
+						for k,v in ipairs(ns.db.profile.bars_anchors) do						
 							t[k] = v.name or k
 						end				
 						return t
@@ -4088,7 +4091,7 @@ end
 		end
 	end
 	
-	function C:ClassSpell(spellID)
+	function ns:ClassSpell(spellID)
 		local opts = self.db.profile.classSpells[self.myCLASS][spellID]	
 		class_select = spellID
 		unit_per_achor_choose = nil
@@ -4105,7 +4108,7 @@ end
 			
 		o.args.bars.args.ClassSpells.args.classGrop.args.hide = {
 				order = 3.3,name = L["Hide"],type = "toggle",
-				set = function(info,val) opts.hide = not opts.hide; C:OnCustomUpdateAuras(); end,
+				set = function(info,val) opts.hide = not opts.hide; ns:OnCustomUpdateAuras(); end,
 				get = function(info) return opts.hide end
 			}
 		--[==[
@@ -4199,13 +4202,13 @@ end
 			}
 		o.args.bars.args.ClassSpells.args.classGrop.args.BarColors.args.color = {
 				order = 10,name = L["Color"],type = "color",
-				set = function(info,r,g,b) opts.color={r,g,b}; C:OnCustomUpdateAuras(); end,
+				set = function(info,r,g,b) opts.color={r,g,b}; ns:OnCustomUpdateAuras(); end,
 				get = function(info) return ( opts.color and opts.color[1] or 0 ),( opts.color and opts.color[2] or 0 ),( opts.color and opts.color[3] or 0 ),1 end
 			}
 		
 		o.args.bars.args.ClassSpells.args.classGrop.args.BarColors.args.color_on = {
 				order = 10,name = L["Own color"],type = "toggle",
-				set = function(info,val) opts.color_on = not opts.color_on; C:OnCustomUpdateAuras(); end,
+				set = function(info,val) opts.color_on = not opts.color_on; ns:OnCustomUpdateAuras(); end,
 				get = function(info) return opts.color_on end
 			}
 		o.args.bars.args.ClassSpells.args.classGrop.args.CustomText = {
@@ -4221,13 +4224,13 @@ end
 					local num = tostring(val)				
 					if num then opts.custom_text = num end
 					self:PreCacheCustomTextCheck();
-					C:OnCustomUpdateAuras(); 
+					ns:OnCustomUpdateAuras(); 
 				end,
 				get = function(info) return opts.custom_text and tostring(opts.custom_text) or "" end
 			}
 		o.args.bars.args.ClassSpells.args.classGrop.args.CustomText.args.custom_text_on= {
 				order = 12,name = L["Custom Text On"],type = "toggle", width = "full",
-				set = function(info,val) opts.custom_text_on = not opts.custom_text_on; self:PreCacheCustomTextCheck(); C:OnCustomUpdateAuras(); end,
+				set = function(info,val) opts.custom_text_on = not opts.custom_text_on; self:PreCacheCustomTextCheck(); ns:OnCustomUpdateAuras(); end,
 				get = function(info) return opts.custom_text_on end
 			}
 			
@@ -4343,6 +4346,9 @@ end
 			func = function(info, value)
 				opts.deleted = true
 				class_select = nil
+				
+				ns:MapDBForCombatLog()
+
 				wipe(o.args.bars.args.ClassSpells.args)
 						
 				o.args.bars.args.ClassSpells.args.Anchor = {
@@ -4365,7 +4371,7 @@ end
 							return t
 						end,
 						set = function(info,val)
-							C:ClassSpell(val)
+							ns:ClassSpell(val)
 						end,
 						get = function(info, val)
 							return class_select
@@ -4382,7 +4388,7 @@ end
 							if num then
 								local spellname = GetSpellInfo(num)										
 								if spellname then										
-									C:SearchDBSpell(num, "class")
+									ns:SearchDBSpell(num, "class")
 								end	
 							end
 						end,
@@ -4399,7 +4405,7 @@ end
 						CHOSEN_CLASS_SPEC = val
 					end,
 					get = function(info, val)
-						if ( C.isClassic ) then 
+						if ( ns.isClassic ) then 
 							return ALL 
 						end
 
@@ -4418,6 +4424,9 @@ end
 			func = function(info, value)
 				opts.fulldel = true
 				class_select = nil
+
+				ns:MapDBForCombatLog()
+
 				wipe(o.args.bars.args.ClassSpells.args)
 						
 				o.args.bars.args.ClassSpells.args.Anchor = {
@@ -4440,7 +4449,7 @@ end
 							return t
 						end,
 						set = function(info,val)
-							C:ClassSpell(val)
+							ns:ClassSpell(val)
 						end,
 						get = function(info, val)
 							return class_select
@@ -4456,7 +4465,7 @@ end
 							if num then
 								local spellname = GetSpellInfo(num)										
 								if spellname then										
-									C:SearchDBSpell(num, "class")
+									ns:SearchDBSpell(num, "class")
 								end	
 							end
 						end,
@@ -4473,7 +4482,7 @@ end
 						CHOSEN_CLASS_SPEC = val
 					end,
 					get = function(info, val)
-						if ( C.isClassic ) then 
+						if ( ns.isClassic ) then 
 							return ALL 
 						end
 						
@@ -4489,7 +4498,7 @@ end
 	end
 
 
-	function C:ProcsSpell(spellID)
+	function ns:ProcsSpell(spellID)
 		
 		local opts = self.db.profile.procSpells[spellID]
 
@@ -4738,32 +4747,34 @@ end
 				opts.deleted = true
 				class_select = nil
 				wipe(o.args.bars.args.spellList2.args)
-						
+				
+				ns:MapDBForCombatLog()
+
 				o.args.bars.args.spellList2.args.Anchor = {
-						name = L["Select Spell"],
-						order = 2,
-						desc = L["Select Spell"],
-						width = "full",
-						type = "dropdown",
-						showSpellTooltip = true,
-						values = function()
-							local t = {}												
-							for k,v in pairs(self.db.profile.procSpells) do	
-								if not v.deleted and not v.fulldel and ProcFilter(v.role) and ProcFilter_Patch(v.patch) then
-									local g_spellID, g_spellName  = IsGroupUpSpell(k)
-											
-									t[g_spellID or k] = g_spellName or SpellString(k, 10)
-								end
-							end									
-							return t
-						end,
-						set = function(info,val)
-							C:ProcsSpell(val)
-						end,
-						get = function(info, val)
-							return class_select
-						end
-					}
+					name = L["Select Spell"],
+					order = 2,
+					desc = L["Select Spell"],
+					width = "full",
+					type = "dropdown",
+					showSpellTooltip = true,
+					values = function()
+						local t = {}												
+						for k,v in pairs(self.db.profile.procSpells) do	
+							if not v.deleted and not v.fulldel and ProcFilter(v.role) and ProcFilter_Patch(v.patch) then
+								local g_spellID, g_spellName  = IsGroupUpSpell(k)
+										
+								t[g_spellID or k] = g_spellName or SpellString(k, 10)
+							end
+						end									
+						return t
+					end,
+					set = function(info,val)
+						ns:ProcsSpell(val)
+					end,
+					get = function(info, val)
+						return class_select
+					end
+				}
 				o.args.bars.args.spellList2.args.selectProcFilter = {
 					name = L["Filter"],
 					order = 1.1,
@@ -4776,37 +4787,22 @@ end
 						return GetSelectProcFilter()
 					end,
 				}
-				--[==[
-				selectRole = {
-					name = L["Role"],
-					order = 1.1,
-					type = "dropdown",
-					values = RoleSelect,
-					set = function(info,val)
-						CHOSEN_ROLE = val
-					end,
-					get = function(info, val)
-						if not CHOSEN_ROLE then CHOSEN_ROLE = GetRole() end								
-						return CHOSEN_ROLE
-					end
-				}
-				]==]	
 				o.args.bars.args.spellList2.args.AddNew = {
-						type = "spellloader",	order	= 1,
-						name = L["Spell ID"],
-						desc = L["Change spellID"],
-						filterType = "Aura_EditBox_SPTimer",
-						set = function(info,val)
-							local num, tip = GetSpellOrItemID(val, "spell")
-							if num then
-								local spellname = GetSpellInfo(num)										
-								if spellname then										
-									C:SearchDBSpell(num, "procs")
-								end	
-							end
-						end,
-						get = function(info)end
-					}
+					type = "spellloader",	order	= 1,
+					name = L["Spell ID"],
+					desc = L["Change spellID"],
+					filterType = "Aura_EditBox_SPTimer",
+					set = function(info,val)
+						local num, tip = GetSpellOrItemID(val, "spell")
+						if num then
+							local spellname = GetSpellInfo(num)										
+							if spellname then										
+								ns:SearchDBSpell(num, "procs")
+							end	
+						end
+					end,
+					get = function(info)end
+				}
 			end,
 		}
 		
@@ -4819,32 +4815,34 @@ end
 				opts.fulldel = true
 				class_select = nil
 				wipe(o.args.bars.args.spellList2.args)
-						
+				
+				ns:MapDBForCombatLog()
+
 				o.args.bars.args.spellList2.args.Anchor = {
-						name = L["Select Spell"],
-						order = 2,
-						desc = L["Select Spell"],
-						width = "full",
-						type = "dropdown",
-						showSpellTooltip = true,
-						values = function()
-							local t = {}												
-							for k,v in pairs(self.db.profile.procSpells) do	
-								if not v.deleted and not v.fulldel and ProcFilter(v.role) and ProcFilter_Patch(v.patch) then
-									local g_spellID, g_spellName  = IsGroupUpSpell(k)
-											
-									t[g_spellID or k] = g_spellName or SpellString(k, 10)
-								end
-							end									
-							return t
-						end,
-						set = function(info,val)
-							C:ProcsSpell(val)
-						end,
-						get = function(info, val)
-							return class_select
-						end
-					}
+					name = L["Select Spell"],
+					order = 2,
+					desc = L["Select Spell"],
+					width = "full",
+					type = "dropdown",
+					showSpellTooltip = true,
+					values = function()
+						local t = {}												
+						for k,v in pairs(self.db.profile.procSpells) do	
+							if not v.deleted and not v.fulldel and ProcFilter(v.role) and ProcFilter_Patch(v.patch) then
+								local g_spellID, g_spellName  = IsGroupUpSpell(k)
+										
+								t[g_spellID or k] = g_spellName or SpellString(k, 10)
+							end
+						end									
+						return t
+					end,
+					set = function(info,val)
+						ns:ProcsSpell(val)
+					end,
+					get = function(info, val)
+						return class_select
+					end
+				}
 				o.args.bars.args.spellList2.args.selectProcFilter = {
 					name = L["Filter"],
 					order = 1.1,
@@ -4856,46 +4854,30 @@ end
 					get = function(info)
 						return GetSelectProcFilter()
 					end,
-				}
-				
-				--[==[
-				selectRole = {
-					name = L["Role"],
-					order = 1.1,
-					type = "dropdown",
-					values = RoleSelect,
-					set = function(info,val)
-						CHOSEN_ROLE = val
-					end,
-					get = function(info, val)
-						if not CHOSEN_ROLE then CHOSEN_ROLE = GetRole() end								
-						return CHOSEN_ROLE
-					end
-				}
-				]==]		
+				}	
 				o.args.bars.args.spellList2.args.AddNew = {
-						type = "spellloader",	order	= 1,
-						name = L["Spell ID"],
-						desc = L["Change spellID"],
-						filterType = "Aura_EditBox_SPTimer",
-						set = function(info,val)
-							local num, tip = GetSpellOrItemID(val, "spell")
-							if num then
-								local spellname = GetSpellInfo(num)										
-								if spellname then										
-									C:SearchDBSpell(num, "procs")
-								end	
-							end
-						end,
-						get = function(info)end
-					}
+					type = "spellloader",	order	= 1,
+					name = L["Spell ID"],
+					desc = L["Change spellID"],
+					filterType = "Aura_EditBox_SPTimer",
+					set = function(info,val)
+						local num, tip = GetSpellOrItemID(val, "spell")
+						if num then
+							local spellname = GetSpellInfo(num)										
+							if spellname then										
+								ns:SearchDBSpell(num, "procs")
+							end	
+						end
+					end,
+					get = function(info)end
+				}
 			end,
 		}
 	end
 
 
 
-	function C:OthersSpell(spellID)
+	function ns:OthersSpell(spellID)
 		
 		local opts = self.db.profile.othersSpells[spellID]
 		
@@ -5102,6 +5084,9 @@ end
 			func = function(info, value)
 				opts.deleted = true
 				class_select = nil
+
+				ns:MapDBForCombatLog()
+
 				wipe(o.args.bars.args.spellList3.args)
 						
 				o.args.bars.args.spellList3.args.Anchor = {
@@ -5123,7 +5108,7 @@ end
 							return t
 						end,
 						set = function(info,val)
-							C:OthersSpell(val)
+							ns:OthersSpell(val)
 						end,
 						get = function(info, val)
 							return class_select
@@ -5140,7 +5125,7 @@ end
 							if num then
 								local spellname = GetSpellInfo(num)										
 								if spellname then										
-									C:SearchDBSpell(num, "others")
+									ns:SearchDBSpell(num, "others")
 								end	
 							end
 						end,
@@ -5157,6 +5142,9 @@ end
 			func = function(info, value)
 				opts.fulldel = true
 				class_select = nil
+
+				ns:MapDBForCombatLog()
+
 				wipe(o.args.bars.args.spellList3.args)
 						
 				o.args.bars.args.spellList3.args.Anchor = {
@@ -5178,7 +5166,7 @@ end
 							return t
 						end,
 						set = function(info,val)
-							C:OthersSpell(val)
+							ns:OthersSpell(val)
 						end,
 						get = function(info, val)
 							return class_select
@@ -5195,7 +5183,7 @@ end
 							if num then
 								local spellname = GetSpellInfo(num)										
 								if spellname then										
-									C:SearchDBSpell(num, "others")
+									ns:SearchDBSpell(num, "others")
 								end	
 							end
 						end,
@@ -5207,7 +5195,7 @@ end
 
 
 local function get_sort_value(name, value)
-	local t = C.db.profile.bars_anchors[anchor_value].sorting
+	local t = ns.db.profile.bars_anchors[anchor_value].sorting
 	
 	for k,v in ipairs(t) do	
 		if v.name == name then 
@@ -5218,7 +5206,7 @@ local function get_sort_value(name, value)
 end
 
 local function set_sort_value(name, value, arg)
-	local t = C.db.profile.bars_anchors[anchor_value].sorting
+	local t = ns.db.profile.bars_anchors[anchor_value].sorting
 	
 	for k,v in ipairs(t) do	
 		if v.name == name then 
@@ -5228,7 +5216,7 @@ local function set_sort_value(name, value, arg)
 end
 
 local function get_sort_order(val)
-	local t = C.db.profile.bars_anchors[anchor_value].sorting
+	local t = ns.db.profile.bars_anchors[anchor_value].sorting
 	
 	for k,v in ipairs(t) do	
 		if v.name == val then 
@@ -5238,7 +5226,7 @@ local function get_sort_order(val)
 end
 
 local function update_sort_order(name, val)
-	local t = C.db.profile.bars_anchors[anchor_value].sorting	
+	local t = ns.db.profile.bars_anchors[anchor_value].sorting	
 	local old_val
 	local old_tbl
 	
@@ -5264,7 +5252,7 @@ local function update_sort_order(name, val)
 	end)
 end
 
-function C:SetAnchorTable(value)
+function ns:SetAnchorTable(value)
 	anchor_value = value
 
 	o.args.bars.args.style.args.StatusBarGroup = {
@@ -5293,7 +5281,7 @@ function C:SetAnchorTable(value)
 			end,
 			set = function(info,val)
 				if anchor_value and anchor_value ~= val then
-					C:CopySettings(val, anchor_value)
+					ns:CopySettings(val, anchor_value)
 				end
 			end,
 			get = function(info, val) end
@@ -6437,7 +6425,7 @@ function C:SetAnchorTable(value)
 			order	= 4,
 			set = function(info,val) 
 				set_sort_value(v, "disabled", not get_sort_value(v, "disabled"))
-				C:updateSortings()
+				ns:updateSortings()
 			end,
 			get = function(info)
 				return get_sort_value(v, "disabled") -- self.db.profile.bars_anchors[anchor_value].sorting[i].alpha
@@ -6463,7 +6451,7 @@ function C:SetAnchorTable(value)
 				func = function(info, value)
 					
 					if #self.db.profile.bars_anchors > 1 then
-						C:DeleteAnchor(anchor_value)				
+						ns:DeleteAnchor(anchor_value)				
 						anchor_value = nil
 						
 						o.args.bars.args.style.args = {}
@@ -6473,7 +6461,7 @@ function C:SetAnchorTable(value)
 							order = 1,
 							name = L['Add New Anchor'],
 							func = function(info, value) 
-								C:CreateNewAnhors()					
+								ns:CreateNewAnhors()					
 							end,
 							}
 						o.args.bars.args.style.args.Anchor = {
@@ -6505,7 +6493,7 @@ function C:SetAnchorTable(value)
 	end
 end
 
-function C:OnAnchorStyleReset()
+function ns:OnAnchorStyleReset()
 	
 	anchor_value = nil					
 	o.args.bars.args.style.args = {}
@@ -6515,7 +6503,7 @@ function C:OnAnchorStyleReset()
 		order = 1,
 		name = L['Add New Anchor'],
 		func = function(info, value) 
-			C:CreateNewAnhors()					
+			ns:CreateNewAnhors()					
 		end,
 		}
 	o.args.bars.args.style.args.Anchor = {
@@ -6542,8 +6530,8 @@ function C:OnAnchorStyleReset()
 	
 end
 
-function C:Cooldown(spellname)
-	local opts = self.db.profile.classCooldowns[C.myCLASS][spellname]
+function ns:Cooldown(spellname)
+	local opts = self.db.profile.classCooldowns[ns.myCLASS][spellname]
 	
 	
 	self.UpdateSpellCooldowns()
@@ -6613,7 +6601,7 @@ function C:Cooldown(spellname)
 	}
 end
 
-function C:ICooldown(spellname)
+function ns:ICooldown(spellname)
 	local opts = self.db.profile.internal_cooldowns[spellname]
 	
 	ICD_select = spellname
@@ -6729,7 +6717,7 @@ function C:ICooldown(spellname)
 	}
 end
 
-function C:AuraCooldown(spellname)
+function ns:AuraCooldown(spellname)
 	local opts = self.db.profile.auras_cooldowns[self.myCLASS][spellname]
 	
 	AuraCD_select = spellname
@@ -6835,8 +6823,8 @@ function C:AuraCooldown(spellname)
 	}
 end
 
-function C:BarCooldownSpell(spellID)
-	local opts = self.db.profile.bars_cooldowns[C.myCLASS][spellID]
+function ns:BarCooldownSpell(spellID)
+	local opts = self.db.profile.bars_cooldowns[ns.myCLASS][spellID]
 	
 	bar_cooldown_select = spellID
 	
@@ -6848,7 +6836,7 @@ function C:BarCooldownSpell(spellID)
 
 	o.args.bars.args.spellList4.args.header1.args.hide = {
 			order = 4,name = L["Hide"], type = "toggle",
-			set = function(info,val) opts.hide = not opts.hide; C:UpdateBars_CooldownPart(); end,
+			set = function(info,val) opts.hide = not opts.hide; ns:UpdateBars_CooldownPart(); end,
 			get = function(info) return opts.hide end
 		}
 	
@@ -6922,7 +6910,7 @@ function C:BarCooldownSpell(spellID)
 				class_select = nil
 				wipe(o.args.bars.args.spellList4.args)
 				
-				C:UpdateBars_CooldownPart();
+				ns:UpdateBars_CooldownPart();
 				
 				o.args.bars.args.spellList4.args.Anchor = {
 						name = L["Select Spell"],
@@ -6933,7 +6921,7 @@ function C:BarCooldownSpell(spellID)
 						showSpellTooltip = true,
 						values = function()
 							local t = {}												
-							for k,v in pairs(self.db.profile.bars_cooldowns[C.myCLASS] or {}) do	
+							for k,v in pairs(self.db.profile.bars_cooldowns[ns.myCLASS] or {}) do	
 								if not v.deleted and not v.fulldel then
 									t[k] = SpellString(k, 10, nil, true)
 								end
@@ -6941,8 +6929,8 @@ function C:BarCooldownSpell(spellID)
 							return t
 						end,
 						set = function(info,val)
-							C:BarCooldownSpell(val)
-							C:UpdateBars_CooldownPart();
+							ns:BarCooldownSpell(val)
+							ns:UpdateBars_CooldownPart();
 						end,
 						get = function(info, val)
 							return bar_cooldown_select
@@ -6960,8 +6948,8 @@ function C:BarCooldownSpell(spellID)
 							if num then
 								local spellname = GetSpellInfo(num)										
 								if spellname then										
-									C:SearchDBSpell(num, "bar_cooldowns")
-									C:UpdateBars_CooldownPart();
+									ns:SearchDBSpell(num, "bar_cooldowns")
+									ns:UpdateBars_CooldownPart();
 								end	
 							end
 						end,
@@ -6979,7 +6967,7 @@ function C:BarCooldownSpell(spellID)
 				opts.fulldel = true
 				class_select = nil
 				wipe(o.args.bars.args.spellList4.args)
-				C:UpdateBars_CooldownPart();
+				ns:UpdateBars_CooldownPart();
 				o.args.bars.args.spellList4.args.Anchor = {
 						name = L["Select Spell"],
 						order = 2,
@@ -6989,7 +6977,7 @@ function C:BarCooldownSpell(spellID)
 						showSpellTooltip = true,
 						values = function()
 							local t = {}												
-							for k,v in pairs(self.db.profile.bars_cooldowns[C.myCLASS] or {}) do	
+							for k,v in pairs(self.db.profile.bars_cooldowns[ns.myCLASS] or {}) do	
 								if not v.deleted and not v.fulldel then
 									t[k] = SpellString(k, 10, nil, true)
 								end
@@ -6997,8 +6985,8 @@ function C:BarCooldownSpell(spellID)
 							return t
 						end,
 						set = function(info,val)
-							C:BarCooldownSpell(val)
-							C:UpdateBars_CooldownPart();
+							ns:BarCooldownSpell(val)
+							ns:UpdateBars_CooldownPart();
 						end,
 						get = function(info, val)
 							return bar_cooldown_select
@@ -7016,8 +7004,8 @@ function C:BarCooldownSpell(spellID)
 							if num then
 								local spellname = GetSpellInfo(num)										
 								if spellname then										
-									C:SearchDBSpell(num, "bar_cooldowns")
-									C:UpdateBars_CooldownPart();
+									ns:SearchDBSpell(num, "bar_cooldowns")
+									ns:UpdateBars_CooldownPart();
 								end	
 							end
 						end,
