@@ -2419,13 +2419,9 @@ ns.MapDBForCombatLog = function()
 
 	if not ns.isClassic then return end 
 
-	old_print('MapDBForCombatLog')
-
 	for k, v in pairs(ns.db.profile.classSpells[ns.myCLASS]) do 
 		if ( k and GetSpellInfo(k)) and not v.delete and not v.fulldel then 
-			ns.spellNameToID[GetSpellInfo(k)] = k 
-
-			old_print('Add ', GetSpellInfo(k), k)
+			ns.spellNameToID[GetSpellInfo(k)] = k
 		end
 	end
 end
