@@ -1,6 +1,10 @@
 local addon, ns = ...
 local changelog = 
-[[3.14.2
+[[3.15.1
+gui updates
+cleu mapping for classic
+
+3.14.2
 fix cooldownline filters 
 
 3.14.1
