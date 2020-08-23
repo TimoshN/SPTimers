@@ -38,13 +38,6 @@ local unit_per_achor_choose = nil
 local bar_cooldown_select = nil
 local AuraCD_select = nil
 
-local old_print = print
-local print = function(...)
-	if ns.dodebugging then	
-		old_print(GetTime(), "SPTimers_Options, ", ...)
-	end
-end
-
 local message = ns.message
 
 local justifu = {
@@ -142,7 +135,7 @@ local function GetSpellOrItemID(val, tip)
 		
 			local ctip, id = match(spellString, "(%a+):(%d+)")
 			
-		--	print(spellString,ctip,id)
+		--	ns.print(spellString,ctip,id)
 			
 			if ctip == tip and tonumber(id) then
 				return tonumber(id), tip
@@ -151,7 +144,7 @@ local function GetSpellOrItemID(val, tip)
 				for tier=1, MAX_TALENT_TIERS do
 					for column=1, NUM_TALENT_COLUMNS do
 						
-						print(GetTalentLink(tier, column))
+						ns.print(GetTalentLink(tier, column))
 					
 					end
 				end
@@ -1292,8 +1285,7 @@ function ns:DefaultOptions()
 				[ GetItemInfo(6948) or L["Hearthstone"] ] = { itemid = 6948, hide = true },  -- Hearthstone
 				[ GetItemInfo(110560) or L["Garrison Hearthstone"] ] = { itemid = 110560, hide = true },  -- Hearthstone
 				[ GetSpellInfo(125439) or L["Revive Battle Pets"] ] = { spellid = 125439, hide = true },
-			},	
-			
+			},		
 			blockList = {
 				['item:6948'] = { itemid = 6948, hide = true },
 				['item:110560'] = { itemid = 110560, hide = true },
@@ -1390,23 +1382,6 @@ function ns:OptionsTable()
 	o = {
 		title = L["SPTimers (drag here to move options frame)"],
 		args = {
-			about ={
-				order = 99998,name = L["About"],type = "group",
-				args={					
-				},
-			},
-			changelog ={
-				order = 99999,name = "Change Log",type = "group",
-				args={
-					changes  = {
-						order = 1,
-						type = "string",
-						width = "full",
-						name = self.changeLog,
-					}
-			
-				},
-			},
 			general={
 				order = 1,name = L["General"],type = "group",
 				args={
@@ -2415,10 +2390,18 @@ function ns:OptionsTable()
 									for k,v in pairs(self.db.profile.cooldownline.blockList) do
 										if not v.deleted and not v.fulldel then
 											local lineName = ''
-											if v.spellid and GetSpellInfo(v.spellid) then
-												lineName = GetSpellInfo(v.spellid)
-											elseif v.itemid and GetItemInfo(v.itemid) then
-												lineName = GetItemInfo(v.itemid)
+											if v.spellid then
+												if GetSpellInfo(v.spellid) then
+													lineName = GetSpellInfo(v.spellid)
+												else 
+													lineName = 'Invalid spellID:'..tostring(v.spellid)
+												end 
+											elseif v.itemid then
+												if GetItemInfo(v.itemid) then
+													lineName = GetItemInfo(v.itemid)
+												else 
+													lineName = 'Invalid itemID:'..tostring(v.itemid)
+												end
 											end
 											
 											if v.hide then
@@ -2465,7 +2448,7 @@ function ns:OptionsTable()
 								set = function(info,val)
 									local num, tip = GetSpellOrItemID(val, "item")
 									
-								--	print(num, tip, val)
+								--	ns.print(num, tip, val)
 									
 									if num then
 										local itemname = GetItemInfo(num)										
@@ -2489,7 +2472,7 @@ function ns:OptionsTable()
 								get = function(info)
 									if not blocklist_select then return nil end
 									
-							--		print(blocklist_select)
+							--		ns.print(blocklist_select)
 									
 									return self.db.profile.cooldownline.blockList[blocklist_select] and self.db.profile.cooldownline.blockList[blocklist_select].hide or false
 								
@@ -3732,29 +3715,7 @@ function ns:OptionsTable()
 	return o
 end
 
-do
-	
-	local sites = {
-		["curse_com"] = { "curseforge.com", "https://wow.curseforge.com/projects/sp-timers", false, "full" },
-	}
-		
-	function ns:InitSupports()
-		local order_1 = 1
-		for k,v in pairs(sites) do
-		
-			o.args.about.args[k] =  {
-				type = "editbox",	order	= order_1,multiline = v[3],
-				name = v[1],
-				width = v[4],
-				set = function(info,val) end,						
-				get = function(info) return v[2] end
-			}
-			order_1 = order_1 + 1
-		
-		end
-	end
-end
-	
+
 	local classGUIChangeHandlers = {}
 	
 	function ns:AddOnClassGUIChangeHandler(handler)	
@@ -3779,14 +3740,19 @@ end
 				get = function(info) return opts.pvpduration and tostring(opts.pvpduration) or NO end
 			}
 			
-			o.args.bars.args.ClassSpells.args.classGrop.args.cleu = {
-				order = 3.6,name = L["cleu"], desc = L["cleu_desc"], type = "toggle",
-				set = function(info,val) 
-					opts.cleu = not opts.cleu; 
-					ClassSpellSettings_Update(opts)
-				end,
-				get = function(info) return opts.cleu end
-			}
+			if ( not ns.isClassic ) then
+				o.args.bars.args.ClassSpells.args.classGrop.args.cleu = {
+					order = 3.6,name = L["cleu"], desc = L["cleu_desc"], type = "toggle",
+					set = function(info,val)
+						opts.cleu = not opts.cleu; 
+						ClassSpellSettings_Update(opts)
+					end,
+					get = function(info) 
+						return opts.cleu 
+					end
+				}
+			end 
+
 			o.args.bars.args.ClassSpells.args.classGrop.args.targetType = {
 				name = L["Target Type"],
 				order = 3.7,
@@ -3800,15 +3766,16 @@ end
 				end
 			}
 			
-			o.args.bars.args.ClassSpells.args.classGrop.args.Pandemia = {
-				order = 6.2,name = L["30% dutation indicator"], type = "toggle", width = 'full',
-				set = function(info,val) 
-					opts.pandemia = not opts.pandemia; 
-					ClassSpellSettings_Update(opts)
-				end,
-				get = function(info) return opts.pandemia end
-			}
-			
+			if ( not ns.isClassic ) then
+				o.args.bars.args.ClassSpells.args.classGrop.args.Pandemia = {
+					order = 6.2,name = L["30% dutation indicator"], type = "toggle", width = 'full',
+					set = function(info,val) 
+						opts.pandemia = not opts.pandemia; 
+						ClassSpellSettings_Update(opts)
+					end,
+					get = function(info) return opts.pandemia end
+				}
+			end
 		end
 		
 		if opts.showTicks then
@@ -3921,7 +3888,7 @@ end
 				end
 			}
 			
-			if opts.cleu then
+			if opts.cleu or ns.isClassic then
 				o.args.bars.args.ClassSpells.args.classGrop.args.filterHeader.args.whitelist_cleu = {
 					name = L["White List Combat Log"],
 					order = 18,
@@ -5929,7 +5896,7 @@ function ns:SetAnchorTable(value)
 				self:Update_SpellText() 
 			end,
 			get = function(info) 
-				--print("spell_text_flaggs", self.db.profile.bars_anchors[anchor_value].spell.font, anchor_value)
+				--ns.print("spell_text_flaggs", self.db.profile.bars_anchors[anchor_value].spell.font, anchor_value)
 				return self.db.profile.bars_anchors[anchor_value].spell.font 
 			end,
 		}
@@ -6176,7 +6143,7 @@ function ns:SetAnchorTable(value)
 				self:UpdateLabelStyle()
 			end,
 			get = function(info) 
-				--print("spell_text_flaggs", self.db.profile.bars_anchors[anchor_value].spell.font, anchor_value)
+				--ns.print("spell_text_flaggs", self.db.profile.bars_anchors[anchor_value].spell.font, anchor_value)
 				return self.db.profile.bars_anchors[anchor_value].group_font_style.font 
 			end,
 		}

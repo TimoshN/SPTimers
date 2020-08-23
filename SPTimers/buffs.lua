@@ -39,13 +39,6 @@ local PATCH_MOP = 'PATCH_MOP'
 local PATCH_WOD = 'PATCH_WOD'
 local PATCH_LEG = 'PATCH_LEG'
 
-local old_print = print
-local print = function(...)
-	if ns.dodebugging then	
-		old_print(GetTime(), "SPTimers_buffs.lua, ", ...)
-	end
-end
-
 local procs = { -- short timed buffs, trinkets etc
 
 	-- caster trinckets 
@@ -492,7 +485,7 @@ local function GetSpell(spellid)
 	local name = GetSpellInfo(spellid)
 	
 	if not name or name == "" then
-		print("Spellid is wrong ", ns.myCLASS,"#",spellid)
+		ns.print("Spellid is wrong ", ns.myCLASS,"#",spellid)
 	end
 	
 	return name or ""
@@ -1390,13 +1383,13 @@ do
 				
 			if filter_type and self.db.profile.unit_filters[filter_type] then
 				
---				print("ns:UnitFilter_GUID", guid, filter_type, "true")
+--				ns.print("ns:UnitFilter_GUID", guid, filter_type, "true")
 				return true
 			end
---			print("ns:UnitFilter_GUID", guid, filter_type, "false")
+--			ns.print("ns:UnitFilter_GUID", guid, filter_type, "false")
 			return false
 		end
---		print("ns:UnitFilter_GUID", guid, filter_type, "SKIP")
+--		ns.print("ns:UnitFilter_GUID", guid, filter_type, "SKIP")
 		return true
 	end
 end
@@ -1585,36 +1578,36 @@ do
 	}
 	
 	function ns:GetCLEUFilter(spellID, types)
-		print('GetCLEUFilter')
+		ns.print('GetCLEUFilter')
 
 		spellID = IsGroupUpSpell(spellID) or spellID
 		
 		local skip = false
 
-		--print('   A:0', spellID, types, skip, ns.isClassic, self.db.profile.classSpells[self.myCLASS][spellID])
+		--ns.print('   A:0', spellID, types, skip, ns.isClassic, self.db.profile.classSpells[self.myCLASS][spellID])
 
 		if self.db.profile.classSpells[self.myCLASS][spellID] and ( ns.isClassic or self.db.profile.classSpells[self.myCLASS][spellID].cleu ) then
 			
-			--print('   A:0:0', spellID, types, skip, ns.isClassic)
+			--ns.print('   A:0:0', spellID, types, skip, ns.isClassic)
 
 			if self.db.profile.classlistFiltersoff then return false end
 			
-			--print('   A:0:1', spellID, types, skip, ns.isClassic)
+			--ns.print('   A:0:1', spellID, types, skip, ns.isClassic)
 
 			if self.db.profile.classSpells[self.myCLASS][spellID].hide then return false end
 			if self.db.profile.classSpells[self.myCLASS][spellID].deleted then return false end
 			if self.db.profile.classSpells[self.myCLASS][spellID].fulldel then return false end
 			
-			--print('   A:1', spellID, types, skip)
+			--ns.print('   A:1', spellID, types, skip)
 			if types ~= "SPELL_CAST" and not self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu then skip = true end
 			if self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu == 4 then skip = true end
 			if types == ns.SPELL_ENERGIZE and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu ~= typesFilter[types] then return false end
-			--print('   A:2', spellID, types, skip)
+			--ns.print('   A:2', spellID, types, skip)
 			if types and self.db.profile.classSpells[self.myCLASS][spellID].whitelist_cleu == typesFilter[types] then skip = true end
 			
 			if self.db.profile.classSpells[self.myCLASS][spellID].blacklist_cleu == 4 then skip = false end			
 			if types and self.db.profile.classSpells[self.myCLASS][spellID].blacklist_cleu == typesFilter[types] then skip = false end
-			--print('   A:3', spellID, types, skip)
+			--ns.print('   A:3', spellID, types, skip)
 		end
 		return skip
 	end
@@ -1892,7 +1885,7 @@ do
 	--[[
 	function ns:CLEU_TEST(flags, name, spellName)
 		
-		print("T", name, spellName, IsPlayer(flags), IsMyFlags(flags), IsMyPetFlags(flags), IsRaidMember(flags), IsPartyMember(flags))
+		ns.print("T", name, spellName, IsPlayer(flags), IsMyFlags(flags), IsMyPetFlags(flags), IsRaidMember(flags), IsPartyMember(flags))
 	end
 	
 	]]
@@ -2017,11 +2010,11 @@ do
 	
 	function ns:GetDuration(spellID, dstGUID, pandemia_t, isplayer)
 		
-		--print('spellID:1', spellID)
+		--ns.print('spellID:1', spellID)
 
 		spellID = IsGroupUpSpell(spellID) or spellID
 	
-		--print('spellID:2', spellID)
+		--ns.print('spellID:2', spellID)
 
 		if self.db.profile.classSpells[self.myCLASS][spellID].haste then
 			if ns.db.profile.classSpells[self.myCLASS][spellID].tick and
@@ -2206,21 +2199,21 @@ function ns:SetupAuras(db)
 	
 	for k,v in pairs(procs) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			print("Wrong procSpells spellID in default list", k)		
+			ns.print("Wrong procSpells spellID in default list", k)		
 			procs[k] = nil
 		end
 	end
 	
 	for k,v in pairs(others) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			print("Wrong othersSpells spellID in default list", k)		
+			ns.print("Wrong othersSpells spellID in default list", k)		
 			others[k] = nil
 		end
 	end
 	
 	for k,v in pairs(internal_cooldowns) do
 		if k == "" then
-			print("Wrong internal_cooldowns spellID in defaul list", v.spellid)			
+			ns.print("Wrong internal_cooldowns spellID in defaul list", v.spellid)			
 			internal_cooldowns[k] = nil
 		end
 	end
@@ -2232,21 +2225,21 @@ function ns:SetupAuras(db)
 	
 	for k,v in pairs(db.procSpells) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			print("Wrong procSpells spellID", k)		
+			ns.print("Wrong procSpells spellID", k)		
 			v = nil
 		end
 	end
 	
 	for k,v in pairs(db.othersSpells) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			print("Wrong othersSpells spellID", k)			
+			ns.print("Wrong othersSpells spellID", k)			
 			v = nil
 		end
 	end
 	
 	for k,v in pairs(db.internal_cooldowns) do
 		if k == "" then
-			print("Wrong internal_cooldowns spellID", v.spellid)			
+			ns.print("Wrong internal_cooldowns spellID", v.spellid)			
 			v = nil
 		end
 	end
@@ -2254,7 +2247,7 @@ function ns:SetupAuras(db)
 	if self.SetupClassSpells then	
 		for id,data in pairs(self:SetupClassSpells()) do			
 			if GetSpellInfo(id) == nil or GetSpellInfo(id) == "" then
-				print("Wrong classSpells spellID in default "..self.myCLASS.." DB #", id)
+				ns.print("Wrong classSpells spellID in default "..self.myCLASS.." DB #", id)
 			else
 				db.classSpells[self.myCLASS][id] = data
 			end
@@ -2263,35 +2256,35 @@ function ns:SetupAuras(db)
 	
 	for k,v in pairs(db.classSpells[self.myCLASS]) do
 		if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", k)			
+			ns.print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", k)			
 			db.classSpells[self.myCLASS][k] = nil
 		end
 	end
 
 	for i=1, #( SpellsToRemove[self.myCLASS] or {} ) do
 		if db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] then		
-			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", SpellsToRemove[self.myCLASS][i], "due of removed spells")
+			ns.print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", SpellsToRemove[self.myCLASS][i], "due of removed spells")
 			db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] = nil			
 		end
 	end
 
 	for i=1, #GlobalSpellsToRemove do
 		if db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] then		
-			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", GlobalSpellsToRemove[i], "due of removed spells")
+			ns.print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", GlobalSpellsToRemove[i], "due of removed spells")
 			db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] = nil			
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
 		if db.procSpells[GlobalSpellsToRemove[i]] then		
-			print("Wrong procSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
+			ns.print("Wrong procSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
 			db.procSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
 		if db.othersSpells[GlobalSpellsToRemove[i]] then		
-			print("Wrong othersSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
+			ns.print("Wrong othersSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
 			db.othersSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
@@ -2303,7 +2296,7 @@ function ns:SetupAuras(db)
 	
 	for k,v in pairs(db.classCooldowns[self.myCLASS]) do
 		if k == "" then
-			print("Wrong classCooldowns spellID id DB #", v.spellid)
+			ns.print("Wrong classCooldowns spellID id DB #", v.spellid)
 			db.classCooldowns[self.myCLASS][k] = nil
 		end
 	end
@@ -2322,28 +2315,28 @@ function ns:RemoveSpellExists(db)
 	
 	for i=1, #( SpellsToRemove[self.myCLASS] or {} ) do
 		if db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] then		
-			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", SpellsToRemove[self.myCLASS][i], "due of removed spells")
+			ns.print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", SpellsToRemove[self.myCLASS][i], "due of removed spells")
 			db.classSpells[self.myCLASS][SpellsToRemove[self.myCLASS][i]] = nil			
 		end
 	end
 
 	for i=1, #GlobalSpellsToRemove do
 		if db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] then		
-			print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", GlobalSpellsToRemove[i], "due of removed spells")
+			ns.print("Wrong classSpells spellID in profile"..self.myCLASS.." DB #", GlobalSpellsToRemove[i], "due of removed spells")
 			db.classSpells[self.myCLASS][GlobalSpellsToRemove[i]] = nil			
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
 		if db.procSpells[GlobalSpellsToRemove[i]] then		
-			print("Wrong procSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
+			ns.print("Wrong procSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
 			db.procSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
 	
 	for i=1, #GlobalSpellsToRemove do
 		if db.othersSpells[GlobalSpellsToRemove[i]] then		
-			print("Wrong othersSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
+			ns.print("Wrong othersSpells spellID in profile DB #", GlobalSpellsToRemove[i], "due of removed spells")
 			db.othersSpells[GlobalSpellsToRemove[i]] = nil	
 		end
 	end
@@ -2361,16 +2354,16 @@ function ns:RemoveSpellExists(db)
 						for class2, classdata in pairs(ns.classSpells) do						
 							if db.classSpells[class2][spellIDtoRemove] then
 								db.classSpells[class2][spellIDtoRemove] = nil						
-								old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class2)
+								ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class2)
 							end							
 						end						
 						if db.procSpells[spellIDtoRemove] then	
 							db.procSpells[spellIDtoRemove] = nil
-							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in procList')
+							ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in procList')
 						end					
 						if db.othersSpells[spellIDtoRemove] then	
 							db.othersSpells[spellIDtoRemove] = nil
-							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in othersSpells')
+							ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in othersSpells')
 						end
 					end
 				elseif class == 'CLASS' then
@@ -2379,7 +2372,7 @@ function ns:RemoveSpellExists(db)
 						for class2, classdata in pairs(ns.classSpells) do						
 							if db.classSpells[class2][spellIDtoRemove] then
 								db.classSpells[class2][spellIDtoRemove] = nil						
-								old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class2)
+								ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class2)
 							end							
 						end	
 					end				
@@ -2388,7 +2381,7 @@ function ns:RemoveSpellExists(db)
 						local spellIDtoRemove = list[index]				
 						if db.procSpells[spellIDtoRemove] then	
 							db.procSpells[spellIDtoRemove] = nil
-							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in procList')
+							ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in procList')
 						end					
 					end
 				elseif class == 'OTHERS' then
@@ -2396,7 +2389,7 @@ function ns:RemoveSpellExists(db)
 						local spellIDtoRemove = list[index]				
 						if db.othersSpells[spellIDtoRemove] then	
 							db.othersSpells[spellIDtoRemove] = nil
-							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in othersSpells')
+							ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in othersSpells')
 						end					
 					end
 				elseif db.classSpells[class] then
@@ -2404,7 +2397,7 @@ function ns:RemoveSpellExists(db)
 						local spellIDtoRemove = list[index]					
 						if db.classSpells[class][spellIDtoRemove] then
 							db.classSpells[class][spellIDtoRemove] = nil						
-							old_print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class)
+							ns.print('T', 'Remove', GetSpellLink(spellIDtoRemove),'in classList', class)
 						end							
 					end
 				end

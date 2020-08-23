@@ -109,7 +109,7 @@ end
 
 events:SetScript('OnEvent', function(self, event, ...)
 	currentSpec = GetSpecialization()	
---	print('T', FireMageSpecID, currentSpec)
+--	ns.print('T', FireMageSpecID, currentSpec)
 	if currentSpec and currentSpec == FireMageSpecID then
 		ns.IsFireMage = true
 	else

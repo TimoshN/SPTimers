@@ -265,7 +265,7 @@ function ns:DeserializeImport()
 	--	dec(data)
 		
 		if(not data1) then
-			print("SPTimers: error decompressing: " .. message)
+			ns.print("SPTimers: error decompressing: " .. message)
 			return
 		end
 		
@@ -281,7 +281,7 @@ function ns:DeserializeImport()
 		local done, final = libS:Deserialize(data1)
 		
 		if (not done) then
-			print("SPTimers: error deserializing " .. final)
+			ns.print("SPTimers: error deserializing " .. final)
 			return
 		end
 		
@@ -301,7 +301,7 @@ function ns:DeserializeImport()
 		
 		local done, final = libS:Deserialize(data3)
 		if (not done) then
-			print("SPTimers: error deserializing " .. final)
+			ns.print("SPTimers: error deserializing " .. final)
 			return
 		end
 		
@@ -372,14 +372,14 @@ function ns:DeserializeImport()
 		
 		for k,v in pairs(final_d.procSpells) do
 			if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			--	print("Wrong procSpells spellID", k)		
+			--	ns.print("Wrong procSpells spellID", k)		
 				final_d.procSpells[k] = nil
 			end
 		end
 		
 		for k,v in pairs(final_d.othersSpells) do
 			if GetSpellInfo(k) == nil or GetSpellInfo(k) == "" then
-			--	print("Wrong othersSpells spellID", k)			
+			--	ns.print("Wrong othersSpells spellID", k)			
 				final_d.othersSpells[k] = nil
 			end
 		end
@@ -388,7 +388,7 @@ function ns:DeserializeImport()
 			
 			for i, val in pairs(datas) do
 				if GetSpellInfo(i) == nil or GetSpellInfo(i) == "" then
-			--		print("Wrong classSpells spellID", i)			
+			--		ns.print("Wrong classSpells spellID", i)			
 
 					final_d.classSpells[class][i] = nil
 				end				

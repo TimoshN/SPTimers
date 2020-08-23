@@ -93,7 +93,7 @@ local function OnTimerStart(tag)
 		
 		ns:PlaySound(spelllist[tag][5], "sound_onshow", spelllist[tag][14])
 		
-	--	print("START TIMER",spelllist[tag][8])
+	--	ns.print("START TIMER",spelllist[tag][8])
 	end
 end
 
@@ -106,20 +106,6 @@ local function RemoveTagFrolList(tag)
 	end
 end
 
--- debug print ------------------
-local old_print = print
-local print = function(...)
-	if ns.dodebugging then	
-		old_print("SPT_BARS, ", ...)
-	end
-end
-
-local old_assert = assert
-local assert = function(...)
-	if ns.dodebugging then	
-	--	old_assert(...)
-	end
-end
 
 local function deepcopy(t)
 	if type(t) ~= 'table' then return t end
@@ -163,7 +149,7 @@ function ns:ProfileSwapBars()
 	
 	wipe(spelllist)
 	
---	print("InitFrames", #anchors, #ns.db.profile.bars_anchors)
+--	ns.print("InitFrames", #anchors, #ns.db.profile.bars_anchors)
 	if #anchors > 0 then
 		for i=1, #anchors do
 			anchors[i]:ResetAnchor()
@@ -212,7 +198,7 @@ do
 		
 		ns:TestBars()
 		
-	--	print("AuraEnd Testbars")
+	--	ns.print("AuraEnd Testbars")
 	end)
 	
 	function ns:DisableTestBars()	
@@ -470,7 +456,7 @@ function ns:CopySettings(from, to)
 	ns.db.profile.bars_anchors[to].point = deepcopy(a1)
 	ns.db.profile.bars_anchors[to].name = a2
 	
---	print(to, ns.db.profile.bars_anchors[to], #ns.db.profile.bars_anchors)
+--	ns.print(to, ns.db.profile.bars_anchors[to], #ns.db.profile.bars_anchors)
 	self:InitBarAnchor(to)	
 	
 	self:Visibility()
@@ -580,11 +566,11 @@ function ns:GetRelativePoint(frame)
 					OY
 	
 	]]
---	print("T1", LEFT, TOP)
+--	ns.print("T1", LEFT, TOP)
 	
 	local rX, rY = round(x-ux), round(y-uy)
 	
---	print("T2", "rX", rX, "rY", rY)
+--	ns.print("T2", "rX", rX, "rY", rY)
 
 	if rX < -LEFT then
 		point1, point3 = "LEFT", "LEFT"			
@@ -627,7 +613,7 @@ function ns:GetRelativePoint(frame)
 		end
 	end
 	
-	old_print(point2..point1, ns.Parent, point4..point3, xpos, ypos)
+	ns.print(point2..point1, ns.Parent, point4..point3, xpos, ypos)
 end
 	
 function ns:InitBarAnchor(i)
@@ -694,7 +680,7 @@ function ns:InitBarAnchor(i)
 			self:ClearAllPoints()
 			self:SetPoint("CENTER", parent, "CENTER", self.parent.opts.point[1] or 0,self.parent.opts.point[2] or 0)	
 			
-		--	print('T', ns:GetRelativePoint(self.parent))
+		--	ns.print('T', ns:GetRelativePoint(self.parent))
 		end)
 
 		f.mover:SetClampedToScreen(true)		
@@ -1019,11 +1005,11 @@ do
 				--[==[
 				local temp = v.custom_text:gsub('%[', ''):gsub('%]', '')
 		
-				print('T', v.custom_text, temp)
+				ns.print('T', v.custom_text, temp)
 				
 				for val in gmatch(temp, "[^ :\"-]+") do		
 				
-					print('T', val)
+					ns.print('T', val)
 					
 					if supportedTags[val] then
 						preCahceCheckCustomText[k] = preCahceCheckCustomText[k] or {}						
@@ -1141,7 +1127,7 @@ do
 		local opt = self.opts
 		
 		local spellID = ns.IsGroupUpSpell(data[5]) or data[5]
-	--	print('T', text, data[5], preCahceCheckCustomText[data[5]])
+	--	ns.print('T', text, data[5], preCahceCheckCustomText[data[5]])
 		
 		if text and preCahceCheckCustomText[spellID] then		
 			for i=1, #preCahceCheckCustomText[spellID] do
@@ -1179,14 +1165,14 @@ do
 			
 			for guid, last in pairs(ns.targetEngaged) do		
 
-			--	print('Target check', guid, last <= current)
+			--	ns.print('Target check', guid, last <= current)
 				if last <= current then
 
 					ns.targetEngaged[guid] = nil
 
 					ns.Timer_Remove_DEAD(guid, true)
 					ns:RemovePandemia(nil, guid)	
-			--		print("Clear DestGUID by noActive", guid)
+			--		ns.print("Clear DestGUID by noActive", guid)
 				end	
 			end
 			
@@ -1204,7 +1190,7 @@ do
 	events:SetScript('OnEvent', function(self,event,...)
 		if event == 'ZONE_CHANGED_NEW_AREA' then
 		
-		--	print(event, 'Remove all auras and update player and pet auras')
+		--	ns.print(event, 'Remove all auras and update player and pet auras')
 			for tag, data in pairs(spelllist) do				
 				RemoveTagFrolList(tag)
 			end
@@ -1221,7 +1207,7 @@ do
 			end
 			onUpdateHandler.active = true	
 		end
-	--	print(event, ...)
+	--	ns.print(event, ...)
 	end)
 end
 
@@ -1249,7 +1235,7 @@ function ns:OnCombatEndReset()
 	for tag, data in pairs(spelllist) do	
 		if data[11] == "DEBUFF" then
 		--	spelllist[tag] = nil			
-			print('OnCombatEndReset', tag)
+			ns.print('OnCombatEndReset', tag)
 			ns.Timer_Remove_By_Tag(tag)
 		end	
 	end
@@ -1383,7 +1369,7 @@ function ns.BarTextUpdate(self)
 	if not data then return end
 	local opt = self.opts
 	
---	print(data[23])
+--	ns.print(data[23])
 	if data[23] then
 		self.spellText:SetText(ns.CustomTextCreate(self))
 	elseif opt.target_name and data[11] ~= "BUFF" then
@@ -1458,7 +1444,7 @@ end
 function ns.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, auraType, func, raidIndex, spellName, icon, count, destName, sourceName, specialID, isPlayer, eventType)
 	if not ns.db.profile.bar_module_enabled or not duration then return end
 	if endTime and ( endTime ~= 0 and duration ~= 0 ) and (endTime < GetTime()) then 
-	--	print("T2", endTime-GetTime(), duration, spellName)	
+	--	ns.print("T2", endTime-GetTime(), duration, spellName)	
 		return
 	end
 	
@@ -1525,7 +1511,7 @@ function ns.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, aura
 	
 	--[==[
 	if spellID == 111400 then
-		old_print('T0', start, sorting, init, duration, endTime, eventType,( GetTime() - ( data[35] or 0 ) ) )
+		ns.print('T0', start, sorting, init, duration, endTime, eventType,( GetTime() - ( data[35] or 0 ) ) )
 	end
 	]==]
 	
@@ -1584,8 +1570,8 @@ function ns.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, aura
 	end
 	
 	
---	old_print('Update from', data[14], 'to', func, '.Last update', GetTime()-( data[35] or GetTime() ), 'by', eventType)
---	old_print('Timers', data[1],'->',duration, data[2], '->', endTime,'sorting:',sorting,'start:',start)
+--	ns.print('Update from', data[14], 'to', func, '.Last update', GetTime()-( data[35] or GetTime() ), 'by', eventType)
+--	ns.print('Timers', data[1],'->',duration, data[2], '->', endTime,'sorting:',sorting,'start:',start)
 	
 	data[1] = duration													
 	data[2] = endTime																	
@@ -1652,7 +1638,7 @@ function ns.Timer(duration, endTime, destGuid, sourceGuid, spellID, auraID, aura
 	
 	data[35] = GetTime()+0.5
 	
---	print('T1',  ns.onUpdateHandler.active, destGuid, sourceGuid, spellName)
+--	ns.print('T1',  ns.onUpdateHandler.active, destGuid, sourceGuid, spellName)
 	if ns.onUpdateHandler.active and destGuid and ( destGuid ~= ns.myGUID ) then
 		ns.targetEngaged[destGuid] = GetTime()+ns.db.profile.engageThrottle											
 	end
@@ -1811,7 +1797,7 @@ function ns.RemoveGUID_UA(guid, auraType, func, curtime)
 	
 	for tag, data in pairs(spelllist) do
 	
-	--	print("Remove UA", data[8], data[13], NO_FADE)
+	--	ns.print("Remove UA", data[8], data[13], NO_FADE)
 	
 		if data[3] == guid and ( data[11] == 'DEBUFF' or data[11] == 'BUFF' ) and data[14] == func and data[35] < curtime then --and data[11] == auraType
 			if ns.db.profile.delayfading then
@@ -1858,12 +1844,12 @@ function ns.SetCount(self, count, source)
 	if count then
 		data[19] = ns:GetCheckStacks(data[5]) or count or 0
 		
-	--	old_print('SetCount:0', 'data[19]=', data[19], 'count=', count)
+	--	ns.print('SetCount:0', 'data[19]=', data[19], 'count=', count)
 	--	self.lastCount = count
 	--	self.lastSource = source
 	end
 	
-	--old_print('SetCount:1', 'count=',count, 'source=', source, 'data[21]=',data[21], 'data[22]=', data[22], 'data[19]=', data[19])
+	--ns.print('SetCount:1', 'count=',count, 'source=', source, 'data[21]=',data[21], 'data[22]=', data[22], 'data[19]=', data[19])
 
 	if data[21] and ns.db.profile.tick_count_on_stacks then
 		if data[22] then
@@ -1995,14 +1981,14 @@ do
 					if ( self._bars[i] ) then 
 						self._bars[i]:SetPoint("BOTTOM", self, "BOTTOM", 0, totalsize)	
 					else 
-						old_print('No bar for label', i)
+						ns.print('No bar for label', i)
 					end 
 					totalsize = totalsize + barheight
 				else -- плашка снизу
 					if ( self._bars[i] ) then 
 						self._bars[i]:SetPoint("BOTTOM", self, "BOTTOM", 0, startfrom+totalsize)
 					else 
-						old_print('No bar for label', i)
+						ns.print('No bar for label', i)
 					end 
 					totalsize = totalsize + barheight
 				end
@@ -2013,14 +1999,14 @@ do
 					if ( self._bars[i] ) then 
 						self._bars[i]:SetPoint("TOP", self, "TOP", 0, -startfrom-totalsize)
 					else 
-						old_print('No bar for label', i)
+						ns.print('No bar for label', i)
 					end 
 					totalsize = totalsize + barheight
 				else	-- плашка снизу
 					if ( self._bars[i] ) then 
 						self._bars[i]:SetPoint("TOP", self, "TOP", 0, -totalsize)
 					else 
-						old_print('No bar for label', i)
+						ns.print('No bar for label', i)
 					end 
 					totalsize = totalsize + barheight
 				end			
@@ -2144,7 +2130,7 @@ do
 				f:SetPoint("BOTTOM", to, "TOP", 0, 0)
 				f.background:SetPoint("TOP", f, "TOP", 0, -gap-opt.gap)
 				f.background:SetPoint("BOTTOM", f, "BOTTOM", 0, 0)				
-			--	print("T", parentanchor, opt.add_up, gap, opt.gap, f.size, abs(gap-opt.gap))
+			--	ns.print("T", parentanchor, opt.add_up, gap, opt.gap, f.size, abs(gap-opt.gap))
 			else
 				f:SetPoint("BOTTOM", to, "TOP", 0, parentanchor and -gap or 0)
 				f.background:SetPoint("TOP", f, "TOP", 0, -opt.gap)
@@ -2570,7 +2556,7 @@ do
 						
 						anchor.index = anchor.index + 1
 						
-				--		print("T", group2[f], group2[f][3], group2[f][12])
+				--		ns.print("T", group2[f], group2[f][3], group2[f][12])
 						
 						UpdateBar(anchor, label, f, group2[f], group_alpha)
 						
@@ -2592,18 +2578,18 @@ do
 				anchor.bars[s]:Fading(curtime)
 				anchor.bars[s]:bgFade(curtime)
 				
-				--old_print('Show', s, anchor.bars[s].tag )
+				--ns.print('Show', s, anchor.bars[s].tag )
 
 				if not anchor.bars[s].tag then
-				--	old_print('No tag for bar')
+				--	ns.print('No tag for bar')
 				elseif not spelllist[anchor.bars[s].tag] then
-				--	old_print('Oups no data for this tag')
+				--	ns.print('Oups no data for this tag')
 				elseif spelllist[anchor.bars[s].tag][41] then
 					anchor.bars[s].barShine_ag:Play()
 					spelllist[anchor.bars[s].tag][41] = false
 				end
 			else
-			--	old_print('Hide', s, anchor.bars[s].tag )
+			--	ns.print('Hide', s, anchor.bars[s].tag )
 
 				anchor.bars[s].tag = nil
 				anchor.bars[s]:Hide()
@@ -2635,7 +2621,7 @@ do
 		end
 		]==]
 
-		--old_print('SortBars', reason)
+		--ns.print('SortBars', reason)
 
 		ClearAllGUIDBarBGs()
 		
@@ -2688,7 +2674,7 @@ function ns.UpdateBarSize(self)
 	local opt = ns.db.profile.bars_anchors[self.parent.id]
 	self.opts = opt
 	
---	print("T", opt.w, self.parent.id)
+--	ns.print("T", opt.w, self.parent.id)
 	self:SetSize(opt.w or 100 , opt.h or 20)
 
 	self.bar.overlay2:SetHeight(opt.h)
@@ -3323,7 +3309,7 @@ end
 
 local function Restore(self)	
 	if self.__resize >= 1 then 
---		print("Fail to Resore")
+--		ns.print("Fail to Resore")
 		return 
 	end
 	self.__resize = 1
@@ -3347,7 +3333,7 @@ local function FadeOut(self, gettime)
 	
 	if a > 1 then
 		a = 1
-		print('Error if FadeOut a > 1')
+		ns.print('Error if FadeOut a > 1')
 
  	end
 	
@@ -3384,7 +3370,7 @@ local function Resize(self, value)
 	self:SetHeight(opt.h*value)
 	self.bar:SetHeight(opt.h*value)
 	
---	print("Resize in ", value)
+--	ns.print("Resize in ", value)
 end
 --[==[
 local function GetNextValue(value, cur)
@@ -3474,7 +3460,7 @@ local function Update(self, gettime, maxTime)
 		self.bar:SetMinMaxValues(0, data[26][self.parent.id])
 	end
 	
---	old_print('T', data[37], data[25][self.parent.id], data[26][self.parent.id])
+--	ns.print('T', data[37], data[25][self.parent.id], data[26][self.parent.id])
 
 	if data[1] == 0 and data[2] == 0 then
 		self.bar:SetValue(1)
@@ -3482,7 +3468,7 @@ local function Update(self, gettime, maxTime)
 		self:UpdateBarOverlays(1)
 	elseif val > 0 then	
 	
-	--	print('T2', val, data[37], data[1])
+	--	ns.print('T2', val, data[37], data[1])
 		
 		self.bar:SetValue(data[37])
 		self.timeText:SetFormattedText(ns.FormatTime((self.opts.fortam_s or 1), data[37], data[1]))
@@ -3549,16 +3535,16 @@ local function Fading(self, gettime)
 			-- [16] time when fading end
 	]]
 
---	print('Fading in', data[13], data[15])
+--	ns.print('Fading in', data[13], data[15])
 	
 	if ( data[13] == DO_FADE_UNLIMIT or data[13] == DO_FADE ) and data[15] < gettime then --and data[15] < gettime 
 		self:FadeOut(gettime)
---		print('Fading elseif 3')
+--		ns.print('Fading elseif 3')
 	elseif data[13] == NO_FADE then
 		self:Restore()
---		print('Fading elseif 2')
+--		ns.print('Fading elseif 2')
 	else
---		print('Fading elseif 1')
+--		ns.print('Fading elseif 1')
 	end
 end
 

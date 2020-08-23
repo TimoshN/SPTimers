@@ -14,7 +14,6 @@ local math_floor = math.floor
 local pairs = pairs
 local ipairs = ipairs
 local tinsert = table.insert
-local debugprefix = addon.."_CORE, "
 local assert = assert
 local GetTime = GetTime
 local UnitBuff = UnitBuff
@@ -80,6 +79,24 @@ do
 	end
 end
 
+-- DEBUG PRINT --
+function ns.print(text, ...) 
+	if ( true ) then return end 
+
+
+	
+    text = tostring(text)
+    for n=1,select('#', ...) do
+        local e = select(n, ...)
+        text = text.." "..tostring(e)
+    end
+    local patterns = {"\n", "^.-AddOns\\", ": in function.*$"}
+    local source = debugstack(2,1,0)
+    for i = 1, #patterns do source = gsub(source, patterns[i], "") end
+    text = "["..source.."] - \""..text.."\""
+    return print(text)
+end
+
 -- NEW GLOBALS ----
 
 local UNITAURA 				= "UNITAURA"
@@ -129,23 +146,6 @@ ns.Parent = parent
 
 ns.myCLASS = select(2, UnitClass("player")) 
 
--- debug print ------------------
---ns.dodebugging = true
-
-local old_print = print
-local print = function(...)
-	if false then --ns.dodebugging then	
-		old_print(GetTime(),debugprefix, ...)
-	end
-end
-
-local old_assert = assert
-local assert = function(...)
-	if ns.dodebugging then	
-		old_assert(...)
-	end
-end
-
 do
 	local SendChatMessage = SendChatMessage
 	local IsInRaid, IsInGroup = IsInRaid, IsInGroup
@@ -176,7 +176,6 @@ do
 				SendChatMessage(msg, chatType)
 			end
 		end
-	--	AddOn:print("Message", msg, chatType)
 	end
 end
 
@@ -187,14 +186,11 @@ do
 	local icon = "\124TInterface\\Icons\\spell_shadow_shadowwordpain:10\124t"
 	
 	function ns.message(...)
-	--	old_print("SPTimers_Options:", ...)
 		local msg = ""
-		for i=1, select("#", ...) do
-			
+		for i=1, select("#", ...) do		
 			msg = msg..tostring(select(i, ...))..","
 		end	
 		msg = sub(msg, 0, -2)
-		
 		DEFAULT_CHAT_FRAME:AddMessage(icon..addon..":"..msg)	
 	end
 
@@ -335,6 +331,10 @@ do
 			spellName, icon, amount, debuffType, duration, endTime, sUnit, _, _, spellID = UnitAura(unit, index, filter)		
 			if not spellName then break end
 			
+			if ( ns.isClassic ) then
+				spellID = ns.spellNameToID[spellName]
+			end
+
 			--[==[
 			local realLTP, durationLTP, endTimeLTP = GetLTP(spellID, sUnit, duration, endTime)
 			if realLTP then
@@ -378,6 +378,10 @@ do
 			spellName, icon, amount, debuffType, duration, endTime, sUnit, _, _, spellID = UnitAura(unit, index, filter)		
 			if not spellName then break end
 			
+			if ( ns.isClassic ) then
+				spellID = ns.spellNameToID[spellName]
+			end
+
 			if endTime ~= 0 and ns:GetAuraCD(spellName, spellID, filter) then
 				--ns.NewCooldown(spellName.." debuff", icon, endTime,"AURA_CD_DEBUFF")
 				ns.AddCooldown(spellID, spellID, duration, endTime-duration, icon, "AURA_CD_DEBUFF")
@@ -449,7 +453,7 @@ do
 		while ( true ) do
 			spellName, icon, amount, debuffType, duration, endTime, sUnit, _, _, spellID = UnitAura(unit, index, filter)		
 			if not spellName then break end
-	
+		
 			index = index + 1
 			
 			if OthersAurasFulter(spellID, filter_type, unit, sUnit) then
@@ -466,7 +470,7 @@ do
 		while ( true ) do
 			spellName, icon, amount, debuffType, duration, endTime, sUnit, _, _, spellID = UnitAura(unit, index, filter)		
 			if not spellName then break end
-	
+			
 			index = index + 1
 			
 			if OthersAurasFulter(spellID, filter_type, unit, sUnit) then
@@ -601,13 +605,9 @@ do
 		if not truedEvents[eventType] then return end		
 		if srcGUID ~= self.myGUID and srcGUID ~= self.petGUID then return end
 		
-		if ( ns.isClassic ) then 
+		if ( ns.isClassic ) then
 			spellID = ns.spellNameToID[spellName]
-
-			if not ( spellID ) then 
-				old_print('Not in SPTimersDB ', spellName, 'as', spellID)
-			end
-		end 
+		end
 
 		local skip = false
 		for i=1, #externalHandlers do
@@ -635,29 +635,19 @@ do
 		end
 
 		if self:IsChanneling(spellID) then return end	
-
-		print('T:1', spellID, spellName, auraType)
-
 		if not self:GetCLEUFilter(spellID, auraType) then return end
-
-		print('T:2', spellID, spellName, auraType)
-
 		if not self:CLEU_AffilationCheck(srcFlags, spellID) then return end
-
-		print('T:3', spellID, spellName, auraType)
-
 		if not self:CLEU_AffilationCheckTarget(dstFlags, spellID) then return end
 
-		
 		local isPlayer = ns.IsPlayer(dstFlags)
 
 		
-		-- print('T', event, timestamp, eventType, hideCaster,
+		-- ns.print('T', event, timestamp, eventType, hideCaster,
 		-- srcGUID, srcName, srcFlags, srcFlags2,
 		-- dstGUID, dstName, dstFlags, dstFlags2,
 		-- spellID, spellName, spellSchool, auraType, amount, extraSchool, extraType)
 
-		print('T:4', spellID, spellName, auraType)
+		--ns.print('T:4', spellID, spellName, auraType)
 
 		if eventType == "SPELL_AURA_REFRESH" then
 			ns.Timer(self:GetDuration(spellID, dstGUID, 2, isPlayer), endTime, dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], spellName, nil, amount, dstName, srcName, nil, isPlayer, eventType)
@@ -670,7 +660,7 @@ do
 			ns.Timer_Remove(dstGUID, srcGUID, spellID, 1, auraType)				
 		elseif event == "SPELL_AURA_BROKEN" or event == "SPELL_AURA_BROKEN_SPELL" then
 		
-	--		print(eventType, srcName, spellID, spellName, dstName, dstGUID, srcGUID,auraType)
+	--		ns.print(eventType, srcName, spellID, spellName, dstName, dstGUID, srcGUID,auraType)
 		elseif eventType == "SPELL_AURA_REMOVED_DOSE" then
 			ns.Timer_DOSE(dstGUID, srcGUID, spellID, 1, auraType, CLEU, flagtort[dstFlags2], amount)
 		elseif eventType == "SPELL_SUMMON" then
@@ -947,7 +937,7 @@ do
 		end
 		
 		if alldone then
-		--	print("Complete cache item in "..format("%.1f", self.elapsed).."s.")
+		--	ns.print("Complete cache item in "..format("%.1f", self.elapsed).."s.")
 			
 			for i=1, MAX_TOTEMS do
 				ns:PLAYER_TOTEM_UPDATE(nil, i)
@@ -956,7 +946,7 @@ do
 			self.elapsed = 0
 			self:Hide()
 		else 
-		--	print('Still checking')
+		--	ns.print('Still checking')
 		end
 	end)
 	
@@ -978,7 +968,7 @@ do
 	-- TOTEM_SPELL
 	
 	function ns:PLAYER_TOTEM_UPDATE(event, totem, rem)
---		print("PLAYER_TOTEM_UPDATE", totem)
+--		ns.print("PLAYER_TOTEM_UPDATE", totem)
 		local anchor = self:GetAnchor("totem"..totem)
 		local haveTotem, totemName, startTime, duration, icon = GetTotemInfo(totem)
 
@@ -1051,37 +1041,6 @@ function ns:CoreBarsStatusUpdate()
 	
 	self:UpdateBars_CooldownPart()
 end
-
-local forced = true
-function ns:CheckDebugging()
-	
-	local _, battleTag = BNGetInfo()
-	local myBTag = GetAddOnMetadata(addon, "Author")
-	
-	if battleTag then
-		if myBTag == battleTag and forced then 
-			self.dodebugging = true
-			message("DEBUGGING ON")
-		end
-
-		self:UnregisterEvent("BN_CONNECTED")
-		--self:UnregisterEvent("BN_SELF_ONLINE")
-		self:UnregisterEvent("BN_INFO_CHANGED")
-	end
-end
-
-ns.BN_CONNECTED = ns.CheckDebugging
-ns.BN_SELF_ONLINE = ns.CheckDebugging
-ns.BN_INFO_CHANGED = ns.CheckDebugging
-
-SLASH_SPTIMERSDEBUG1 = '/sptimersdebugging'
-function SPTIMERSDEBUGHandler(msg, editBox)
-	ns.dodebugging = not ns.dodebugging
-	
-	message( (ns.dodebugging and "DEBUGGING ON" or "DEBUGGING OFF" ) )
-end
-
-SlashCmdList["SPTIMERSDEBUG"] = SPTIMERSDEBUGHandler
 
 do
 	local raid = {}
@@ -1161,13 +1120,13 @@ do
 		
 		if IsInRaid() then
 		  for i = 1, GetNumGroupMembers() do
-			CheckUnit(format("raid%d", i))
+			CheckUnit("raid"..i)
 		  end
 		end
 		
 		if IsInGroup() and not IsInRaid() then
 		  for i = 1, GetNumSubgroupMembers() do
-			CheckUnit(format("party%d", i))
+			CheckUnit("party"..i)
 		  end
 		end
 		
@@ -1249,8 +1208,6 @@ function ns:OnInitialize()
 		self:SetupClassOptions()
 	end
 
-	self:InitSupports()
-	
 	options = self.db.profile
 	
 	self:RemoveSpellExists(options)
@@ -1263,20 +1220,10 @@ function ns:OnInitialize()
 	end
 
 	self:CastBarInit()
-	--self:CoPToggle()
 	self:PreCacheCustomTextCheck()
 	
 	self:RegisterEvent("UNIT_AURA")
 
---	self:RegisterEvent("PLAYER_REGEN_ENABLED")
---	self:RegisterEvent("PLAYER_REGEN_DISABLED")
-
---	self:RegisterEvent('ZONE_CHANGED')
-	
-	self:RegisterEvent("BN_CONNECTED")
-	--self:RegisterEvent("BN_SELF_ONLINE")
-	self:RegisterEvent("BN_INFO_CHANGED")
-	
 	self:RegisterEvent("PLAYER_LOGIN")
 
 	self:PlayerLoginDelay(function() ns:UpdateTotems() end)
@@ -1297,15 +1244,11 @@ function ns:OnInitialize()
 		self:RegisterEvent("PET_BATTLE_CLOSE")
 		self:RegisterEvent("PET_BATTLE_OVER")
 	end
-
-	
-	
 	self:RegisterEvent("UNIT_PET")
 	
 	self:ScanForChannelingSpell()
 	self:RebuildBanCD()
 	self:CoreBarsStatusUpdate()
-	self:CheckDebugging()
 	self:UpdateBars_CooldownPart()
 	self:InitVersionCheck()
 	self:MapDBForCombatLog()
@@ -1320,10 +1263,6 @@ function ns:OnInitialize()
 	ALEAUI_OnProfileEvent("SPTimersDB","PROFILE_RESET", function()	
 		ns:OnProfileChange()
 	end)
-	
-	if self.InitStatWeight then
-		self.options.args.preset = self:InitStatWeight()
-	end
 	
 	ns:InitTalentCheck()
 end
@@ -1358,10 +1297,6 @@ function ns:OnProfileChange()
 		self:SetupClassOptions()
 	end
 
-	self:InitSupports()
-	
-	--self:OnAnchorStyleReset()
-	
 	options = self.db.profile
 	
 	self:RemoveSpellExists(options)
@@ -1377,8 +1312,6 @@ function ns:OnProfileChange()
 	self:PreCacheCustomTextCheck()
 	
 	self:RegisterEvent("UNIT_AURA")
---	self:RegisterEvent("PLAYER_REGEN_ENABLED")
---	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_LOGIN")
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -1390,17 +1323,12 @@ function ns:OnProfileChange()
 	self:RegisterEvent("UNIT_PET")
 
 	self:RebuildBanCD()
-	self:CheckDebugging() 
 	self:ScanForChannelingSpell()	
 	self:CoreBarsStatusUpdate()
 	self:UpdateTotems()
 	self:UpdateBars_CooldownPart()	
 	self:OnAnchorStyleReset()
 	self:MapDBForCombatLog()
-
-	if self.InitStatWeight then
-		self.options.args.preset = self:InitStatWeight()
-	end
 
 	AleaUI_GUI.GetMinimapButton(addon):Update(self.db.profile.minimap)
 end

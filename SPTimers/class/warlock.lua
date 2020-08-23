@@ -149,7 +149,7 @@ do
 		if srcGUID ~= ns.myGUID then return end
 
 		if spellID == 157736 and ( eventType == 'SPELL_AURA_APPLIED' or eventType == 'SPELL_AURA_REFRESH' ) then
-		--	print('T', eventType, srcName, dstName, spellName, spellID)
+		--	ns.print('T', eventType, srcName, dstName, spellName, spellID)
 			
 			if ns.IsTalentKnown(205184) then
 				data[dstGUID] = 0
@@ -157,13 +157,13 @@ do
 				data[dstGUID] = nil
 			end
 		elseif spellID == 17962 and eventType == 'SPELL_DAMAGE' then
-		--	print('T', eventType, srcName, dstName, spellName, spellID)
+		--	ns.print('T', eventType, srcName, dstName, spellName, spellID)
 			
 			if data[dstGUID] and ns.IsTalentKnown(205184) then
 				data[dstGUID] = data[dstGUID] + 1
 			end
 		elseif spellID == 157736 and eventType == 'SPELL_AURA_REMOVED' then
-		--	print('T', eventType, srcName, dstName, spellName, spellID)
+		--	ns.print('T', eventType, srcName, dstName, spellName, spellID)
 	
 			data[dstGUID] = nil
 		end

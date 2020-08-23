@@ -184,7 +184,7 @@ local function DrawTicks(f, name)
 
 	if channeling_info[name] then
 	
-	--	print(f.parent.unit)
+	--	ns.print(f.parent.unit)
 		
 		local haste = f.haste or UnitSpellHaste("player")
 		local tick_every, amount_to_show
@@ -270,7 +270,7 @@ local function OnCast(f, unit)
 		return 
 	end
 	
---	print("T1",name, GetSpellCooldown(name)-GetTime(), GetSpellCooldown(castID)-GetTime())
+--	ns.print("T1",name, GetSpellCooldown(name)-GetTime(), GetSpellCooldown(castID)-GetTime())
 
 	
 	f.startTime		= startTime*0.001
@@ -349,9 +349,9 @@ local function OnChannel(f, unit)
 	end
 
 	
---	print("OnChannel")
+--	ns.print("OnChannel")
 	
---	print("T2", name, GetSpellCooldown(name)-GetTime())
+--	ns.print("T2", name, GetSpellCooldown(name)-GetTime())
 	
 	f.startTime		= startTime*0.001
 	f.endTime		= endTime*0.001
@@ -394,7 +394,7 @@ local function OnChannelUpdate(f, unit)
 	end
 
 	
---	print("OnChannelUpdate", f.endTime, endTime/1000, (endTime/1000)-f.endTime, f.parent.unit)
+--	ns.print("OnChannelUpdate", f.endTime, endTime/1000, (endTime/1000)-f.endTime, f.parent.unit)
 
 --	f.duration2 	= f.endTime - f.startTime
 	
@@ -442,7 +442,7 @@ local function TestCastBar(f)
 			f.ping			= f.castTime_Start and ( f.startTime - f.castTime_Start ) or 0
 		end
 
-		--print("OnCast")
+		--ns.print("OnCast")
 		
 		f.icon:SetTexture("Interface\\Icons\\spell_shadow_shadowwordpain")
 		f.leftText:SetText("TestCastBar")
@@ -737,7 +737,7 @@ local function CreateCastBar(frame, w, h, drawticks)
 
 			if unitID == "player" then
 				
-			--	print("T", spell, spellID)
+			--	ns.print("T", spell, spellID)
 				
 				if spell then
 					f:ShowGCD(spell)	
@@ -907,7 +907,7 @@ function ns:CastBarInit()
 		local id = GetSpellInfo(spellid)
 		--[[
 		if not id then
-			print(id, "error with ns:CastBarInit() on", spellid)
+			ns.print(id, "error with ns:CastBarInit() on", spellid)
 		end
 		]]
 		if id then

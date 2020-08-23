@@ -27,14 +27,6 @@ local function SetLastItemUsed(spellID)
     lastItemUsed[spellID] = IsItemSpellCooldown(spellID)
 end
 
--- debug print ------------------
-local old_print = print
-local print = function(...)
-	if true then return end
-	
-	old_print("SPTimers-CooldownLine, ", ...)
-end
-
 local parent = ns.Parent
 local mainframe = CreateFrame("Frame", "SPTimersCooldownLine", parent)
 mainframe.OldAlpha = mainframe.SetAlpha
@@ -167,7 +159,7 @@ do
 					frame:SetAlpha( ( alpha > 0 and alpha or 0 ) )				
 				end
 
-			--	print("Splash IN ", frame.elapsed)
+			--	ns.print("Splash IN ", frame.elapsed)
 			elseif ( frame.elapsed > db.splash_small.time_in+db.splash_small.time_out ) then
 				frame:Hide()
 				frame:SetScale(1)
@@ -175,7 +167,7 @@ do
 				frame.splashing = false
 				frame.throttle = GetTime()+1
 				tremove(self.splashes, i)
-			--	print("Splash FADE ", frame.elapsed)
+			--	ns.print("Splash FADE ", frame.elapsed)
 			elseif ( db.splash_small.time_out > 0 ) and ( frame.elapsed < db.splash_small.time_in+db.splash_small.time_out ) then
 				frame.splashing = true
 
@@ -187,7 +179,7 @@ do
 					frame:SetAlpha( ( alpha > 0 and alpha or 0 ) )				
 				end
 
-			--	print("Splash OUT ", frame.elapsed)
+			--	ns.print("Splash OUT ", frame.elapsed)
 			end
 		end
 		if _i == 0 then
@@ -562,19 +554,19 @@ local spellsForCDCheck = {}
 local recheckTimer = nil 
 
 local function RecheckCDs()
-    --old_print('RecheckCDs')
+    --ns.print('RecheckCDs')
     eventFrame:GetScript('OnEvent')(eventFrame, 'SPELL_UPDATE_COOLDOWN')
 end 
 
 eventFrame:SetScript('OnEvent', function(self, event, ...) 
 
-    --print(event, ...)
+    --ns.print(event, ...)
 
     if ( event == 'PLAYER_SPECIALIZATION_CHANGED' or event == 'PLAYER_TALENT_UPDATE' ) then
         --ns.RunCacheSpellBook()
 
     elseif ( event == 'SPELLS_CHANGED' ) then 
-        --print(event, ...)
+        --ns.print(event, ...)
 
     elseif ( event == 'SPELL_UPDATE_COOLDOWN'  or event == 'SPELL_UPDATE_CHARGES' ) then
 	
@@ -588,13 +580,13 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
             local spellID = spellInfo.spellID
             local spellName = GetSpellInfo(spellID) 
 
-            --print(spellID, spellName, ns:GetCooldown(spellName) )
+            --ns.print(spellID, spellName, ns:GetCooldown(spellName) )
 
             if not ns:GetCooldown(spellName) then 
 
                 local startTime, duration, charges, maxCharges, isGCD, gcdStartTime, gcdDuration = ns.GetSpellCooldown_New(spellID)
         
-                --old_print( spellID, (GetSpellInfo(spellID)), startTime, duration, charges, maxCharges, isGCD)
+                --ns.print( spellID, (GetSpellInfo(spellID)), startTime, duration, charges, maxCharges, isGCD)
 
                 if spellInfo.isOnCD and currentTime >= spellInfo.prevEndTime and ( maxCharges and charges == maxCharges or not maxCharges ) then
                     spellInfo.isOnCD = false 
@@ -602,12 +594,12 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
                     spellInfo.prevEndTime = nil 
 
                     
-                    --old_print('RemoveCooldown:1', spellID, (GetSpellInfo(spellID)))
+                    --ns.print('RemoveCooldown:1', spellID, (GetSpellInfo(spellID)))
                     
                     ns.RemoveCooldown(spellID)
                 elseif spellInfo.isOnCD and isGCD and spellInfo.prevEndTime > gcdStartTime+gcdDuration then
-                    --old_print('RemoveCooldown:3', spellID, (GetSpellInfo(spellID)))
-                    --old_print('    currentTime=', spellInfo.prevEndTime-currentTime, 'gcd=', spellInfo.prevEndTime - gcdStartTime+gcdDuration  )
+                    --ns.print('RemoveCooldown:3', spellID, (GetSpellInfo(spellID)))
+                    --ns.print('    currentTime=', spellInfo.prevEndTime-currentTime, 'gcd=', spellInfo.prevEndTime - gcdStartTime+gcdDuration  )
 
                     spellInfo.isOnCD = false 
                     spellInfo.prevStacks = nil 
@@ -619,14 +611,14 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
                     spellInfo.prevStacks = nil 
                     spellInfo.prevEndTime = nil 
 
-                    --old_print('RemoveCooldown:2', spellID, (GetSpellInfo(spellID)))
+                    --ns.print('RemoveCooldown:2', spellID, (GetSpellInfo(spellID)))
 
                     ns.RemoveCooldown(spellID)
                 elseif spellInfo.isOnCD and not isGCD and startTime and ( spellInfo.prevStacks ~= charges or spellInfo.prevEndTime ~= startTime+duration ) then
                     spellInfo.prevStacks = charges
                     spellInfo.prevEndTime = startTime+duration
                     
-                    --old_print('UpdateCooldown:2', spellID, (GetSpellInfo(spellID)))
+                    --ns.print('UpdateCooldown:2', spellID, (GetSpellInfo(spellID)))
 
                     ns.UpdateCooldown(spellID, duration, startTime)
                 elseif not spellInfo.isOnCD and not isGCD and duration and duration >= 1.5 then 
@@ -636,7 +628,7 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
 
                     ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
                 elseif spellInfo.prevEndTime and currentTime >= spellInfo.prevEndTime then
-                    --old_print('Something happens', spellID, (GetSpellInfo(spellID)))               
+                    --ns.print('Something happens', spellID, (GetSpellInfo(spellID)))               
                 end 
     
                 if ( spellInfo.isOnCD ) then 
@@ -652,14 +644,14 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
         if ( recheckTimer ) then
             recheckTimer:Cancel()
             recheckTimer = nil 
-        --    old_print('Cancel timer')
+        --    ns.print('Cancel timer')
         end 
 
         if ( lowestCD and (lowestCD-GetTime()) > 0 ) then 
-        --    old_print('Run timer for', lowestCD-GetTime())
+        --    ns.print('Run timer for', lowestCD-GetTime())
             recheckTimer = C_Timer.NewTimer(lowestCD-GetTime(), RecheckCDs)
         else 
-        --    old_print('No lowestCD or', lowestCD and lowestCD-GetTime())
+        --    ns.print('No lowestCD or', lowestCD and lowestCD-GetTime())
         end  
 
     elseif ( event == 'UNIT_SPELLCAST_SUCCEEDED' ) then
@@ -668,7 +660,7 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
 
         spellID2 = tonumber(spellID2)
 
-        --old_print(spellID1, GetSpellInfo(spellID1), spellID2, (GetSpellInfo(spellID2)) )
+        --ns.print(spellID1, GetSpellInfo(spellID1), spellID2, (GetSpellInfo(spellID2)) )
      
 
         if (IsSpellKnown(spellID1) or IsSpellKnown(spellID2)) then
@@ -693,13 +685,13 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
                 local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(spellID1)
                 local spellCount = GetSpellCount(spellID1);
 
-                --old_print('CheckCooldown', GetSpellInfo(spellID1), spellID1, baseSpell,cd, gcd, cd1, gcd1)
-                --old_print(charges, maxCharges, spellCount)
+                --ns.print('CheckCooldown', GetSpellInfo(spellID1), spellID1, baseSpell,cd, gcd, cd1, gcd1)
+                --ns.print(charges, maxCharges, spellCount)
             end
-        --    old_print(baseSpell, spellID1, spellID2)
+        --    ns.print(baseSpell, spellID1, spellID2)
         elseif ( IsItemSpellCooldown(spellID1) ) then
 
-            --print('SetLastItemUsed', spellID1)
+            --ns.print('SetLastItemUsed', spellID1)
             SetLastItemUsed(spellID1)
         end
      
@@ -710,7 +702,7 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
     elseif ( event == 'BAG_UPDATE_COOLDOWN' ) then
         ns:BAG_UPDATE_COOLDOWN()
     elseif ( event == 'UNIT_SPELLCAST_FAILED') then
-        --print(event, ...)
+        --ns.print(event, ...)
         local unit, castGUID, spellID = ...
 
 
@@ -742,7 +734,7 @@ eventFrame:SetScript('OnUpdate', function(self)
         if self.endTime+0.05 < GetTime() then
             self.endTime = nil
 
-            --print('Run check')
+            --ns.print('Run check')
 
             for spellID1, spellID2 in pairs( self.delayCDCheck ) do
                 self.delayCDCheck[spellID1] = nil
@@ -757,7 +749,7 @@ eventFrame:SetScript('OnUpdate', function(self)
         if self.checkCD+0.05 < GetTime() then
             self.checkCD = nil
 
-            --print('Run cd check')
+            --ns.print('Run cd check')
 
             for spellID1, spellID2 in pairs( self.delayCDCheck ) do
                 self.delayCDCheck[spellID1] = nil
@@ -770,7 +762,7 @@ eventFrame:SetScript('OnUpdate', function(self)
         if self.runeCheck+0.05 < GetTime() then
             self.runeCheck = nil
 
-            --print('Rune check')
+            --ns.print('Rune check')
 
             for runeIndex=1, 6 do
                 local startTime, duration, runeReady = GetRuneCooldown(runeIndex);
@@ -814,10 +806,10 @@ end)
 function ns.RunCooldownCheck(ev)
     --[==[
     if ( not eventFrame.endTime or eventFrame.endTime-GetTime() > 0.05 ) then
-        old_print('RunCooldownCheck Call by event', ev )
+        ns.print('RunCooldownCheck Call by event', ev )
         eventFrame.endTime = GetTime()-0.05
     else 
-        old_print('Skip from', ev)
+        ns.print('Skip from', ev)
     end
     ]==]
 
@@ -825,7 +817,7 @@ function ns.RunCooldownCheck(ev)
 end
 
 function ns.UpdateSpellCooldowns(...)
-    print('UpdateSpellCooldowns', ...)
+    ns.print('UpdateSpellCooldowns', ...)
 end
 
 function ns:UNIT_ENTERED_VEHICLE()
@@ -941,10 +933,10 @@ do
         local spellCount = GetSpellCount(spellID);
         
         --[==[
-        old_print( spellID )
-        old_print( startTime, duration, enabled )
-        old_print( charges, maxCharges, chargeStart, chargeDuration )
-        old_print( spellCount )
+        ns.print( spellID )
+        ns.print( startTime, duration, enabled )
+        ns.print( charges, maxCharges, chargeStart, chargeDuration )
+        ns.print( spellCount )
         ]==]
         startTime = startTime or 0
         duration = duration or 0
@@ -966,7 +958,7 @@ do
 
         if ( gcdStartTime > 0 and gcdStartTime == startTime and gcdDuration == duration ) then
 
-            --print('IGNORE IN GCD ', spellID, gcdStartTime, gcdDuration,  startTime, duration)
+            --ns.print('IGNORE IN GCD ', spellID, gcdStartTime, gcdDuration,  startTime, duration)
             return nil, nil, nil, nil, true, gcdStartTime, gcdDuration
         end
 
@@ -1003,7 +995,7 @@ do
 
             ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
 
-            --print('Call by AddToActiveCooldown')
+            --ns.print('Call by AddToActiveCooldown')
 
             if not eventFrame.endTime then
                 eventFrame.endTime = startTime+duration
@@ -1027,14 +1019,14 @@ do
                 local startTime, duration, charges, maxCharges, isGCD = GetSpellCooldown_New(spellID)
 
                 if ( isGCD ) then 
-                    --old_print( 'Spell is in GCD??', spellID, GetSpellInfo(spellID) )
+                    --ns.print( 'Spell is in GCD??', spellID, GetSpellInfo(spellID) )
 
                     if ( cooldown.startTime+cooldown.duration <= currentTime ) then 
                         cooldown.enable = false
-                        --old_print('Remove cooldown By GCD', spellID, GetSpellInfo(spellID))
+                        --ns.print('Remove cooldown By GCD', spellID, GetSpellInfo(spellID))
                         ns.RemoveCooldown(spellID)
                     else 
-                        --old_print( 'Spell is in GCD and not endTime', spellID, GetSpellInfo(spellID) )
+                        --ns.print( 'Spell is in GCD and not endTime', spellID, GetSpellInfo(spellID) )
                     end
                 else 
                     if ( startTime and charges and cooldown.startTime and cooldown.startTime > 0 and cooldown.duration > 0 and ( cooldown.charges or 0 ) < charges and maxCharges > charges) then
@@ -1049,16 +1041,16 @@ do
                     else 
                         if ( startTime == 0 and duration == 0 or (cooldown.startTime+cooldown.duration < GetTime()) ) then 
                             cooldown.enable = false
-                            --old_print('Remove cooldown', spellID, GetSpellInfo(spellID))
+                            --ns.print('Remove cooldown', spellID, GetSpellInfo(spellID))
                             ns.RemoveCooldown(spellID)
                         else
                             if ( startTime and duration and ( cooldown.startTime ~= startTime or cooldown.duration ~= duration ) ) then
                                 cooldown.startTime = startTime
                                 cooldown.duration = duration
-                                --old_print('Update cooldown', spellID, GetSpellInfo(spellID))
+                                --ns.print('Update cooldown', spellID, GetSpellInfo(spellID))
                                 ns.UpdateCooldown(spellID, duration, startTime)
                             else
-                                --old_print('Cooldown stack', spellID, GetSpellInfo(spellID), startTime, duration,  cooldown.startTime, cooldown.duration )
+                                --ns.print('Cooldown stack', spellID, GetSpellInfo(spellID), startTime, duration,  cooldown.startTime, cooldown.duration )
                             end
                         end
                     end
@@ -1072,7 +1064,7 @@ do
         end
 
         if ( checkEndTime ) then
-            --print('Call by checkEndTime from', GetSpellInfo(runSpellID))
+            --ns.print('Call by checkEndTime from', GetSpellInfo(runSpellID))
             if not eventFrame.endTime or eventFrame.endTime > checkEndTime then
                 eventFrame.endTime = checkEndTime
             end
@@ -1113,7 +1105,7 @@ do
         end
 
         
-        --print('Call by checkCooldown')
+        --ns.print('Call by checkCooldown')
       
         eventFrame.checkCD = GetTime()
     end
@@ -1168,7 +1160,7 @@ do
             if ( info.invID ) then 
                 local start, duration, enable = GetInventoryItemCooldown("player", info.invID)
 
-                print( start, duration, enable, info.itemID, spellID, checkcd(info.itemID, "item") )
+                ns.print( start, duration, enable, info.itemID, spellID, checkcd(info.itemID, "item") )
 
                 if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "item") then 
                     
@@ -1188,7 +1180,7 @@ do
             elseif ( lastItemUsed[spellID].bag ) then
                 local start, duration, enable = GetItemCooldown(info.itemID)
             
-                print( start, duration, enable, info.itemID, spellID, checkcd(info.itemID, "bag")  )
+                ns.print( start, duration, enable, info.itemID, spellID, checkcd(info.itemID, "bag")  )
 
                 if duration and duration > 20 and duration < 3601 and checkcd(info.itemID, "bag") then 
                     
@@ -1216,7 +1208,7 @@ do
 	end
 	
     function ns:BAG_UPDATE_COOLDOWN(skip)
-        print('BAG_UPDATE_COOLDOWN', 'skip:',skip)
+        ns.print('BAG_UPDATE_COOLDOWN', 'skip:',skip)
 
         if ( skip ) then
             UpdateBag()
@@ -1291,20 +1283,20 @@ end
 hooksecurefunc("UseAction", function(slot)
     local actionType,itemID = GetActionInfo(slot)
     if (actionType == "item") then
-        print('UseAction', itemID, GetItemInfo(itemID))
+        ns.print('UseAction', itemID, GetItemInfo(itemID))
     end
 end)
 
 hooksecurefunc("UseInventoryItem", function(slot)
     local itemID = GetInventoryItemID("player", slot);
     if (itemID) then
-        print('UseInventoryItem', itemID, GetItemInfo(itemID))
+        ns.print('UseInventoryItem', itemID, GetItemInfo(itemID))
     end
 end)
 hooksecurefunc("UseContainerItem", function(bag,slot)
     local itemID = GetContainerItemID(bag, slot)
     if (itemID) then
-        print('UseContainerItem', itemID, GetItemInfo(itemID))
+        ns.print('UseContainerItem', itemID, GetItemInfo(itemID))
     end
 end)
 ]==]
@@ -1375,7 +1367,7 @@ do
                 local sectionTransit = timeLeft-startPoint
                 local offset = sectionTransit*transitStep
 
-                --print('needToTransit=', needToTransit, 'transitIn=', transitIn )
+                --ns.print('needToTransit=', needToTransit, 'transitIn=', transitIn )
                 local fullOffset = width+offset
 
                 if ( fullOffset > lineSize ) then
@@ -1415,7 +1407,7 @@ do
     local function SortCooldowns(source)
         table.sort(cooldowns, SortCooldownsFunc)
 
-        --print('SortFrames', source)
+        --ns.print('SortFrames', source)
 
         local firstFrame = mainframe
         local frameLevel = 10
@@ -1694,7 +1686,7 @@ do
 		
         if button == "LeftButton" then
             
-            print(self.f.name, self.f.rawID, self.f.spellID, self.f.cdType)
+            ns.print(self.f.name, self.f.rawID, self.f.spellID, self.f.cdType)
 
             local spellLink
 
@@ -2193,7 +2185,7 @@ do
         for i=1, #cooldowns do 
             if cooldowns[i].frame:IsMouseOver() then 
                 
-                --print(cooldowns[i].frame.name, cooldowns[i].frame.cdType, ns:GetAnonce(cooldowns[i].frame.name, cooldowns[i].frame.cdType))
+                --ns.print(cooldowns[i].frame.name, cooldowns[i].frame.cdType, ns:GetAnonce(cooldowns[i].frame.name, cooldowns[i].frame.cdType))
 
 				if ns:GetAnonce(cooldowns[i].frame.name, cooldowns[i].frame.cdType) then 
 					frames[#frames+1] = cooldowns[i].frame
@@ -2218,7 +2210,7 @@ do
 			end
 		
 		end
-	--	print("Total:"..#frames)
+	--	ns.print("Total:"..#frames)
 	end
 	
 	function ns.OnEnter(self)

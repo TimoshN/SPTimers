@@ -230,13 +230,13 @@ function ns:SetupClassOptions()
 					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, 0, spellName, icon, 0, spellName, srcName, nil, isplayer, eventType)
 				end
 				
-			--	print("T", eventType, active, nonactive, trapType, srcName, dstName, spellID, spellName)
+			--	ns.print("T", eventType, active, nonactive, trapType, srcName, dstName, spellID, spellName)
 			elseif eventType == 'SPELL_MISSED' then		
 				if nonactive then
 					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP")		
 				end
 			elseif eventType == "SPELL_AURA_APPLIED" or eventType == "SPELL_AURA_REFRESH" then				
-			--	print("T", eventType, trapType, srcName, dstName, spellID, spellName)				
+			--	ns.print("T", eventType, trapType, srcName, dstName, spellID, spellName)				
 				if active and spellID == 3355 then -- контроль на минуту каст 					
 					ns.Timer_Remove(NO_GUID, srcGUID, trapType, 1, "TRAP", true)						
 					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, dstGUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
@@ -251,7 +251,7 @@ function ns:SetupClassOptions()
 					ns.Timer(ns:GetTrapDuration(spellID, isplayer, true), nil, NO_GUID, srcGUID, spellID, 1, "TRAP", CLEU, dstFlags2, spellName, icon, 0, dstName, srcName, nil, isplayer, eventType)
 				end	
 			elseif eventType == "SPELL_AURA_REMOVED" then
-			--	print("T", eventType, trapType, srcName, dstName, spellID, spellName)
+			--	ns.print("T", eventType, trapType, srcName, dstName, spellID, spellName)
 				if active and spellID == 3355 then
 					ns.Timer_Remove(dstGUID, srcGUID, spellID, 1, "TRAP")							
 
