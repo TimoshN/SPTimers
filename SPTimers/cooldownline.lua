@@ -1875,7 +1875,7 @@ do
         f.button:SetScript("OnEnter", ns.OnEnter)			
         f.button:SetScript("OnLeave", ns.OnLeave)
         
-        f.border = CreateFrame("Frame", nil, f)
+        f.border = CreateFrame("Frame", nil, f, BackdropTemplateMixin and 'BackdropTemplate')
         f.border:SetFrameLevel(f:GetFrameLevel()-1)
         f.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
         f.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
@@ -1901,7 +1901,7 @@ do
         f.splashsmall:SetFrameStrata("HIGH")
         f.splashsmall:Hide()
         
-        f.splashsmall.border = CreateFrame("Frame", nil, f.splashsmall)		
+        f.splashsmall.border = CreateFrame("Frame", nil, f.splashsmall, BackdropTemplateMixin and 'BackdropTemplate')		
         f.splashsmall.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
         f.splashsmall.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
         f.splashsmall.border:SetBackdrop(icon_backdrop)
@@ -1921,7 +1921,7 @@ do
         f.splashbig:SetFrameStrata("LOW")
         f.splashbig:Hide()
         
-        f.splashbig.border = CreateFrame("Frame", nil, f.splashbig)
+        f.splashbig.border = CreateFrame("Frame", nil, f.splashbig, BackdropTemplateMixin and 'BackdropTemplate')
         f.splashbig.border:SetPoint("TOPLEFT",-db.icon_borderinset, db.icon_borderinset) -- Implemented 'insets'
         f.splashbig.border:SetPoint("BOTTOMRIGHT",db.icon_borderinset, -db.icon_borderinset) -- Implemented 'insets'
         f.splashbig.border:SetBackdrop(icon_backdrop)
