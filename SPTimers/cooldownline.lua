@@ -446,9 +446,10 @@ function UpdateSettings()
 		end
         
 		if db.hidepet then
-			eventFrame:UnregisterEvent("PET_BAR_UPDATE_COOLDOWN")
+            eventFrame:UnregisterEvent("PET_BAR_UPDATE_COOLDOWN")
+            ns:RemovePetCooldowns()
 		else
-			eventFrame:RegisterUnitEvent("PET_BAR_UPDATE_COOLDOWN")
+			eventFrame:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
 			ns:PET_BAR_UPDATE_COOLDOWN()
 		end
 	
@@ -794,7 +795,7 @@ eventFrame:SetScript('OnUpdate', function(self)
         end
     end
 
-    if ( self.checkPet ) then 
+    if ( not db.hidepet and self.checkPet ) then 
         if self.checkPet+0.05 < GetTime() then
             self.checkPet = nil
 
@@ -885,6 +886,12 @@ function ns:PET_BAR_UPDATE_COOLDOWN()
         eventFrame.checkPet = endTime
     end
 end
+
+function ns:RemovePetCooldowns()
+    for i = 1, 10, 1 do
+        ns.RemoveCooldown('PET:'..i)
+    end
+end 
 
 eventFrame.delayCDCheck = {}
 
