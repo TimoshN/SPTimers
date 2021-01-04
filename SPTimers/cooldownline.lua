@@ -581,13 +581,13 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
             local spellID = spellInfo.spellID
             local spellName = GetSpellInfo(spellID) 
 
-            --ns.print(spellID, spellName, ns:GetCooldown(spellName) )
+            --print(spellID, spellName, IsSpellKnown(spellID), IsPlayerSpell(spellID),'||', baseSpellID, GetSpellInfo(baseSpellID), IsSpellKnown(baseSpellID), IsPlayerSpell(baseSpellID))
 
             if not ns:GetCooldown(spellName) then 
 
                 local startTime, duration, charges, maxCharges, isGCD, gcdStartTime, gcdDuration = ns.GetSpellCooldown_New(spellID)
         
-                --ns.print( spellID, (GetSpellInfo(spellID)), startTime, duration, charges, maxCharges, isGCD)
+                --print( spellID, spellName, startTime, duration, charges, maxCharges, isGCD, baseSpellID)
 
                 if spellInfo.isOnCD and currentTime >= spellInfo.prevEndTime and ( maxCharges and charges == maxCharges or not maxCharges ) then
                     spellInfo.isOnCD = false 
@@ -627,9 +627,10 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
                     spellInfo.prevStacks = charges
                     spellInfo.prevEndTime = startTime+duration
 
-                    ns.AddCooldown(spellID, spellID, duration, startTime, nil, 'PLAYER_CD')
+                    ns.AddCooldown(spellID, spellID, duration, startTime, spellInfo.texture, 'PLAYER_CD')
                 elseif spellInfo.prevEndTime and currentTime >= spellInfo.prevEndTime then
-                    --ns.print('Something happens', spellID, (GetSpellInfo(spellID)))               
+                    --print('Something happens', spellID, (GetSpellInfo(spellID)), IsSpellKnown(spellID))  
+
                 end 
     
                 if ( spellInfo.isOnCD ) then 
@@ -661,10 +662,15 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
 
         spellID2 = tonumber(spellID2)
 
-        --ns.print(spellID1, GetSpellInfo(spellID1), spellID2, (GetSpellInfo(spellID2)) )
+        
+        -- print(spellID1, GetSpellInfo(spellID1), IsSpellKnown(spellID1), FindBaseSpellByID(spellID1), 
+        --     '||', 
+        --       spellID2, (GetSpellInfo(spellID2)), IsSpellKnown(spellID2), FindBaseSpellByID(spellID2))
      
 
         if (IsSpellKnown(spellID1) or IsSpellKnown(spellID2)) then
+
+        
             local baseSpell = FindBaseSpellByID(spellID1)
             local cd, gcd = GetSpellBaseCooldown(baseSpell)
             local cd1, gcd1 = GetSpellBaseCooldown(spellID1)
@@ -674,14 +680,16 @@ eventFrame:SetScript('OnEvent', function(self, event, ...)
                
                 --ns.CheckCooldown(spellID1, spellID2)
 
-                spellsForCDCheck[baseSpell] = spellsForCDCheck[baseSpell] or {
-                    isOnCD = false,
-                    prevStacks = -1,
-                    prevEndTime = -1,
-                    spellID = spellID1,
-                }
-
-                spellsForCDCheck[baseSpell].spellID = spellID1
+                if not spellsForCDCheck[spellID1] then
+                    spellsForCDCheck[spellID1] = {
+                        isOnCD = false,
+                        prevStacks = -1,
+                        prevEndTime = -1,
+                        spellID = spellID1,
+                        baseSpellID = baseSpell,
+                        texture = GetSpellTexture(spellID1)
+                    }
+                end
             else
                 local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(spellID1)
                 local spellCount = GetSpellCount(spellID1);
@@ -1502,7 +1510,7 @@ do
 
             frame.endTime = startTime+duration
 
-            frame._texturePath = ns:GetCustomCooldownTexture( (GetSpellInfo(spellID)) )  or ( spellID and GetSpellTexture(spellID) ) or texture
+            frame._texturePath = ns:GetCustomCooldownTexture( (GetSpellInfo(spellID)) )  or texture or ( spellID and GetSpellTexture(spellID) )
             frame.texture = frame._texturePath
             frame.icon:SetTexture(frame._texturePath)		
             frame.splashicon:SetTexture(frame._texturePath)

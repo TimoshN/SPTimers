@@ -7,6 +7,7 @@ local pingWorkAround = true
 
 local UnitChannelInfo = UnitChannelInfo
 local UnitCastingInfo = UnitCastingInfo
+local UnitSpellHaste = UnitSpellHaste
 
 if ( ns.isClassic ) then 
 	UnitChannelInfo = function(unit) 
@@ -20,7 +21,12 @@ if ( ns.isClassic ) then
 			return CastingInfo()
 		end
 	end
+
+	UnitSpellHaste = function(unit)
+		return 0
+	end
 end 
+
 
 local events = {
 	"UNIT_SPELLCAST_CHANNEL_START",
