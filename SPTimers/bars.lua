@@ -2216,6 +2216,9 @@ do
 	local sorting_functions = {
 		function(x,y)		-- 1 priority from lower to upper
 			if x[18] == y[18] then
+				if ( type(x[5]) ~= type(y[5]) ) then 
+					return false
+				end 
 				return x[5] > y[5]
 			else
 				return y[18] < x[18]
@@ -2223,6 +2226,9 @@ do
 		end,
 		function(x,y)		-- 2 endtime from upper to lower
 			if x[2] == y[2] then
+				if ( type(x[5]) ~= type(y[5]) ) then 
+					return false
+				end 
 				return x[5] < y[5]
 			end
 				
@@ -2230,6 +2236,9 @@ do
 		end,
 		function(x,y)		-- 3 endtime from lower to upper
 			if x[2] == y[2] then
+				if ( type(x[5]) ~= type(y[5]) ) then 
+					return false
+				end 
 				return x[5] > y[5]
 			else
 				return x[2] > y[2] 
@@ -2292,7 +2301,7 @@ do
 		SortBars('loop')
 	end)
 
-	local function GetAnchor(spellid, destGUID, auraType, func)
+	local function GetBarAnchor(spellid, destGUID, auraType, func)
 		local group = ns:GetGroup(spellid)
 		
 		if func == "TEST_BAR" then
@@ -2638,7 +2647,7 @@ do
 		
 			if data and CheckSpell(tag) then
 
-				local anchor, group, copy_to1, copy_to2, copy_to3 = GetAnchor(data[5], data[3], data[11], data[14])
+				local anchor, group, copy_to1, copy_to2, copy_to3 = GetBarAnchor(data[5], data[3], data[11], data[14])
 
 				if copy_to2 and anchor ~= copy_to2 then
 					anchors[copy_to2].group[group][#anchors[copy_to2].group[group]+1] = data

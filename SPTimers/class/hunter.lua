@@ -153,7 +153,7 @@ function ns:SetupClassOptions()
 			values = function()
 				local t = {}							
 				for k,v in ipairs(self.db.profile.bars_anchors) do						
-					t[k] = ""..k..""
+					t[k] = ""..v.name..""
 				end							
 				return t
 			end,

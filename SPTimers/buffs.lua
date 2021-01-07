@@ -703,6 +703,8 @@ function ns:GetAnchor(spellID, destGUID)
 	
 	if traptypes[spellID] then
 		return self.db.profile.hunterTraps[traptypes[spellID]].anchor or 1
+	elseif self.db.profile.hunterTraps[spellID] then 
+		return self.db.profile.hunterTraps[spellID].anchor or 1
 	end
 	
 	if destGUID == COOLDOWN_SPELL then
@@ -764,6 +766,12 @@ function ns:GetOffAnchor(spellID, destGUID)
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
 --	if self.db.profile.doswap then
+
+	if traptypes[spellID] then
+		return self.db.profile.hunterTraps[traptypes[spellID]].anchor or 1
+	elseif self.db.profile.hunterTraps[spellID] then 
+		return self.db.profile.hunterTraps[spellID].anchor or 1
+	end
 
 	if self.db.profile.classSpells[self.myCLASS][spellID] then
 		
@@ -846,8 +854,10 @@ function ns:GetPriority(spellID)
 	
 	spellID = IsGroupUpSpell(spellID) or spellID
 	
-	if traptypes[spellID] then	
+	if traptypes[spellID] then
 		return self.db.profile.hunterTraps[traptypes[spellID]].priority
+	elseif self.db.profile.hunterTraps[spellID] then 
+		return self.db.profile.hunterTraps[spellID].priority
 	end
 
 	if self.db.profile.classSpells[self.myCLASS][spellID] then
@@ -939,8 +949,10 @@ function ns:GetColor(spellID, func)
 	
 	if traptypes[spellID] then
 		return self.db.profile.hunterTraps[traptypes[spellID]].color
+	elseif self.db.profile.hunterTraps[spellID] then 
+		return self.db.profile.hunterTraps[spellID].color
 	end
-	
+
 	if self.db.profile.ignore_custom_color then return nil end
 	
 	if func == COOLDOWN_SPELL then
