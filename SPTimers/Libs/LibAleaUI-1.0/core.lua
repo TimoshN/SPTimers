@@ -1358,7 +1358,7 @@ do
 		f:SetPoint("TOP", UIParent, "TOP", 0, -50)
 		f:SetFrameStrata("TOOLTIP")
 		
-		f.bg = CreateFrame("Frame", nil, f)
+		f.bg = CreateFrame("Frame", nil, f, BackdropTemplateMixin and "BackdropTemplate")
 		f.bg:SetPoint("TOPLEFT", f, "TOPLEFT", -10, 10)
 		f.bg:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 10, -10)
 		f.bg:SetBackdrop({
