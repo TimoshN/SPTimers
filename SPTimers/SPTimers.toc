@@ -4,6 +4,7 @@
 ## VersionType: main
 ## X-Version-Status: release
 ## Author: Alea
+## License: All rights reserved. Do not redistribute, in whole or in part, without explicit prior permission from the author.
 ## Notes: 
 ## SavedVariables: SPTimersDB, SPTimersDB2, SPTimersICD_Cache, PSW_SVDB
 ## OptionalDeps: LibSharedMedia-3.0
